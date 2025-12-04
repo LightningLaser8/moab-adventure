@@ -161,6 +161,7 @@ Registry.blimps.add("support-moab", {
     width: 115,
     height: 75,
   },
+  hitSize: 37,
   // path1: "bfb",
   // path2: "ddt",
 });

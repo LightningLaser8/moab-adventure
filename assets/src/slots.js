@@ -8,7 +8,7 @@ const selector2 = {
   get(name) {
     let slot = Registry.slots.get(name);
     let option = this.option(name);
-    console.log("slot "+name+" is " + option);
+    // console.log("slot "+name+" is " + option);
     return slot.variations ? slot.variations[option] : slot;
   },
   ap(ap) {
@@ -26,7 +26,7 @@ const selector2 = {
 
   /**utility to set slot choices */
   chooseAP(ap, val) {
-    console.log("setting "+`ap${ap}-slot:${val}`)
+    // console.log("setting "+`ap${ap}-slot:${val}`)
     UIComponent.setCondition(`ap${ap}-slot:${val}`);
   },
 };

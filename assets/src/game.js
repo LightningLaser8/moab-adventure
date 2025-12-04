@@ -6,13 +6,18 @@ const game = {
   },
   set difficulty(_) {
     this._diff = _;
-    world.updateDifficulty();
     UIComponent.setCondition("difficulty:" + _);
+    world.updateDifficulty();
   },
   mode: "none",
   saveslot: -1,
-  //Control type
+  music: true,
+  /**@type {"keyboard"|"gamepad"} */
   control: "keyboard",
+  /**@type {"radial"|"horizontal"} */
+  reloadBarStyle: "radial",
+  /**@type {"mono"|"rainbow"|"thematic"} */
+  reloadBarTheme: "rainbow",
   /** @type {Entity | null} Player entity */
   player: null,
   /** @type {Entity | null} Support blimp entity */
@@ -164,7 +169,77 @@ function uiFrame() {
   drawUI();
   //Reset mouse held status
   if (ui.waitingForMouseUp && !mouseIsPressed) ui.waitingForMouseUp = false;
-  if (UIComponent.evaluateCondition("debug:true")) showMousePos();
+  if (UIComponent.evaluateCondition("debug:true")) debugUI();
+  else drawCursor(ui.mouse.x, ui.mouse.y);
+}
+
+function drawCursor(x, y) {
+  if (game.player)
+    drawReloadBars(
+      x,
+      y,
+      game.reloadBarTheme === "rainbow"
+        ? rainbowCols
+        : game.reloadBarTheme === "mono"
+        ? monoCols
+        : game.reloadBarTheme === "thematic"
+        ? game.player.weaponSlots.map((slot) => (slot.weapon ? slot.weapon.themeColour : null))
+        : null,
+      game.player.weaponSlots.map((slot) =>
+        slot.weapon ? slot.weapon._cooldown / slot.weapon.reload : 0
+      )
+    );
+
+  ImageCTX.draw(ui.waitingForMouseUp ? "ui.cursor-wait" : "ui.cursor", x, y, 64, 64);
+}
+
+function fakeCursor(x, y) {
+  drawReloadBars(
+    x,
+    y,
+    game.reloadBarTheme === "rainbow"
+      ? rainbowCols
+      : game.reloadBarTheme === "mono"
+      ? monoCols
+      : game.reloadBarTheme === "thematic"
+      ? [
+          [255, 0, 0],
+          [0, 255, 255],
+          [0, 255, 0],
+          [200, 0, 255],
+          [0, 0, 255],
+          [255, 128, 0],
+        ]
+      : null,
+    [0, 1, 2, 3, 4, 5].map((i) => 1 - ((frameCount + i * 10) % 60) / 60)
+  );
+
+  ImageCTX.draw("ui.cursor", x, y, 64, 64);
+}
+
+function drawReloadBars(x, y, cols = null, progresses = []) {
+  let size = 30;
+  push();
+  progresses.forEach((prog, index) => {
+    if (prog) {
+      if (game.reloadBarStyle === "radial") {
+        noFill();
+        stroke(cols[index] ?? [0, 0, 0]);
+        strokeWeight(3);
+        arc(x, y, size * 2, size * 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * prog);
+        size += 4;
+      } else if (game.reloadBarStyle === "horizontal") {
+        rectMode(CORNER);
+        noStroke();
+        fill(64);
+        rect(x + 30, y + size - 50, 60, 5);
+        fill(cols[index] ?? [255, 255, 255]);
+        rect(x + 30, y + size - 50, 60 * prog, 5);
+        size += 8;
+      }
+    }
+  });
+  pop();
 }
 
 function gameFrame() {
@@ -239,7 +314,48 @@ function tickUI() {
   ui.tick();
 }
 
-function showMousePos() {
+function colour(...params) {
+  fill(...params);
+  stroke(...params);
+}
+function labeledLine(x1, y1, x2, y2, label, align = "end") {
+  let d = Math.atan2(y2 - y1, x2 - x1);
+  let len = Math.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2);
+  let invert = Math.abs(d) > Math.PI / 2;
+  push();
+  if (align === "start") translate(x1, y1);
+  else if (align === "end") translate(x2, y2);
+  if (invert) rotate(d + Math.PI);
+  else rotate(d);
+  textAlign(LEFT);
+  textFont(fonts.ocr);
+  textSize(20);
+  let w = textWidth(label);
+  let xoffset = align === "start" ? (invert ? -w : 0) : invert ? 0 : w;
+  noStroke();
+  if (align === "end" && !invert) xoffset = -xoffset;
+  text(label, xoffset, 10);
+  pop();
+  line(x1, y1, x2, y2);
+}
+function labeledCircle(x, y, radius, label, align = "top") {
+  push();
+  textAlign(CENTER);
+  textFont(fonts.ocr);
+  textSize(20);
+  let w = textWidth(label);
+  let xoffset = align === "left" ? -5 - w / 2 - radius : align === "right" ? 5 + w / 2 + radius : 0;
+  let yoffset = align === "top" ? -15 - radius : align === "bottom" ? 15 + radius : 0;
+  noStroke();
+  text(label, x + xoffset, y + yoffset);
+  pop();
+  push();
+  noFill();
+  circle(x, y, radius * 2);
+  pop();
+}
+
+function debugUI() {
   push();
   textAlign(CENTER, CENTER);
   textFont(fonts.ocr);
@@ -247,15 +363,66 @@ function showMousePos() {
   stroke(0);
   strokeWeight(2);
   textSize(40);
-  let mpos = nearestOnScreenPosition(ui.mouse, 60);
   text("X:" + Math.round(ui.mouse.x) + " Y:" + Math.round(ui.mouse.y), ui.mouse.x, ui.mouse.y - 50);
   stroke(255);
-  strokeWeight(2);
+  strokeWeight(3);
   line(ui.mouse.x - 20, ui.mouse.y, ui.mouse.x + 20, ui.mouse.y);
   line(ui.mouse.x, ui.mouse.y - 20, ui.mouse.x, ui.mouse.y + 20);
+  noFill();
+  circle(ui.mouse.x, ui.mouse.y, 40);
 
-  line(ui.mouse.x, ui.mouse.y, mpos.x, mpos.y);
-  circle(mpos.x, mpos.y, 10);
+  colour(255, 0, 0);
+  if (world.entities) {
+    let dist = Infinity,
+      min = null;
+    world.entities.forEach((ent) => {
+      if (!ent || ent.dead || ent.team === game.player.team) return;
+      let d = ent.lastPos.distanceTo(ui.mouse);
+      if (d < dist) {
+        dist = d;
+        min = ent;
+      }
+    });
+
+    if (min) labeledLine(ui.mouse.x, ui.mouse.y, min.x, min.y, "hovered   ");
+  }
+  push();
+  stroke(255, 0, 255);
+  noFill();
+  if (world.entities) world.entities.forEach((ent) => ent && circle(ent.x, ent.y, ent.hitSize * 2));
+  stroke(128, 0, 255);
+  if (world.bullets) world.bullets.forEach((blt) => blt && circle(blt.x, blt.y, blt.hitSize * 2));
+  stroke(0, 128, 255);
+  if (world.bullets)
+    world.bullets.forEach(
+      (blt) =>
+        blt &&
+        line(blt.x, blt.y, blt.x + Math.cos(blt.directionRad) * 60 * blt.updates, blt.y) |
+          line(blt.x, blt.y, blt.x, blt.y + Math.sin(blt.directionRad) * 60 * blt.updates) |
+          line(
+            blt.x,
+            blt.y,
+            blt.x + Math.cos(blt.directionRad) * 60 * blt.updates,
+            blt.y + Math.sin(blt.directionRad) * 60 * blt.updates
+          )
+    );
+  pop();
+  if (game.player) {
+    colour(0, 255, 255);
+    labeledCircle(game.player.x, game.player.y, game.player.hitSize * 1.75, "base shield size");
+
+    colour(0, 255, 0);
+    labeledLine(game.player.x, game.player.y, ui.mouse.x, ui.mouse.y, "direct aim  ");
+    colour(255, 255, 0);
+    labeledLine(
+      ui.mouse.x,
+      ui.mouse.y,
+      (ui.mouse.x - game.player.x) * 2000 + game.player.x,
+      (ui.mouse.y - game.player.y) * 2000 + game.player.y,
+      "  extrapolated aim",
+      "start"
+    );
+  }
   pop();
 }
 
@@ -316,7 +483,7 @@ function showOffscreenBosses() {
         size.x > size.y
           ? new Vector(110, (size.y * 110) / size.x)
           : new Vector((size.x * 110) / size.y, 110);
-      rotatedImg(
+      ImageCTX.draw(
         boss.drawer.image,
         circlepos.x,
         circlepos.y,
@@ -448,16 +615,17 @@ function reset() {
   game.maxDV = 0;
   game.totalBosses = 0;
 
-  for (let slot of game.player.weaponSlots) {
-    slot.clear(); //Remove any weapons
-  }
+  // for (let slot of game.player.weaponSlots) {
+  //   slot.clear(); //Remove any weapons
+  // }
   //back to start
   moveToWorld("ocean-skies");
 
   // Reset some UI
   UIComponent.setCondition("boss:no");
 
-  //garbage collect player
+  //garbage collect player and support
+  game.support = null;
   game.player = null;
 }
 

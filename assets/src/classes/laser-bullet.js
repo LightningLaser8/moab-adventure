@@ -64,7 +64,7 @@ class LaserBullet extends Bullet {
       y: (Math.sin(this.directionRad) * drawnLength) / 2,
     };
     if (this.drawer.image) {
-      rotatedImg(
+      ImageCTX.draw(
         this.drawer.image,
         this.x + offset.x, //Sort of centre the laser
         this.y + offset.y,

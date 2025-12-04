@@ -37,8 +37,8 @@ createUIImageComponent(
   [],
   230,
   400,
-  60,
-  48,
+  120,
+  96,
   null,
   "ui.shield-projector",
   false

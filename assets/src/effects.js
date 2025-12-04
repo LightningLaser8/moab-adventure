@@ -80,9 +80,10 @@ function splashDamageInstance(
   }
   for (let e of world.entities) {
     if (
+      e.collides &&
+      e.team !== sourceEntity.team &&
       ((centreX - e.x) ** 2 + (centreY - e.y) ** 2) ** 0.5 <=
-        damageRadius + e.hitSize &&
-      e.team !== sourceEntity.team
+        damageRadius + e.hitSize 
     ) {
       e.damage(
         damageType,

@@ -15,6 +15,9 @@ Registry.images.add("blimp.vortex", { path: "assets/textures/entity/vortex.svg"}
 Registry.images.add("background.sea", { path: "assets/textures/background/sea.png"});
 Registry.images.add("background.conveyor", { path: "assets/textures/background/conveyor.png"});
 //UI images
+Registry.images.add("ui.cursor", { path: "assets/textures/ui/cursor.svg"});
+Registry.images.add("ui.cursor-wait", { path: "assets/textures/ui/cursor-click.svg"});
+
 Registry.images.add("ui.background", { path: "assets/textures/ui/background.png"});
 Registry.images.add("ui.moab", { path: "assets/textures/ui/moab.png"});
 Registry.images.add("ui.shard", { path: "assets/textures/ui/shard.svg"});

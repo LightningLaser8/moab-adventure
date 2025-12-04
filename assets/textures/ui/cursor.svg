@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg version="1.1" width="447.84637" height="446.69403" viewBox="0 0 44.784637 44.669402" id="svg11" sodipodi:docname="cursor_select.svg" inkscape:version="1.4 (86a8ad7, 2024-10-11)" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+  <defs id="defs11" />
+  <sodipodi:namedview id="namedview11" pagecolor="#505050" bordercolor="#eeeeee" borderopacity="1" inkscape:showpageshadow="0" inkscape:pageopacity="0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#505050" inkscape:zoom="16.722853" inkscape:cx="22.364605" inkscape:cy="22.334705" inkscape:window-width="1920" inkscape:window-height="986" inkscape:window-x="-11" inkscape:window-y="-11" inkscape:window-maximized="1" inkscape:current-layer="svg11" />
+  <g transform="translate(-217.67256,-157.78781)" id="g11">
+    <g fill="none" fill-rule="nonzero" stroke="#ffffff" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="none" stroke-dashoffset="0" id="g10">
+      <path d="m 230.60399,170.604 c 5.18929,-5.18929 13.60278,-5.18929 18.79207,0 5.18929,5.18929 5.18929,13.60278 0,18.79207 -5.18929,5.18929 -13.60278,5.18929 -18.79207,0 -5.18929,-5.18929 -5.18929,-13.60278 0,-18.79207 z" stroke-width="4.5" stroke-linecap="butt" id="path1" />
+      <g stroke-width="3.5" stroke-linecap="round" id="g3">
+        <path d="m 229.50075,172.42207 -5.76626,-8.67543 8.87466,5.68166" id="path2" />
+        <path d="m 250.44198,187.5206 5.68166,8.87467 -8.67544,-5.76628" id="path3" />
+      </g>
+      <g stroke-width="3.5" stroke-linecap="round" id="g5">
+        <path d="m 232.42208,190.49927 -8.67543,5.76626 5.68167,-8.87466" id="path4" />
+        <path d="m 247.52062,169.55803 8.87466,-5.68165 -5.76626,8.67543" id="path5" />
+      </g>
+      <g stroke-width="3" stroke-linecap="round" id="g7">
+        <path d="m 232.70755,168.82201 1.75935,5.79588 -5.58672,-1.909" id="path6" />
+        <path d="m 247.26273,191.14824 -1.909,-5.58672 5.79588,1.75935" id="path7" />
+      </g>
+      <g stroke-width="3" stroke-linecap="round" id="g9">
+        <path d="m 228.82202,187.29246 5.79588,-1.75935 -1.909,5.58672" id="path8" />
+        <path d="m 251.14825,172.73728 -5.58672,1.909 1.75934,-5.79587" id="path9" />
+      </g>
+    </g>
+  </g>
+</svg>
+<!--rotationCenter:22.327451499220615:22.212195538547974-->
+

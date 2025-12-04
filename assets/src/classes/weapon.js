@@ -39,6 +39,7 @@ class Weapon {
   recoil = 0;
   rotate = true;
   maxRotation = -1;
+  themeColour = [100, 100, 100];
   constructor() {}
   get rotationRadians() {
     return (this.rotation / 180) * Math.PI;
@@ -67,10 +68,10 @@ class Weapon {
       this.x = this.slot.entity.x + this.slot.posX;
       this.y = this.slot.entity.y + this.slot.posY;
       if (this.rotate) {
-        this.rotation = new Vector(
-          this.slot.entity.target.x,
-          this.slot.entity.target.y
-        ).subXY(this.x, this.y).angle;
+        this.rotation = new Vector(this.slot.entity.target.x, this.slot.entity.target.y).subXY(
+          this.x,
+          this.y
+        ).angle;
         //If there is a rotation confinement
         if (this.maxRotation >= 0) {
           if (this.rotation > this.maxRotation + this.slot.entity.direction)
@@ -89,8 +90,7 @@ class Weapon {
     this.parts.forEach((x) => x.tick()); //Tick all parts
   }
   getAcceleratedReloadRate() {
-    if (this.#acceleration <= -1 || this.#acceleration > this.maxAccel)
-      return this.reload; //If bad acceleration then ignore it
+    if (this.#acceleration <= -1 || this.#acceleration > this.maxAccel) return this.reload; //If bad acceleration then ignore it
     return this.reload / (1 + this.#acceleration); //2 acceleration = 200% fire rate increase = 3x fire rate
   }
   accelerate() {
@@ -122,7 +122,7 @@ class Weapon {
       this._cooldown = this.getAcceleratedReloadRate();
       this.accelerate(); //Apply acceleration effects
 
-      if(this.recoil) this.slot.entity.knock(this.recoil, this.rotation + 180);
+      if (this.recoil) this.slot.entity.knock(this.recoil, this.rotation + 180);
 
       patternedBulletExpulsion(
         this.x,

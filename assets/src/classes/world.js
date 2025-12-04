@@ -52,7 +52,7 @@ class World {
     if (this.ambientSound && Math.random() < this.ambienceChance) {
       SoundCTX.play(this.ambientSound);
     }
-    SoundCTX.play(this.bgm, true);
+    if(game.music) SoundCTX.play(this.bgm, true);
   }
   #actualTick() {
     //Tick *everything*

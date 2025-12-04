@@ -7,6 +7,7 @@ class Booster extends Weapon {
   trailBullet = null;
 
   directions = 1;
+  themeColour = [255, 128, 0];
   init() {
     super.init();
     delete this.shoot;
@@ -39,11 +40,7 @@ class Booster extends Weapon {
 
       Timer.main.repeat(
         () => {
-          this.slot.entity.knock(
-            this.boostPower,
-            this.rotation,
-            this.knockOthers
-          );
+          this.slot.entity.knock(this.boostPower, this.rotation, this.knockOthers);
 
           this.slot.entity.world.particles.push(
             new AfterImageParticle(

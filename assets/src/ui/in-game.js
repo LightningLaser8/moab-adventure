@@ -33,6 +33,15 @@ createUIImageComponent(["in-game"], [], 40, 60, 75, 75, null, "ui.shard", false)
 //Overwrite text
 UIComponent.alignLeft(
   Object.defineProperty(
+    createUIComponent(["in-game"], ["debug:true"], 80, 30, 0, 0, "none", null, "shards", true, 20),
+    "text",
+    {
+      get: () => "" + game.shards,
+    }
+  )
+);
+UIComponent.alignLeft(
+  Object.defineProperty(
     createUIComponent(["in-game"], [], 80, 60, 0, 0, "none", null, "shards", true, 60),
     "text",
     {
@@ -43,6 +52,27 @@ UIComponent.alignLeft(
 //Bloonstones
 createUIImageComponent(["in-game"], [], 330, 60, 75, 75, null, "ui.bloonstone", false);
 //Overwrite text
+UIComponent.alignLeft(
+  Object.defineProperty(
+    createUIComponent(
+      ["in-game"],
+      ["debug:true"],
+      370,
+      30,
+      0,
+      0,
+      "none",
+      null,
+      "bloonstones",
+      true,
+      20
+    ),
+    "text",
+    {
+      get: () => "" + game.bloonstones,
+    }
+  )
+);
 UIComponent.alignLeft(
   Object.defineProperty(
     createUIComponent(["in-game"], [], 370, 60, 0, 0, "none", null, "bloonstones", true, 60),

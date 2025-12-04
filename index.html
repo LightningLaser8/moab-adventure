@@ -17,7 +17,7 @@
     //Disable p5's errors, they don't really help
     p5.disableFriendlyErrors = true;
     //Game info
-    const gameVersion = "0.0.115";
+    const gameVersion = "0.0.116";
     const isPreview = true;
     const CURRENT_SAVE_FORMAT_VERSION = 1;
     let versionReplacementText = "";
@@ -93,10 +93,12 @@
   <script src="./assets/src/registries/difficulty.js"></script>
   <!-- User interface -->
   <script src="./assets/src/ui/title.js"></script>
+  <script src="./assets/src/ui/options.js"></script>
+  <script src="./assets/src/ui/options-ui.js"></script>
+  <script src="./assets/src/ui/options-sound.js"></script>
   <script src="./assets/src/ui/start.js"></script>
   <script src="./assets/src/ui/new-game.js"></script>
   <script src="./assets/src/ui/load-game.js"></script>
-  <script src="./assets/src/ui/options.js"></script>
   <script src="./assets/src/ui/weapon-slots.js"></script>
   <script src="./assets/src/ui/in-game.js"></script>
   <script src="./assets/src/ui/you-died.js"></script>
@@ -113,6 +115,9 @@
   <script src="./assets/src/controls/ui-hotkeys.js"></script>
   <script src="./assets/src/controls/game-controls.js"></script>
   <script src="./assets/src/controls/game-hotkeys.js"></script>
+  <script>
+    reloadCachedOptions();
+  </script>
 </body>
 
 </html>

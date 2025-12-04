@@ -33,6 +33,7 @@ class UserInterfaceController {
     music: 100,
     weapons: 100,
     entities: 100,
+    other: 100,
   };
   //particle
   particles = [];
@@ -55,6 +56,13 @@ class UserInterfaceController {
       }
     }
     this.keybinds.tick();
+  }
+  revaluate(text) {
+    return text
+      .replaceAll(/\{\{[^\{\}]*\}\}/g, (m) => getKeyDesc(m.substring(2, m.length - 2)))
+      .replaceAll(/\[\[[^\[\]]*\]\]/g, (m) =>
+        UIComponent.getCondition(m.substring(2, m.length - 2))
+      );
   }
 }
 
@@ -312,11 +320,7 @@ class UIComponent {
     fill(this.textColour);
     textAlign(CENTER, CENTER);
     textSize(this.textSize);
-    text(
-      this.text.replaceAll(/\{\{[^\{\}]*\}\}/g, (m) => getKeyDesc(m.substring(2, m.length - 2))),
-      this.x,
-      this.y
-    );
+    text(ui.revaluate(this.text), this.x, this.y);
     pop();
   }
   checkMouse() {
@@ -348,6 +352,18 @@ class UIComponent {
 
 function getKeyDesc(naem) {
   return ui.keybinds.describe(naem) ?? game.keybinds.describe(naem) ?? "None";
+}
+
+class CustomDrawerComponent extends UIComponent {
+  drawer;
+  constructor(x = 0, y = 0, width = 1, height = 1, draw = (x, y) => {}, onpress = () => {}) {
+    //Initialise component
+    super(x, y, width, height, "none", onpress);
+    this.drawer = draw;
+  }
+  draw() {
+    this.drawer(this.x, this.y);
+  }
 }
 
 class ImageUIComponent extends UIComponent {
@@ -637,7 +653,6 @@ function createHealthbarComponent(
   return component;
 }
 
-
 function rotatedShape(shape = "circle", x, y, width, height, angle) {
   push(); //Save current position, rotation, etc
   translate(x, y); //Move middle to 0,0
@@ -729,7 +744,9 @@ class SliderUIComponent extends UIComponent {
     //Draw full bit
     rect(minX + w / 2 - this.height / 2, this.y, w, this.height / 2);
     //Draw the title bit
+    this.x += 25;
     super.draw();
+    this.x -= 25;
     pop();
   }
   checkMouse() {
@@ -786,6 +803,33 @@ function createUIComponent(
     shownText,
     useOCR,
     shownTextSize
+  );
+  component.conditions = conditions;
+  //Set conditional things
+  component.isInteractive = !!onpress;
+  //Add to game
+  ui.addTo(component, ...screens);
+  return component;
+}
+
+function createCustomUIComponent(
+  screens = [],
+  conditions = [],
+  x = 0,
+  y = 0,
+  width = 1,
+  height = 1,
+  draw = null,
+  onpress = null
+) {
+  //Make component
+  const component = new CustomDrawerComponent(
+    x,
+    y,
+    width,
+    height,
+    draw ?? (() => {}),
+    onpress ?? (() => {})
   );
   component.conditions = conditions;
   //Set conditional things
@@ -862,28 +906,30 @@ function createGamePropertySelector(
   height = 1,
   property = "",
   options = [""],
+  /**@deprecated */
   defaultOption = null,
   shownTexts = [""],
   shownTextSize = 50,
   onchange = (value) => {},
   selectionColour = [255, 255, 0]
 ) {
+  let display = property.split(/(?=[A-Z]+)/).join(" ");
   //Create display name
   createUIComponent(
     screens,
     conditions,
-    x + property.length * shownTextSize * 0.375 + 50,
+    x + display.length * shownTextSize * 0.375 + 50,
     y - 65,
     0,
     0,
     "none",
     undefined,
-    property,
+    display,
     false,
     shownTextSize * 0.8
   );
   //Create indicator
-  let diffindicator = createUIComponent(
+  createUIComponent(
     screens,
     conditions,
     x + bufferWidth / 2,
@@ -896,7 +942,6 @@ function createGamePropertySelector(
     false,
     shownTextSize
   );
-  diffindicator.chosen = defaultOption in options ? options[defaultOption] : null;
   let len = Math.min(options.length, shownTexts.length); //Get smallest array, don't use blanks
   for (let i = 0; i < len; i++) {
     //For each option or text
@@ -911,7 +956,6 @@ function createGamePropertySelector(
       "both",
       () => {
         game[property] = options[i]; //Set the property
-        diffindicator.chosen = options[i];
         onchange(options[i]);
       },
       shownTexts[i],

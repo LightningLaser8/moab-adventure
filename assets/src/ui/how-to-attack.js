@@ -110,7 +110,7 @@ createUIComponent(
   24
 );
 createUIImageComponent(["how-to-attack"], [], 1050, 450, 80, 80, null, "ui.shard", false);
-createUIImageComponent(["how-to-attack"], [], 1050, 550, 60, 80, null, "ui.bloonstone", false);
+createUIImageComponent(["how-to-attack"], [], 1050, 550, 80, 80, null, "ui.bloonstone", false);
 
 createUIComponent(
   ["how-to-attack"],
@@ -189,7 +189,7 @@ repeat(5, () => {
     [],
     1675 + Math.cos(a) * d,
     850 + Math.sin(a) * d,
-    60,
+    75,
     75,
     null,
     "ui.bloonstone",
