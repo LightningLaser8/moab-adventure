@@ -124,6 +124,7 @@ function setup() {
     rectMode(CENTER);
     imageMode(CENTER);
     textFont(fonts.darktech);
+    canvas.addEventListener("contextmenu", (ev) => {ev.stopPropagation(); ev.preventDefault()})
   } catch (e) {
     crash(e);
   }

@@ -20,7 +20,7 @@ createUIComponent(
   ["start-menu"],
   [],
   570,
-  222,
+  220,
   200,
   50,
   "none",
@@ -37,22 +37,7 @@ createUIComponent(
   ["start-menu"],
   [],
   960,
-  700,
-  400,
-  80,
-  "none",
-  () => {
-    ui.menuState = "options";
-  },
-  "Options",
-  true,
-  65
-);
-createUIComponent(
-  ["start-menu"],
-  [],
-  960,
-  400,
+  350,
   400,
   80,
   "none",
@@ -67,7 +52,7 @@ createUIComponent(
   ["start-menu"],
   [],
   960,
-  550,
+  500,
   400,
   80,
   "none",
@@ -78,41 +63,75 @@ createUIComponent(
   true,
   60
 );
-
-//    Start sub-menus
 createUIComponent(
-  ["new-game", "weapon-slots"],
+  ["start-menu"],
   [],
   960,
-  540,
-  1500,
-  900
-);
-createUIComponent(
-  ["new-game"],
-  [],
-  960,
-  120,
-  1500,
-  75,
-  "none",
-  undefined,
-  "Create Game",
-  false,
-  50
-);
-createUIComponent(
-  ["new-game"],
-  [],
-  320,
-  122,
-  200,
-  50,
+  650,
+  400,
+  80,
   "none",
   () => {
-    ui.menuState = "start-menu";
+    ui.menuState = "options";
   },
-  "*< Back",
-  false,
-  30
-).isBackButton = true;
+  "Options",
+  true,
+  65
+);
+const integrateTheme = [39, 116, 239],
+  integrateBg = [9, 28, 60];
+function integrate(component) {
+  component.baseOutlineColour = integrateTheme;
+  component.outlineColour = integrateTheme;
+  component.backgroundColour = integrateBg;
+  component.textColour = integrateTheme;
+  if (component instanceof ModularListComponent) component.parts.forEach((x) => integrate(x)); // really only matters immediately
+  return component;
+}
+
+  createUIComponent(
+    ["start-menu"],
+    [],
+    960,
+    800,
+    0,
+    0,
+    "none",
+    null,
+    "Mods",
+    true,
+    65
+  );
+    createUIComponent(
+    ["start-menu"],
+    [],
+    960,
+    840,
+    0,
+    0,
+    "none",
+    null,
+    "Coming Soon",
+    true,
+    25
+  );
+
+
+// integrate(
+//   createUIComponent(
+//     ["start-menu"],
+//     [],
+//     960,
+//     800,
+//     400,
+//     80,
+//     "none",
+//     () => {
+//       ui.menuState = "mods";
+//     },
+//     "* Mods",
+//     true,
+//     65
+//   )
+// );
+// createUIImageComponent(["start-menu"], [], 800, 800, 60, 60, null, "ui.integrate", false);

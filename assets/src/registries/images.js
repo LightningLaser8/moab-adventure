@@ -18,12 +18,15 @@ Registry.images.add("background.conveyor", { path: "assets/textures/background/c
 Registry.images.add("ui.cursor", { path: "assets/textures/ui/cursor.svg"});
 Registry.images.add("ui.cursor-wait", { path: "assets/textures/ui/cursor-click.svg"});
 
+Registry.images.add("ui.title", { path: "assets/textures/screens/title.png"});
 Registry.images.add("ui.background", { path: "assets/textures/ui/background.png"});
-Registry.images.add("ui.moab", { path: "assets/textures/ui/moab.png"});
+Registry.images.add("ui.clock", { path: "assets/textures/ui/clock.png"});
 Registry.images.add("ui.shard", { path: "assets/textures/ui/shard.svg"});
 Registry.images.add("ui.bloonstone", { path: "assets/textures/ui/bloonstone.png"});
-Registry.images.add("ui.clock", { path: "assets/textures/ui/clock.png"});
-Registry.images.add("ui.title", { path: "assets/textures/screens/title.png"});
+
+Registry.images.add("ui.integrate", { path: "assets/textures/ui/integrate.png"});
+
+Registry.images.add("ui.moab", { path: "assets/textures/ui/moab.png"});
 Registry.images.add("ui.movement", { path: "assets/textures/ui/move-indicator.png"});
 Registry.images.add("ui.4-move", { path: "assets/textures/ui/4-move-indicator.png"});
 Registry.images.add("ui.shoot", { path: "assets/textures/ui/shoot-indicator.png"});

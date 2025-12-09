@@ -16,7 +16,7 @@ createUIComponent(
   ["options.ui"],
   [],
   320,
-  122,
+  120,
   200,
   50,
   "none",

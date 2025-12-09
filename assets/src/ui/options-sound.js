@@ -16,7 +16,7 @@ createUIComponent(
   ["options.sound"],
   [],
   320,
-  122,
+  120,
   200,
   50,
   "none",

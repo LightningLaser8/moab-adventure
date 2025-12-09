@@ -138,6 +138,8 @@ class UIComponent {
   active = false;
   inverted = false;
   outline = true;
+  outlineColour = null;
+  baseOutlineColour = null;
   backgroundColour = null;
   textColour = 0;
   updateActivity() {
@@ -179,7 +181,8 @@ class UIComponent {
     this.y = y;
     this.width = width;
     this.height = height;
-    this.outlineColour = [50, 50, 50];
+    this.baseOutlineColour = [50, 50, 50];
+    this.outlineColour = this.baseOutlineColour;
     this.emphasisColour = [255, 255, 0];
     this.emphasised = false;
     this.ocr = useOCR;
@@ -314,8 +317,8 @@ class UIComponent {
     noStroke();
     textFont(this.ocr ? fonts.ocr : fonts.darktech);
     if (this.ocr) {
-      stroke(0);
-      strokeWeight(this.textSize / 15);
+      stroke(this.textColour);
+      strokeWeight(this.textSize / 20);
     }
     fill(this.textColour);
     textAlign(CENTER, CENTER);
@@ -345,7 +348,7 @@ class UIComponent {
         this.outlineColour = [0, 128, 128];
       }
     } else {
-      this.outlineColour = [50, 50, 50];
+      this.outlineColour = this.baseOutlineColour;
     }
   }
 }
@@ -1225,4 +1228,213 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       0
     )
   );
+}
+
+class ModularListComponent extends UIComponent {
+  /**@type {ListEntry[]} */
+  parts = [];
+  heightOffset = 0;
+  interactive = true;
+  isInteractive = true;
+  constructor(x = 0, y = 0, width = 1, height = 1, bevel = "none", components = []) {
+    //Initialise component
+    super(x, y, width, height, bevel, null);
+    this.parts = components;
+  }
+  draw() {
+    super.draw();
+    let off = this.heightOffset;
+    push();
+    clip(() => {
+      rect(this.x, this.y, this.width, this.height);
+    });
+    this.parts.forEach((v, i) => {
+      if (off >= -v.height && off < this.height) {
+        v.draw(
+          this.x,
+          this.y - this.height / 2 + v.height / 2 + off + 20,
+          this.width * 0.9,
+          this.backgroundColour,
+          this.textColour
+        );
+      }
+      off += v.height + 30;
+    });
+    pop();
+  }
+  checkMouse() {
+    if (
+      ui.mouse.x < this.x + this.width / 2 &&
+      ui.mouse.x > this.x - this.width / 2 &&
+      ui.mouse.y < this.y + this.height / 2 &&
+      ui.mouse.y > this.y - this.height / 2
+    ) {
+      let off = this.heightOffset;
+      this.parts.forEach((v, i) => {
+        if (off >= -v.height && off < this.height) {
+          v.checkMouse(
+            this,
+            i,
+            this.x,
+            this.y - this.height / 2 + v.height / 2 + off + 20,
+            this.width * 0.9,
+            this.baseOutlineColour
+          );
+        }
+        off += v.height + 30;
+      });
+    }
+  }
+  scroll(d) {
+    if (
+      ui.mouse.x < this.x + this.width / 2 &&
+      ui.mouse.x > this.x - this.width / 2 &&
+      ui.mouse.y < this.y + this.height / 2 &&
+      ui.mouse.y > this.y - this.height / 2
+    ) {
+      // console.log(d, this.heightOffset);
+      if (d > 0) {
+        if (
+          this.heightOffset >=
+          Math.min(0, this.height - this.parts.reduce((p, c) => p + c.height + 30, 0))+d
+        )
+          this.heightOffset -= d;
+      } else if (this.heightOffset <= d) this.heightOffset -= d;
+    }
+  }
+}
+
+window.mouseWheel = (ev) => {
+  ui.components.forEach((c) => c instanceof ModularListComponent && c.scroll(ev.delta / 5));
+};
+
+class ListEntry {
+  #cacheWidth = 0;
+  #cacheText = "";
+  outlineColour = [50, 50, 50];
+  height = 0;
+  constructor(
+    text = "",
+    onpress = (list, self, index) => {},
+    useOCR = true,
+    textSize = 20
+  ) {
+    this.text = text;
+    this.ocr = useOCR;
+    this.textSize = textSize;
+    this.onpress = onpress;
+  }
+  draw(x, y, width, backgroundColour, textColour) {
+    if (this.#cacheWidth !== width) {
+      this.#cacheWidth = width;
+      let processed;
+      if (!this.text.startsWith("*")) {
+        let c = 1;
+        if (width > 0) {
+          textFont(this.ocr ? fonts.ocr : fonts.darktech);
+          textSize(this.textSize);
+          let singleCharWidth = textWidth("-");
+          // console.log(
+          //   `test char width: ${singleCharWidth} (charsize ${this.textSize}, font ${
+          //     this.ocr ? "ocr" : "darktech"
+          //   })`
+          // );
+          while (singleCharWidth * c <= width) c++;
+          // console.log(`${c} max chars for width ${this.width}`);
+        } else c = 100001;
+        c -= 2;
+        processed = wrapWords(this.text, c);
+        // console.log(`raw:\n${this.text}\nprocessed text:\n${processed}`);
+      } else processed = this.text.substring(1);
+      this.#cacheText = processed;
+      this.height = (this.#cacheText.split("\n").length + 1) * this.textSize + 20;
+      // console.log(this.height)
+    }
+    push();
+    noStroke();
+    if (this.height > 0) {
+      if (this.outlineColour) {
+        fill(...this.outlineColour);
+        push();
+        //Draw outline behind background
+        rect(x, y, width + 16, this.height + 18);
+        pop();
+      }
+      push();
+      //Draw BG
+      if (backgroundColour) {
+        fill(...backgroundColour);
+        rect(x, y, width - 2, this.height - 2);
+      } else {
+        ImageCTX.draw(
+          "ui.background",
+          x,
+          y,
+          width - 2,
+          this.height - 2,
+          0,
+          0,
+          0,
+          width - 2,
+          this.height - 2
+        );
+      }
+      pop();
+    }
+    //Draw optional text
+    noStroke();
+    textFont(this.ocr ? fonts.ocr : fonts.darktech);
+    if (this.ocr) {
+      stroke(textColour);
+      strokeWeight(this.textSize / 20);
+    }
+    fill(textColour);
+    textAlign(CENTER, CENTER);
+    textSize(this.textSize);
+    text(ui.revaluate(this.#cacheText), x, y);
+    pop();
+  }
+  checkMouse(list, idx, x, y, width, baseOutlineColour) {
+    // If the mouse is colliding with the button
+    if (
+      ui.mouse.x < x + width / 2 &&
+      ui.mouse.x > x - width / 2 &&
+      ui.mouse.y < y + this.height / 2 &&
+      ui.mouse.y > y - this.height / 2
+    ) {
+      //And mouse is down
+      if (mouseIsPressed) {
+        this.outlineColour = [0, 255, 255];
+        //And the UI isn't waiting
+        if (!ui.waitingForMouseUp) {
+          //Click
+          this.onpress(list, this, idx);
+          //And make the UI wait
+          ui.waitingForMouseUp = true;
+        }
+      } else {
+        this.outlineColour = [0, 128, 128];
+      }
+    } else {
+      this.outlineColour = baseOutlineColour;
+    }
+  }
+}
+
+function createListComponent(
+  screens = [],
+  conditions = [],
+  x = 0,
+  y = 0,
+  width = 1,
+  height = 1,
+  bevel = "none",
+  components = []
+) {
+  //Make component
+  const component = new ModularListComponent(x, y, width, height, bevel, components);
+  component.conditions = conditions;
+  //Add to game
+  ui.addTo(component, ...screens);
+  return component;
 }

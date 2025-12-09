@@ -1,4 +1,6 @@
 //    Weapon Slot menu 'weapon-slots'
+
+createUIComponent(["weapon-slots"], [], 960, 540, 1500, 900);
 createUIComponent(
   ["weapon-slots"],
   [],
@@ -16,7 +18,7 @@ createUIComponent(
   ["weapon-slots"],
   [],
   320,
-  122,
+  120,
   200,
   50,
   "none",
@@ -27,17 +29,7 @@ createUIComponent(
   false,
   30
 ).isBackButton = true;
-createUIImageComponent(
-  ["weapon-slots"],
-  [],
-  500,
-  540,
-  400,
-  400,
-  null,
-  "ui.moab",
-  false
-);
+createUIImageComponent(["weapon-slots"], [], 500, 540, 400, 400, null, "ui.moab", false);
 createUIComponent(
   ["weapon-slots"],
   [],

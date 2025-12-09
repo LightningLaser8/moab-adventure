@@ -1,4 +1,33 @@
 //    New Game Menu 'new-game'
+createUIComponent(["new-game"], [], 960, 540, 1500, 900);
+createUIComponent(
+  ["new-game"],
+  [],
+  960,
+  120,
+  1500,
+  75,
+  "none",
+  undefined,
+  "Create Game",
+  false,
+  50
+);
+createUIComponent(
+  ["new-game"],
+  [],
+  320,
+  120,
+  200,
+  50,
+  "none",
+  () => {
+    ui.menuState = "start-menu";
+  },
+  "*< Back",
+  false,
+  30
+).isBackButton = true;
 UIComponent.setCondition("difficulty:none");
 //Difficulty selector
 createGamePropertySelector(

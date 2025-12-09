@@ -19,7 +19,7 @@ createUIComponent(
   ["load-game"],
   [],
   570,
-  222,
+  220,
   200,
   50,
   "none",

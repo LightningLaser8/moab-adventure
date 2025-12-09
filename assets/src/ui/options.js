@@ -21,7 +21,7 @@ createUIComponent(
   ["options"],
   [],
   320,
-  122,
+  120,
   200,
   50,
   "none",
@@ -100,14 +100,16 @@ function saveCachedOptions() {
 function reloadCachedOptions() {
   /** @type {SerialisedGameOptions} */
   let opts = Serialiser.get("options");
-  console.log("cached options", opts);
-  game.control = opts.control ?? "keyboard";
-  game.music = opts.music ?? true;
-  game.reloadBarStyle = opts.reloadBarStyle ?? "radial";
-  game.reloadBarTheme = opts.reloadBarTheme ?? "rainbow";
-  ui.volume = opts.volume ?? 50;
-  if (opts.pwv) ui.piecewiseVolume = opts.pwv;
-  recenterBars();
+  if (opts) {
+    console.log("cached options", opts);
+    game.control = opts.control ?? "keyboard";
+    game.music = opts.music ?? true;
+    game.reloadBarStyle = opts.reloadBarStyle ?? "radial";
+    game.reloadBarTheme = opts.reloadBarTheme ?? "rainbow";
+    ui.volume = opts.volume ?? 50;
+    if (opts.pwv) ui.piecewiseVolume = opts.pwv;
+    recenterBars();
+  }
 }
 
 // createUIComponent(
