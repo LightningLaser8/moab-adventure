@@ -110,7 +110,7 @@ class Booster extends Weapon {
         1
       );
 
-      this.parts.forEach((x) => x.fire()); //Tick all parts
+      this.parts.forEach((x) => x.fire && x.fire()); //Tick all parts
     }
   }
 }

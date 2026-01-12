@@ -869,10 +869,12 @@ Registry.entities.add("super-monkey", {
 Registry.entities.add("robo-monkey", {
   type: "final-boss",
   name: "Robo-Monkey",
-  drawer: {
-    image: "final-boss.robo-monkey",
-    width: 276,
-    height: 160,
+  model: {
+    displayWidth: 276,
+    displayHeight: 160,
+    parts: {
+      main: { image: "final-boss.robo-monkey", width: 276, height: 160 },
+    },
   },
   bounceable: false,
   hitSize: 120,
@@ -895,12 +897,12 @@ Registry.entities.add("robo-monkey", {
     "laser-beam": {
       type: "action.fire-weapon",
       slotIndex: 1,
-      duration: 60,
+      duration: 75,
     },
     "laser-beam-impos": {
       type: "action.fire-weapon",
       slotIndex: 2,
-      duration: 60,
+      duration: 75,
     },
     "wait-3s": {
       type: "action.generic",

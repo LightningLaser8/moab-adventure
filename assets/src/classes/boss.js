@@ -9,8 +9,9 @@ class Boss extends ScalingEntity {
   imposSequence = null; //Array to be used in Impossible difficulty. Optional.
   #action = 0; //Current action being executed
 
-  imposDrawer = null;
-  overrideDrawer = null;
+  model = null;
+  imposModel = null;
+  overrideModel = null;
 
   data = new Map();
 
@@ -21,6 +22,7 @@ class Boss extends ScalingEntity {
 
   isMinion = false; //Stops this counting for boss kills
   dv = 250;
+
   init() {
     super.init();
     //Construct boss actions
@@ -54,6 +56,26 @@ class Boss extends ScalingEntity {
         } else expanded.push(x);
       });
     this.imposSequence = expanded;
+
+    //modeling
+
+    //legacy override
+    if (this.drawer && !this.model) {
+      this.model = {
+        displayWidth: this.drawer.width,
+        displayHeight: this.drawer.height,
+        parts: {
+          main: this.drawer,
+        },
+      };
+    }
+
+    // new system
+    if (this.overrideModel) this.overrideModel = construct(this.overrideModel, Model);
+    else {
+      this.model = construct(this.model, Model);
+      this.imposModel = construct(this.imposModel, Model);
+    }
 
     //Instantly use first action
     let currentAction = this.getAction();
@@ -155,6 +177,7 @@ class Boss extends ScalingEntity {
     if (!this.#action) this.#action = 0;
     //Tick as normal
     super.tick();
+    this.model.tick();
     if (this.aiActive) {
       //Temporarily, set target to player. This should almost always be the case, until player minions exist.
       this.target = game?.player;
@@ -188,22 +211,42 @@ class Boss extends ScalingEntity {
       saveGame();
     }
   }
-  getDraw() {
+  /**@returns {Model} */
+  getModel() {
     return (
-      this.overrideDrawer ??
-      (game.difficulty === "impossible" ? this.imposDrawer ?? this.drawer : this.drawer)
+      this.overrideModel ??
+      (game.difficulty === "impossible" ? this.imposModel ?? this.model : this.model)
     );
   }
   draw() {
-    let d = this.getDraw();
-    if (d.image) {
-      ImageCTX.draw(d.image, this.x, this.y, d.width, d.height, this.directionRad);
-    } else {
-      //If no image, draw shape instead
-      rotatedShape(d.shape, this.x, this.y, d.width, d.height, this.directionRad);
-    }
+    let d = this.getModel();
+    d.draw(this.x, this.y, this.direction);
+    // if (d.image) {
+    //   ImageCTX.draw(d.image, this.x, this.y, d.width, d.height, this.directionRad);
+    // } else {
+    //   //If no image, draw shape instead
+    //   rotatedShape(d.shape, this.x, this.y, d.width, d.height, this.directionRad);
+    // }
     for (let slot of this.weaponSlots) {
       slot.draw();
     }
+  }
+  drawIcon(x, y, scl) {
+    let d = this.getModel();
+    push();
+    translate(x, y);
+    scale(scl);
+    d.draw(0, 0, this.direction);
+    pop();
+  }
+  modelHitTest(hx, hy, hsize) {
+    return this.model.hitTest(this.x, this.y, this.direction, hx, hy, hsize);
+  }
+  debugModelHit(x, y, size, sensitivity = 1.2, time = 1) {
+    let dist = -0.1;
+    for (let r = 11; r >= 1; r--) {
+      if (this.modelHitTest(x, y, (size * r) / sensitivity)) dist += 0.1;
+    }
+    if (dist >= 0) this.world.particles.push(new IndicatorParticle(x, y, time, size, dist));
   }
 }

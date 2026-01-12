@@ -2,12 +2,17 @@
 Registry.genericType.add("bullet", Bullet);
 Registry.genericType.add("weapon", Weapon);
 Registry.genericType.add("part", Part);
+Registry.genericType.add("weapon-part", WeaponPart);
 Registry.genericType.add("entity", Entity);
 Registry.genericType.add("box", Box);
 Registry.genericType.add("shooting-box", AngryBox);
 Registry.genericType.add("boss", Boss);
 Registry.genericType.add("final-boss", FinalBoss);
 Registry.genericType.add("world", World);
+//Models
+Registry.genericType.add("model", Model);
+Registry.genericType.add("model-part", ModelPart);
+Registry.genericType.add("model-animation", ModelAnimation);
 //Animations
 Registry.genericType.add("animation", PartAnimation); //Who cares that the class is named something else?
 Registry.genericType.add("infinite-animation", InfiniteAnimation);

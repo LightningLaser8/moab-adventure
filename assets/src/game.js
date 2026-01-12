@@ -38,6 +38,7 @@ const game = {
   won: false,
   //keys
   keybinds: new KeybindHandler(),
+  gl: false,
 };
 /** @type {World} */
 let world;
@@ -70,21 +71,21 @@ let backgrounds = {
 };
 
 async function preload() {
+  console.log("preloading game...");
   ImageCTX.commit();
-  await Registry.image_containers.forEachAsync(async (name, item) => {
-    await item.load();
-  });
+  await ImageCTX.load();
   SoundCTX.commit();
-  await Registry.sound_containers.forEachAsync(async (name, item) => {
-    if (!(await item.load())) console.error("Failed to load " + name);
-  });
-  fonts.ocr = await loadFont("assets/font/ocr_a_extended.ttf");
+  await SoundCTX.loadAll();
+  fonts.ocr = await loadFont(
+    game.gl ? "assets/font/ocr_a_extended_bold.ttf" : "assets/font/ocr_a_extended.ttf"
+  );
   fonts.darktech = await loadFont("assets/font/darktech_ldr.ttf");
 }
 //Set up the canvas, using the previous function
-function setup() {
+async function setup() {
+  console.log("starting game...");
   try {
-    createCanvas(...getCanvasDimensions(baseWidth, baseHeight));
+    createCanvas(...getCanvasDimensions(baseWidth, baseHeight), game.gl ? WEBGL : undefined);
     //Creates background stuff
     backgrounds.grad_normal = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
@@ -124,6 +125,7 @@ function setup() {
     rectMode(CENTER);
     imageMode(CENTER);
     textFont(fonts.darktech);
+    textAlign(LEFT, BASELINE);
   } catch (e) {
     crash(e);
   }
@@ -137,6 +139,7 @@ function windowResized() {
 function draw() {
   try {
     clear();
+    if (game.gl) translate(-width / 2, -height / 2);
     scale(contentScale);
     image(
       game.difficulty === "impossible" ? backgrounds.grad_impossible : backgrounds.grad_normal,
@@ -145,6 +148,7 @@ function draw() {
       1920,
       1080
     );
+    translate(0, 0, 2);
     if (world) {
       if (ui.menuState === "in-game") {
         background.draw();
@@ -157,23 +161,28 @@ function draw() {
       Timer.main.tick();
       effectTimer.tick();
     }
+    customDrawCode();
   } catch (e) {
     console.error(e);
     crash(e);
   }
 }
 
+function customDrawCode() {}
+
 function uiFrame() {
   //Tick, then draw the UI
   tickUI();
+  translate(0, 0, 1);
   drawUI();
   //Reset mouse held status
-  if (ui.waitingForMouseUp && !mouseIsPressed) ui.waitingForMouseUp = false;
+  if (ui.waitingForMouseUp && !ui.mouse.down) ui.waitingForMouseUp = false;
   if (UIComponent.evaluateCondition("debug:true")) debugUI();
-  else drawCursor(ui.mouse.x, ui.mouse.y);
+  else drawCursor(ui.target.x, ui.target.y);
 }
 
 function drawCursor(x, y) {
+  translate(0, 0, 10);
   if (game.player)
     drawReloadBars(
       x,
@@ -183,10 +192,12 @@ function drawCursor(x, y) {
         : game.reloadBarTheme === "mono"
         ? monoCols
         : game.reloadBarTheme === "thematic"
-        ? game.player.weaponSlots.map((slot) => (slot.weapon ? slot.weapon.themeColour : null))
+        ? game.player.weaponSlots.map((slot, i) =>
+            slot.weapon && i < 5 ? slot.weapon.themeColour : null
+          )
         : null,
-      game.player.weaponSlots.map((slot) =>
-        slot.weapon ? slot.weapon._cooldown / slot.weapon.reload : 0
+      game.player.weaponSlots.map((slot, i) =>
+        slot.weapon && i < 5 ? slot.weapon._cooldown / slot.weapon.reload : 0
       )
     );
 
@@ -211,7 +222,7 @@ function fakeCursor(x, y) {
           [255, 128, 0],
         ]
       : null,
-    [0, 1, 2, 3, 4, 5].map((i) => 1 - ((frameCount + i * 10) % 60) / 60)
+    [0, 1, 2, 3, 4].map((i) => 1 - ((frameCount + i * 10) % 60) / 60)
   );
 
   ImageCTX.draw("ui.cursor", x, y, 64, 64);
@@ -232,9 +243,9 @@ function drawReloadBars(x, y, cols = null, progresses = []) {
         rectMode(CORNER);
         noStroke();
         fill(64);
-        rect(x + 30, y + size - 50, 60, 5);
+        rect(x + 30, y + size - 48, 60, 5);
         fill(cols[index] ?? [255, 255, 255]);
-        rect(x + 30, y + size - 50, 60 * prog, 5);
+        rect(x + 30, y + size - 48, 60 * prog, 5);
         size += 8;
       }
     }
@@ -251,6 +262,8 @@ function gameFrame() {
     tickBossEvent();
     checkBoxCollisions();
   }
+  world.tickSound();
+  translate(0, 0, 2);
   world.drawAll();
 }
 
@@ -303,6 +316,7 @@ function drawUI() {
   for (let component of ui.components) {
     if (component.active) {
       component.draw();
+      translate(0, 0, 2);
     }
   }
   uiEffectTimer.tick();
@@ -407,6 +421,10 @@ function debugUI() {
           )
     );
   pop();
+  colour(200, 200, 255);
+  ui.touches.forEach((t, i) => {
+    labeledCircle(t.x / contentScale, t.y / contentScale, 75, "touch " + i);
+  });
   if (game.player) {
     colour(0, 255, 255);
     labeledCircle(game.player.x, game.player.y, game.player.hitSize * 1.75, "base shield size");
@@ -478,19 +496,11 @@ function showOffscreenBosses() {
       circle(circlepos.x, circlepos.y, 120);
       strokeWeight(5);
       circle(circlepos.x, circlepos.y, 90);
-      let size = new Vector(boss.drawer.width, boss.drawer.height);
-      let scaled =
-        size.x > size.y
-          ? new Vector(110, (size.y * 110) / size.x)
-          : new Vector((size.x * 110) / size.y, 110);
-      ImageCTX.draw(
-        boss.drawer.image,
-        circlepos.x,
-        circlepos.y,
-        scaled.x,
-        scaled.y,
-        boss.directionRad
-      );
+      let m = boss.getModel();
+      let size = new Vector(m.displayWidth, m.displayHeight);
+      let scale = size.x > size.y ? 110 / size.x : 110 / size.y;
+      console.log(scale);
+      boss.drawIcon(circlepos.x, circlepos.y, scale);
       textFont(fonts.ocr);
       fill(150, 150, 150);
       textSize(30);
@@ -517,7 +527,7 @@ function createPlayer() {
   //Change to an accessor property
   Object.defineProperty(player, "target", {
     get: () => {
-      return ui.mouse;
+      return ui.target;
     }, //This way, I only have to set it once, and it's responsive.
   });
 
@@ -543,7 +553,7 @@ function createSupport() {
 }
 
 function fireIfPossible() {
-  if (ui.menuState === "in-game" && mouseIsPressed) {
+  if (ui.menuState === "in-game" && ui.firing) {
     for (let slotidx = 0; slotidx < 5; slotidx++) {
       let weapon = game.player?.weaponSlots[slotidx]?.weapon;
       if (weapon) weapon.fire();
@@ -574,7 +584,10 @@ function checkBoxCollisions() {
 }
 
 function playerDies() {
-  SoundCTX.play("player-death");
+  setTimeout(() => {
+    SoundCTX.stop("*");
+    SoundCTX.play("player-death");
+  }, 0);
   deathStats.shardCounter.text = "Shards: " + shortenedNumber(game.shards);
   deathStats.bloonstoneCounter.text = "Bloonstones: " + shortenedNumber(game.bloonstones);
   deathStats.progress.text = "Zone: " + world.name + " | Level " + game.level;
@@ -590,6 +603,9 @@ function playerDies() {
 }
 
 function playerWins() {
+  setTimeout(() => {
+    SoundCTX.stop("*");
+  }, 0);
   winStats.shardCounter.text = "Shards: " + shortenedNumber(game.shards);
   winStats.bloonstoneCounter.text = "Bloonstones: " + shortenedNumber(game.bloonstones);
   winStats.damageDealt.text = "Damage Dealt: " + shortenedNumber(game.player.damageDealt);
@@ -666,13 +682,11 @@ function keyTyped() {
 function pause() {
   game.paused = true;
   UIComponent.setCondition("paused:true");
-  SoundCTX.stop(world.bgm);
 }
 
 function unpause() {
   game.paused = false;
   UIComponent.setCondition("paused:false");
-  SoundCTX.play(world.bgm, true);
 }
 
 function moveToWorld(worldName = "ocean-skies") {

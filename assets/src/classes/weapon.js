@@ -53,13 +53,14 @@ class Weapon {
   init() {
     let np = [];
     for (let p of this.parts) {
+      if(p.recoilAnimations && p.type === "part") p.type = "weapon-part"
       np.push(construct(p, Part));
     }
     this.parts = np;
   }
   draw() {
     for (let p of this.parts) {
-      p.draw ? p.draw(this) : {};
+      p.draw ? p.draw(this.x, this.y, this.rotation) : {};
     }
   }
   tick() {
@@ -136,7 +137,7 @@ class Weapon {
         this.slot.entity,
         this
       );
-      this.parts.forEach((x) => x.fire()); //Tick all parts
+      this.parts.forEach((x) => x.fire && x.fire()); //Tick all parts
     }
   }
 }

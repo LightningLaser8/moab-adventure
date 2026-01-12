@@ -53,7 +53,7 @@ class ShapeParticle {
         this.y + this.speed * p5.Vector.fromAngle(this.direction).y * dt
       );
       //Move with BG
-      if (this.moveWithBackground) this.x -= game.player.speed;
+      if (this.moveWithBackground) this.x -= game.player?.speed ?? 0;
       //Decelerate
       if (this.speed >= this.decel) {
         this.speed -= this.decel * dt;

@@ -1,4 +1,20 @@
 class UserInterfaceController {
+  Mouse = class Mouse {
+    /**@type {UserInterfaceController} */
+    #ui;
+    constructor(ui) {
+      this.#ui = ui;
+    }
+    get x() {
+      return (this.#ui.mobile ? this.#ui.#currentmobilemouse?.x : mouseX) / contentScale;
+    }
+    get y() {
+      return (this.#ui.mobile ? this.#ui.#currentmobilemouse?.y : mouseY) / contentScale;
+    }
+    get down() {
+      return this.#ui.mobile ? !!this.#ui.#currentmobilemouse : mouseIsPressed;
+    }
+  };
   set menuState(_) {
     this.#ms = _;
     this.components.forEach((x) => x.updateActivity());
@@ -8,8 +24,36 @@ class UserInterfaceController {
   }
   #ms = "title";
   waitingForMouseUp = false;
-  get mouse() {
-    return new Vector(mouseX / contentScale, mouseY / contentScale);
+  mouse = new this.Mouse(this);
+  get firing() {
+    return this.mobile ? this.#mobileFire : this.mouse.down;
+  }
+  get target() {
+    if (this.mobile) {
+      let t = this.#currentmobiletarget ?? this.#lastmobiletarget;
+      return { x: t.x / contentScale, y: t.y / contentScale };
+    }
+    return this.mouse;
+  }
+  #lastmobiletarget = { x: 0, y: 0 };
+  #currentmobiletarget = { x: 0, y: 0 };
+  #currentmobilemouse = { x: 0, y: 0 };
+  #mobileFire = false;
+  mobile = false;
+  /**@type {Vector[]} */
+  get touches() {
+    return touches ?? [];
+  }
+  findNonUITouch() {
+    let t = this.touches.find(
+      (v) => v && this.components.every((c) => !c.active || !c.touching(v))
+    );
+    if (this.mouse.down) this.#mobileFire = !!t;
+    return t;
+  }
+  findUITouch() {
+    let t = this.touches.find((v) => v && this.components.some((c) => c.active && c.touching(v)));
+    return t;
   }
   conditions = {};
   get components() {
@@ -46,7 +90,7 @@ class UserInterfaceController {
     for (let component of this.components) {
       component.updateActivity();
       if (component.active && component.isInteractive) {
-        component.checkMouse();
+        component.checkMouse(ui.mouse);
       }
     }
     let len = this.particles.length;
@@ -54,6 +98,11 @@ class UserInterfaceController {
       if (this.particles[p]?.remove) {
         this.particles.splice(p, 1);
       }
+    }
+    if (this.mobile) {
+      if (this.#currentmobiletarget) this.#lastmobiletarget = this.#currentmobiletarget;
+      this.#currentmobiletarget = this.findNonUITouch();
+      this.#currentmobilemouse = this.findUITouch() ?? this.#currentmobiletarget;
     }
     this.keybinds.tick();
   }
@@ -100,7 +149,10 @@ class UIComponent {
   static alignLeft(uicomponent) {
     uicomponent.ox = uicomponent.x; //Save old x
     Object.defineProperty(uicomponent, "x", {
-      get: () => uicomponent.ox + textWidth(uicomponent.text) / 2, //Add width to it
+      get: () => {
+        textFont(fonts.ocr);
+        return uicomponent.ox + textWidth(uicomponent.text) / 2;
+      }, //Add width to it
     });
     return uicomponent;
   }
@@ -263,6 +315,7 @@ class UIComponent {
         pop();
       }
       push();
+      translate(0, 0, 1);
       //Add bevels
       if (this.bevel !== "none") {
         beginClip({ invert: true });
@@ -311,28 +364,34 @@ class UIComponent {
       pop();
     }
     //Draw optional text
+    translate(0, 0, 2);
     noStroke();
     textFont(this.ocr ? fonts.ocr : fonts.darktech);
+    fill(this.textColour);
+    textAlign(CENTER, CENTER);
     if (this.ocr) {
       stroke(0);
       strokeWeight(this.textSize / 15);
     }
-    fill(this.textColour);
-    textAlign(CENTER, CENTER);
     textSize(this.textSize);
     text(ui.revaluate(this.text), this.x, this.y);
     pop();
   }
-  checkMouse() {
+  /**@param {Vector} point */
+  touching(point) {
+    return (
+      point.x < this.x + this.width / 2 &&
+      point.x > this.x - this.width / 2 &&
+      point.y < this.y + this.height / 2 &&
+      point.y > this.y - this.height / 2
+    );
+  }
+  /**@param {typeof UserInterfaceController.prototype.mouse} mouse  */
+  checkMouse(mouse) {
     // If the mouse is colliding with the button
-    if (
-      ui.mouse.x < this.x + this.width / 2 &&
-      ui.mouse.x > this.x - this.width / 2 &&
-      ui.mouse.y < this.y + this.height / 2 &&
-      ui.mouse.y > this.y - this.height / 2
-    ) {
+    if (this.touching(mouse)) {
       //And mouse is down
-      if (mouseIsPressed) {
+      if (mouse.down) {
         this.outlineColour = [0, 255, 255];
         //And the UI isn't waiting
         if (!ui.waitingForMouseUp) {
@@ -500,7 +559,7 @@ class HealthbarComponent extends UIComponent {
       typeof this.healthbarColour === "function" ? this.healthbarColour() : this.healthbarColour;
 
     push();
-    translate(this.x, this.y);
+    translate(this.x, this.y, 9);
     rotate(this.rotation);
     translate(-this.x, -this.y);
     noStroke();
@@ -545,7 +604,8 @@ class HealthbarComponent extends UIComponent {
         this.height,
         true,
         false,
-        this.healthbarReversed
+        this.healthbarReversed,
+        true
       );
       //health
       fill(hbc);
@@ -556,7 +616,8 @@ class HealthbarComponent extends UIComponent {
         this.height,
         true,
         false,
-        this.healthbarReversed
+        this.healthbarReversed,
+        true
       );
     }
     pop();
@@ -577,44 +638,63 @@ class HealthbarComponent extends UIComponent {
     );
     pop();
   }
-  #shape(x, y, width, height, realign = false, realignV = false, reverseX = false) {
+  #shape(
+    x,
+    y,
+    width,
+    height,
+    realign = false,
+    realignV = false,
+    reverseX = false,
+    constrain = false
+  ) {
     if (realign) x += (width / 2) * (reverseX ? -1 : 1);
     if (realignV) y += height / 2;
-
-    beginShape();
+    beginShape(QUADS);
     if (this.bevel === "none") {
-      vertex(x - width / 2, y + height / 2);
-      vertex(x + width / 2, y + height / 2);
-      vertex(x + width / 2, y - height / 2);
-      vertex(x - width / 2, y - height / 2);
+      v(x - width / 2, y + height / 2);
+      v(x + width / 2, y + height / 2);
+      v(x + width / 2, y - height / 2);
+      v(x - width / 2, y - height / 2);
     } else if (this.bevel === "both") {
-      vertex(x - width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2 + height / 2, y - height / 2);
-      vertex(x - width / 2 + height / 2, y - height / 2);
+      v(x - width / 2 - height / 2, y + height / 2);
+      v(x + width / 2 - height / 2, y + height / 2);
+      v(x + width / 2 + height / 2, y - height / 2);
+      v(x - width / 2 + height / 2, y - height / 2);
     } else if (this.bevel === "trapezium") {
-      vertex(x - width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2 + height / 2, y + height / 2);
-      vertex(x + width / 2 - height / 2, y - height / 2);
-      vertex(x - width / 2 + height / 2, y - height / 2);
+      v(x - width / 2 - height / 2, y + height / 2);
+      v(x + width / 2 + height / 2, y + height / 2);
+      v(x + width / 2 - height / 2, y - height / 2);
+      v(x - width / 2 + height / 2, y - height / 2);
     } else if (this.bevel === "right") {
-      vertex(x - width / 2, y + height / 2);
-      vertex(x + width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2 + height / 2, y - height / 2);
-      vertex(x - width / 2, y - height / 2);
+      v(x - width / 2, y + height / 2);
+      v(x + width / 2 , y + height / 2);
+      v(x + width / 2 + height, y - height / 2);
+      v(x - width / 2, y - height / 2);
     } else if (this.bevel === "left") {
-      vertex(x - width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2, y + height / 2);
-      vertex(x + width / 2, y - height / 2);
-      vertex(x - width / 2 + height / 2, y - height / 2);
+      v(x - width / 2 - height, y + height / 2);
+      v(x + width / 2, y + height / 2);
+      v(x + width / 2, y - height / 2);
+      v(x - width / 2 , y - height / 2);
     } else if (this.bevel === "reverse") {
-      vertex(x - width / 2 + height / 2, y + height / 2);
-      vertex(x + width / 2 + height / 2, y + height / 2);
-      vertex(x + width / 2 - height / 2, y - height / 2);
-      vertex(x - width / 2 - height / 2, y - height / 2);
+      v(x - width / 2 + height / 2, y + height / 2);
+      v(x + width / 2 + height / 2, y + height / 2);
+      v(x + width / 2 - height / 2, y - height / 2);
+      v(x - width / 2 - height / 2, y - height / 2);
     }
     endShape(CLOSE);
   }
+}
+function v(x, y) {
+  // if (max && x > max) {
+  //   y -= max - x;
+  //   x = max;
+  // }
+  // if (min && x < min) {
+  //   y += x - min;
+  //   x = min;
+  // }
+  vertex(x, y);
 }
 function createHealthbarComponent(
   screens = [],
@@ -749,24 +829,24 @@ class SliderUIComponent extends UIComponent {
     this.x -= 25;
     pop();
   }
-  checkMouse() {
+  checkMouse(mouse) {
     //Set min/max x positions
     let minX = this.x + this.width / 2,
       maxX = this.x + this.width / 2 + this.length;
     // If the mouse is colliding with the button
     if (
-      ui.mouse.x < maxX &&
-      ui.mouse.x > minX &&
-      ui.mouse.y < this.y + this.height / 2 &&
-      ui.mouse.y > this.y - this.height / 2
+      mouse.x < maxX &&
+      mouse.x > minX &&
+      mouse.y < this.y + this.height / 2 &&
+      mouse.y > this.y - this.height / 2
     ) {
       //And mouse is down
-      if (mouseIsPressed) {
+      if (mouse.down) {
         // - But don't wait, so smooth movement
 
         this.outlineColour = [0, 255, 255];
         //Click and change values
-        this._current = ((ui.mouse.x - minX) / this.length) * this.max;
+        this._current = ((mouse.x - minX) / this.length) * this.max;
         this.change(this._current);
         //And make the UI wait
         ui.waitingForMouseUp = true;
@@ -1046,26 +1126,6 @@ function blendColours(col1, col2, col1Factor) {
   return newCol;
 }
 
-class ImageContainer {
-  #image;
-  #path;
-  constructor(path) {
-    this.#path = path;
-    this.#image = null;
-  }
-  update(image) {
-    this.#image = image;
-  }
-  async load() {
-    this.#image = await loadImage(this.#path);
-    console.log("Loaded image from " + this.#path);
-    return true;
-  }
-  get image() {
-    return this.#image;
-  }
-}
-
 class UIParticleEmitter extends UIComponent {
   interval = 60;
   scale = 1;
@@ -1076,10 +1136,10 @@ class UIParticleEmitter extends UIComponent {
   draw() {
     if (this.#countdown <= 0) {
       this.#countdown = this.interval;
-      createEffect(this.effect, null, this.x, this.y, this.direction, this.scale);
+      if(this.effect !== "none") createEffect(this.effect, null, this.x, this.y, this.direction, this.scale);
     } else this.#countdown--;
   }
-  checkMouse() {}
+  checkMouse(mouse) {}
   constructor(x, y, direction, scale, effect, interval) {
     super(x, y, 0, 0, "none", () => null, "", false, 0);
     this.effect = effect;

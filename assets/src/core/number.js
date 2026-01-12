@@ -286,14 +286,21 @@ class DirectionVector extends Vector {
     this.magnitude = magnitude;
     delete this.toDirectional;
   }
-  add(vct) {
-    return super.add(vct).toDirectional();
-  }
-  sub(vct) {
-    return super.sub(vct).toDirectional();
+  addXY(x, y) {
+    return new Vector(x + this.x, y + this.y);
   }
   scale(amt) {
     return new DirectionVector(this.angleRad, this.magnitude * amt, true);
+  }
+  /**
+   * Scales this vector by an amount, using different amounts for the x- and y-direction.
+   * @param {float} amtX Amount to scale the X-coordinate by. For example, 2 would make the vector twice as wide.
+   * @param {float} amtY Amount to scale the Y-coordinate by. For example, 3 would make the vector three times as tall.
+   * @param {boolean} mutate Whether or not to change this vector's values.
+   * @returns The result of the scaling. Either this vector, or the new one.
+   */
+  scaleAsymmetrical(amtX, amtY) {
+    return new Vector(this.x * amtX, this.y * amtY);
   }
   rotate(angle) {
     return new DirectionVector(this.angle + angle, this.magnitude);
@@ -310,6 +317,50 @@ class DirectionVector extends Vector {
   /**Returns this vector's equivalent positional vector. */
   toPositional() {
     return new Vector(this.x, this.y);
+  }
+  toP5() {
+    return new p5.Vector(this.x, this.y);
+  }
+}
+
+class Orientation extends Vector {
+  rotation = 0;
+  constructor(x, y, rot) {
+    super(x, y);
+    this.rotation = rot;
+  }
+  /**
+   * Adds an x- and y-value to a vector.
+   * @param {float} x X-value to add.
+   * @param {float} y Y-value to add.
+   * @param {boolean} mutate Whether or not to change this vector's values.
+   * @returns The result of the addition. Either this vector, or the new one.
+   */
+  addXY(x, y) {
+    return new Orientation(this.x + x, this.y + y, this.rotation);
+  }
+  /**
+   * Scales this vector by an amount, using different amounts for the x- and y-direction.
+   * @param {float} amtX Amount to scale the X-coordinate by. For example, 2 would make the vector twice as wide.
+   * @param {float} amtY Amount to scale the Y-coordinate by. For example, 3 would make the vector three times as tall.
+   * @param {boolean} mutate Whether or not to change this vector's values.
+   * @returns The result of the scaling. Either this vector, or the new one.
+   */
+  scaleAsymmetrical(amtX, amtY) {
+    return new Orientation(this.x * amtX, this.y * amtY, this.rotation);
+  }
+  /**
+   * Rotates a vector around an angle, anticlockwise.
+   * @param {number} angle Angle in radians to rotate the vector.
+   * @param {boolean} mutate Whether or not to change this vector's values.
+   * @returns The new rotated vector.
+   */
+  rotateRad(angle) {
+    return new Orientation(
+      this.x * Math.cos(angle) - this.y * Math.sin(angle),
+      this.y * Math.cos(angle) + this.x * Math.sin(angle),
+      this.rotation + angle
+    );
   }
 }
 

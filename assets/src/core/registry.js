@@ -11,12 +11,10 @@ class Registry {
   static genericType = new this();
   static weapons = new this();
   static images = new this();
-  static image_containers = new this();
   static statuses = new this();
   static blimps = new this();
   static entities = new this();
   static sounds = new this();
-  static sound_containers = new this();
   static worlds = new this();
   static vfx = new this();
   static achievements = new this();

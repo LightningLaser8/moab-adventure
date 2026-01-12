@@ -277,28 +277,33 @@ class SetDataAction extends BossAction {
 }
 
 class ChangeVisualAction extends BossAction {
-  drawer = {
-    shape: "circle",
-    fill: "red",
-    image: "error",
-    width: 100,
-    height: 100,
-  };
+  model = {};
   changesBack = true;
-  #olddrawer = null;
+  #oldmodel = null;
+  init() {
+    this.model = construct(this.model, Model);
+  }
   /**@param {Boss} entity  */
   execute(entity) {
-    if (this.changesBack) this.#olddrawer = entity.overrideDrawer;
-    entity.overrideDrawer = this.drawer;
+    if (this.changesBack) this.#oldmodel = entity.overrideModel;
+    entity.overrideModel = this.drawer;
   }
   /**@param {Boss} entity  */
   end(entity) {
-    if (this.changesBack) entity.overrideDrawer = this.#olddrawer;
+    if (this.changesBack) entity.overrideModel = this.#oldmodel;
   }
 }
 class ResetVisualAction extends BossAction {
   /**@param {Boss} entity  */
   execute(entity) {
-    entity.overrideDrawer = null;
+    entity.overrideModel = null;
+  }
+}
+
+class AnimateAction extends BossAction {
+  animation = "";
+  /**@param {Boss} entity  */
+  execute(entity) {
+    entity.getModel().fire(this.animation);
   }
 }

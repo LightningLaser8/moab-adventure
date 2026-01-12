@@ -1,4 +1,6 @@
 class MAImageHandler {
+  /**@type {Registry?} */
+  images = null;
   draw(img = "error", x, y, width, height, angle, ...otherParameters) {
     push(); //Save current position, rotation, etc
     if (angle) {
@@ -8,7 +10,7 @@ class MAImageHandler {
     } else {
       noSmooth();
       //Get from registry if it exists
-      img = Registry.image_containers.has(img) ? Registry.image_containers.get(img) : img;
+      img = this.images.has(img) ? this.images.get(img) : img;
       if (img instanceof ImageContainer) {
         if (!img.image) return; //Cancel if no image loaded yet
         image(img.image, x, y, width, height, ...otherParameters);
@@ -25,7 +27,13 @@ class MAImageHandler {
     pop(); //Return to old state
   }
   commit() {
-    Registry.images.forEach((i, n) => Registry.image_containers.add(n, new ImageContainer(i.path)));
+    this.images = new Registry();
+    Registry.images.forEach((i, n) => this.images.add(n, new ImageContainer(i.path)));
+  }
+  async load() {
+    await this.images.forEachAsync(async (name, item) => {
+      await item.load();
+    });
   }
 }
 
@@ -46,4 +54,23 @@ function drawImg(
 function rotatedImg(img = "error", x, y, width, height, angle, ...otherParameters) {
   ImageCTX.draw(img, x, y, width, height, angle, ...otherParameters);
   console.warn("Use of deprecated 'rotatedImg'");
+}class ImageContainer {
+  #image;
+  #path;
+  constructor(path) {
+    this.#path = path;
+    this.#image = null;
+  }
+  update(image) {
+    this.#image = image;
+  }
+  async load() {
+    this.#image = await loadImage(this.#path);
+    console.log("Loaded image from " + this.#path);
+    return true;
+  }
+  get image() {
+    return this.#image;
+  }
 }
+

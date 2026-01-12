@@ -10,6 +10,7 @@
   <link href="./style.css" rel="stylesheet" type="text/css" />
   <!-- Import p5, but not sound -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+  <script src="https://unpkg.com/p5.js-svg@1.6.0"></script>
 </head>
 
 <body>
@@ -17,7 +18,7 @@
     //Disable p5's errors, they don't really help
     p5.disableFriendlyErrors = true;
     //Game info
-    const gameVersion = "0.0.116";
+    const gameVersion = "0.0.117";
     const isPreview = true;
     const CURRENT_SAVE_FORMAT_VERSION = 1;
     let versionReplacementText = "";
@@ -67,6 +68,7 @@
   <script src="./assets/src/classes/boss-action.js"></script>
   <script src="./assets/src/classes/action-trigger.js"></script>
   <script src="./assets/src/classes/boss.js"></script>
+  <script src="./assets/src/classes/entity-model.js"></script>
   <script src="./assets/src/classes/final-boss.js"></script>
   <script src="./assets/src/classes/box.js"></script>
   <!-- Special Effects -->
@@ -112,6 +114,7 @@
   <!-- Actual gameplay -->
   <script src="./assets/src/game.js"></script>
   <!-- Controls -->
+  <script src="./assets/src/controls/ui-controls.js"></script>
   <script src="./assets/src/controls/ui-hotkeys.js"></script>
   <script src="./assets/src/controls/game-controls.js"></script>
   <script src="./assets/src/controls/game-hotkeys.js"></script>

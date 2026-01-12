@@ -20,7 +20,7 @@ class SupportWeapon extends Weapon {
         this.slot.entity.target,
         this
       );
-      this.parts.forEach((x) => x.fire()); //Tick all parts
+      this.parts.forEach((x) => x.fire && x.fire()); //Tick all parts
     }
   }
 }
@@ -37,7 +37,7 @@ class ShieldProjector extends SupportWeapon {
       if(this.recoil) this.slot.entity.knock(this.recoil, this.rotation + 180);
 
       this.slot.entity.target.shield(this.strength, this.spawnTime, this.shoot.bullet ?? {});
-      this.parts.forEach((x) => x.fire()); //Tick all parts
+      this.parts.forEach((x) => x.fire && x.fire()); //Tick all parts
     }
   }
 }

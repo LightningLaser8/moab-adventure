@@ -91,19 +91,28 @@ UIComponent.alignLeft(
 
 UIComponent.invert(
   //Healthbar container
-  createUIComponent(["in-game"], [], 400, 1020, 800, 125, "right")
+  createUIComponent(["in-game"], [], 375, 995 + 25, 900, 175, "right")
 );
+UIComponent.setBackgroundOf(
+  UIComponent.setOutlineColour(
+    createUIShapeComponent(["in-game"], [], 35, 975, 40, 40, null, "circle", true),
+    [0, 255, 255]
+  ),
+  [0, 255, 255, 100]
+);
+
+createUIImageComponent(["in-game"], [], 70, 1035, 80, 80, null, "ui.moab", false);
 
 // Normal HP
 UIComponent.invert(
   createHealthbarComponent(
     ["in-game"],
     [],
-    365,
+    420,
     1020,
-    680,
+    550,
     64,
-    "right",
+    "both",
     undefined,
     undefined,
     undefined,
@@ -113,111 +122,118 @@ UIComponent.invert(
   )
 );
 
+// UIComponent.removeOutline(
+// Shield CD
+UIComponent.invert(
+  createHealthbarComponent(
+    ["in-game"],
+    [],
+    420 - 48,
+    1020 - 48,
+    550,
+    16,
+    "both",
+    undefined,
+    undefined,
+    undefined,
+    20,
+
+    () => (game.support ? game.support?.weaponSlots[0]?.weapon : null) ?? {}
+  )
+    .setGetters("_cooldown", "reload")
+    .setColours(
+      () => (game.support.weaponSlots[0].tier > 1 ? [0, 0, 0] : [100, 0, 0]),
+      [255, 178, 100],
+      [0, 0, 0, 0]
+    )
+    .reverseBarFraction()
+);
+
+//)
+createParticleEmitter(["in-game"], [], 640, 970, -90, 1, "fire", 1).getActivity = function () {
+  return ui.menuState === "in-game" && game.player?.weaponSlots[5]?.weapon?._cooldown === 0;
+};
 // Shield
 UIComponent.removeOutline(
   UIComponent.invert(
     createHealthbarComponent(
       ["in-game"],
       [],
-      365 - 12,
-      1020 - 24,
-      680 - 24,
-      16,
-      "right",
+      420 - 48,
+      1020 - 48,
+      550 - 4,
+      16 - 4,
+      "both",
       undefined,
       undefined,
       undefined,
       20,
-      () => game.player._shield
+      () => game.player._shield ?? {}
     )
       .setGetters("strength", "maxStrength")
       .setColours(
-        [0, 0, 0, 75],
-        () => game.player._shield.trailColourTo,
-        () => game.player._shield.colourTo
+        () => (game.support.weaponSlots[0].tier > 1 ? [0, 60, 60, 125] : [100, 0, 0]),
+        () => game.player._shield?.trailColourTo ?? [0, 0, 0],
+        () => game.player._shield?.colourTo ?? [0, 0, 0]
       )
   )
-).getActivity = function () {
-  return ui.menuState === "in-game" && game.player?._shield;
-};
-// Shield CD
-UIComponent.removeOutline(
-  UIComponent.invert(
-    createHealthbarComponent(
-      ["in-game"],
-      [],
-      365 + 12,
-      1020 + 24,
-      680 + 24,
-      16,
-      "right",
-      undefined,
-      undefined,
-      undefined,
-      20,
-      () => (game.support ? game.support?.weaponSlots[0]?.weapon : null)
-    )
-      .setGetters("_cooldown", "reload")
-      .setColours([0, 0, 0, 75], [255, 178, 100], [0, 0, 0, 0])
-      .reverseBarFraction()
-  )
-).getActivity = function () {
-  return (
-    ui.menuState === "in-game" && game.support?.weaponSlots && game.support?.weaponSlots[0]?.weapon
-  );
-};
+);
 
-//Name display
-let nameBG;
-UIComponent.setBackgroundOf(
-  UIComponent.invert(
-    //Upside-down on top of healthbar
-    (nameBG = Object.defineProperties(
-      createUIComponent(["in-game"], [], 200, 905, 400, 100, "right"),
-      {
-        width: {
-          get: () => {
-            push();
-            textSize(60);
-            let width = textWidth(game.player.name) + nameBG.height + 40;
-            pop();
-            return width;
-          },
-        },
-        x: {
-          get: () => nameBG.width / 2,
-        },
-      }
-    ))
-  ),
-  [50, 50, 50]
-);
+// ).getActivity = function () {
+//   return (
+//     ui.menuState === "in-game" && game.support?.weaponSlots && game.support?.weaponSlots[0]?.weapon
+//   );
+// };
+
+// //Name display
+// let nameBG;
+// UIComponent.setBackgroundOf(
+//   UIComponent.invert(
+//     //Upside-down on top of healthbar
+//     (nameBG = Object.defineProperties(createUIComponent(["in-game"], [], 195, 905, 400, 100), {
+//       width: {
+//         get: () => {
+//           push();
+//           textFont(fonts.darktech);
+//           textSize(60);
+//           let width = textWidth(game.player.name) + nameBG.height + 40;
+//           pop();
+//           return width;
+//         },
+//       },
+//       x: {
+//         get: () => nameBG.width / 2 - 4,
+//       },
+//     }))
+//   ),
+//   [50, 50, 50]
+// );
 //Backup background
-UIComponent.removeOutline(
-  UIComponent.invert(
-    //Upside-down on top of healthbar
-    Object.defineProperties(createUIComponent(["in-game"], [], 200, 905, 400, 80, "right"), {
-      width: {
-        get: () => nameBG.width - 20,
-      },
-      x: {
-        get: () => nameBG.x - 20,
-      },
-    })
-  )
-);
-UIComponent.alignLeft(
-  Object.defineProperties(
-    createUIComponent(["in-game"], [], 20, 905, 0, 0, "none", null, "e", false, 60),
-    {
-      text: {
-        get: () =>
-          //Make text dependent on player name
-          game.player ? game.player.name : "mobe",
-      },
-    }
-  )
-);
+// UIComponent.removeOutline(
+//   UIComponent.invert(
+//     //Upside-down on top of healthbar
+//     Object.defineProperties(createUIComponent(["in-game"], [], 200, 905, 400, 80, "right"), {
+//       width: {
+//         get: () => nameBG.width - 20,
+//       },
+//       x: {
+//         get: () => nameBG.x - 20,
+//       },
+//     })
+//   )
+// );
+// UIComponent.alignLeft(
+//   Object.defineProperties(
+//     createUIComponent(["in-game"], [], 20, 905, 0, 0, "both", null, "e", false, 60),
+//     {
+//       text: {
+//         get: () =>
+//           //Make text dependent on player name
+//           game.player ? game.player.name : "mobe",
+//       },
+//     }
+//   )
+// );
 //###################################################################
 //
 // in-game UI > informative UI > LEVEL COUNTER
@@ -280,11 +296,11 @@ UIComponent.invert(
   createHealthbarComponent(
     ["in-game"],
     ["boss:no"],
-    1605,
+    1505,
     50,
     580,
     50,
-    "left",
+    "both",
     undefined,
     undefined,
     undefined,
@@ -297,7 +313,7 @@ UIComponent.invert(
     .setColours(null, null, [255, 0, 0])
 );
 
-createUIImageComponent(["in-game"], ["boss:no"], 1240, 50, 80, 80, null, "ui.clock", false);
+createUIImageComponent(["in-game"], ["boss:no"], 1870, 50, 80, 80, null, "ui.clock", false);
 //  When boss active
 //Boss healthbar
 createUIComponent(
@@ -331,11 +347,11 @@ UIComponent.invert(
   createHealthbarComponent(
     ["in-game"],
     ["boss:yes"],
-    1425,
+    1500,
     200,
-    500,
+    550,
     50,
-    "left",
+    "both",
     undefined,
     undefined,
     undefined,
