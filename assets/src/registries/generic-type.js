@@ -41,6 +41,7 @@ Registry.genericType.add("action.entry", EntryAction);
 Registry.genericType.add("action.regen", RegenAction);
 Registry.genericType.add("action.summon", SummonMinionAction);
 Registry.genericType.add("action.spawn-bullet", SpawnBulletAction);
+Registry.genericType.add("action.fire-bullet", FireBulletAction);
 Registry.genericType.add("action.change-speed", ChangeSpeedAction);
 Registry.genericType.add("action.enable-ai", EnableAIAction);
 Registry.genericType.add("action.disable-ai", DisableAIAction);
@@ -49,6 +50,8 @@ Registry.genericType.add("action.multi", MultiAction);
 Registry.genericType.add("action.data", SetDataAction);
 Registry.genericType.add("action.change-visual", ChangeVisualAction);
 Registry.genericType.add("action.reset-visual", ResetVisualAction);
+Registry.genericType.add("action.animate", AnimateAction);
+Registry.genericType.add("action.vfx", VFXAction);
 //Boss Triggers
 Registry.genericType.add("trigger.tick", ActionTrigger);
 Registry.genericType.add("trigger.single-hp", SingleHPPointTrigger);

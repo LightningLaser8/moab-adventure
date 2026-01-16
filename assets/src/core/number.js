@@ -323,44 +323,38 @@ class DirectionVector extends Vector {
   }
 }
 
-class Orientation extends Vector {
-  rotation = 0;
-  constructor(x, y, rot) {
-    super(x, y);
+class Orientation {
+  static ZERO = new Orientation(0, 0, 0, 0);
+  x;
+  y;
+  rotation;
+  slide;
+  get pos() {
+    return new Vector(this.x, this.y);
+  }
+  set pos(_) {
+    this.x = _.x;
+    this.y = _.y;
+  }
+  constructor(x = 0, y = 0, rot = 0, slide = 0) {
+    this.x = x;
+    this.y = y;
     this.rotation = rot;
+    this.slide = slide;
   }
-  /**
-   * Adds an x- and y-value to a vector.
-   * @param {float} x X-value to add.
-   * @param {float} y Y-value to add.
-   * @param {boolean} mutate Whether or not to change this vector's values.
-   * @returns The result of the addition. Either this vector, or the new one.
-   */
-  addXY(x, y) {
-    return new Orientation(this.x + x, this.y + y, this.rotation);
+  addParts(x = 0, y = 0, rot = 0, slide = 0) {
+    return new Orientation(this.x + x, this.y + y, this.rotation + rot, this.slide + slide);
   }
-  /**
-   * Scales this vector by an amount, using different amounts for the x- and y-direction.
-   * @param {float} amtX Amount to scale the X-coordinate by. For example, 2 would make the vector twice as wide.
-   * @param {float} amtY Amount to scale the Y-coordinate by. For example, 3 would make the vector three times as tall.
-   * @param {boolean} mutate Whether or not to change this vector's values.
-   * @returns The result of the scaling. Either this vector, or the new one.
-   */
-  scaleAsymmetrical(amtX, amtY) {
-    return new Orientation(this.x * amtX, this.y * amtY, this.rotation);
+  clone() {
+    return new Orientation(this.x, this.y, this.rotation, this.slide);
   }
-  /**
-   * Rotates a vector around an angle, anticlockwise.
-   * @param {number} angle Angle in radians to rotate the vector.
-   * @param {boolean} mutate Whether or not to change this vector's values.
-   * @returns The new rotated vector.
-   */
-  rotateRad(angle) {
-    return new Orientation(
-      this.x * Math.cos(angle) - this.y * Math.sin(angle),
-      this.y * Math.cos(angle) + this.x * Math.sin(angle),
-      this.rotation + angle
-    );
+  /**@param {Orientation} orientation  */
+  add(orientation) {
+    return this.addParts(orientation.x, orientation.y, orientation.rotation, orientation.slide);
+  }
+  rotate(angle) {
+    let p = this.pos.rotate(angle);
+    return new Orientation(p.x, p.y, this.rotation + angle, this.slide);
   }
 }
 

@@ -54,6 +54,7 @@ class Bullet {
   fragDirection = 0;
   fragSpread = 0;
   fragSpacing = 0;
+  fragOffset = 0;
   //Intervals
   intervalBullet = {};
   intervalNumber = 0;
@@ -61,6 +62,7 @@ class Bullet {
   intervalSpread = 0;
   intervalSpacing = 0;
   intervalTime = 0;
+  intervalOffset = 0;
   #intervalCounter = 0;
   //Following
   source = null;
@@ -86,6 +88,9 @@ class Bullet {
   despawnSound = null;
   spawnSound = null;
   #sounded = false;
+
+  createEffect = "none";
+  inited = false;
 
   prev = null;
   bounceable = true;
@@ -116,6 +121,10 @@ class Bullet {
         this.pos = new Vector(this.source.x, this.source.y);
         this.direction = this.source.rotation;
       }
+      if (!this.inited) {
+        this.inited = true;
+        createEffect(this.createEffect, this.world, this.x, this.y, this.directionRad);
+      }
 
       this.intervalTick();
       //Which way to move
@@ -132,8 +141,7 @@ class Bullet {
         this.lifetime -= dt;
       }
       //Follow
-      if (this.followsScreen)
-        this.pos = this.pos.subXY(game.player?.speed ?? 0, 0);
+      if (this.followsScreen) this.pos = this.pos.subXY(game.player?.speed ?? 0, 0);
       this.checkEntities();
     }
   }
@@ -183,7 +191,7 @@ class Bullet {
     } else if (this.trailType === "lightning") {
       this.world.particles.push(
         new LightningParticle(
-          this.pos.multiLerp(this.prev, Math.ceil(this.speed / this.trailInterval * 5)),
+          this.pos.multiLerp(this.prev, Math.ceil((this.speed / this.trailInterval) * 5)),
           this.getTrailLife(),
           [this.trailColour, this.trailColourTo],
           0,
@@ -228,9 +236,12 @@ class Bullet {
     return this.distanceTo(obj.x, obj.y) <= this.hitSize + obj.hitSize;
   }
   frag() {
+    let v = new Vector(this.x, this.y).add(
+      Vector.fromAngle(this.direction).scale(this.fragOffset)
+    );
     patternedBulletExpulsion(
-      this.x,
-      this.y,
+      v.x,
+      v.y,
       this.fragBullet,
       this.fragNumber,
       this.direction + this.fragDirection,
@@ -242,9 +253,12 @@ class Bullet {
     );
   }
   interval() {
+    let v = new Vector(this.x, this.y).add(
+      Vector.fromAngle(this.direction).scale(this.intervalOffset)
+    );
     patternedBulletExpulsion(
-      this.x,
-      this.y,
+      v.x,
+      v.y,
       this.intervalBullet,
       this.intervalNumber,
       this.direction + this.intervalDirection,
@@ -294,13 +308,13 @@ class Bullet {
       );
     }
   }
-  
+
   checkEntities() {
     for (let entity of this.world.entities) {
       //If colliding with a this on different team, that it hasn't already been hit by and that still exists
       if (
         this.collides &&
-        entity.collides && 
+        entity.collides &&
         !this.remove &&
         entity.team !== this.entity.team &&
         !this.damaged.includes(entity) &&
@@ -322,15 +336,10 @@ class Bullet {
         }
         if (this.controlledKnockback) {
           //Get direction to the target
-          let direction = 
-          this.pos.sub(this.entity.target).angleRad
+          let direction = this.pos.sub(this.entity.target).angleRad;
           entity.knock(this.knockback, direction, this.kineticKnockback); //Knock with default resolution
         } else if (this.knockback) {
-          entity.knock(
-            this.knockback,
-            this.direction,
-            this.kineticKnockback
-          ); //Knock with default resolution
+          entity.knock(this.knockback, this.direction, this.kineticKnockback); //Knock with default resolution
         }
         if (this.status !== "none") {
           entity.applyStatus(this.status, this.statusDuration);
@@ -350,11 +359,7 @@ class Bullet {
           else this.remove = true; //Delete
         }
       } else {
-        if (
-          !this.remove &&
-          entity.team !== this.entity.team &&
-          this.damaged.includes(entity)
-        ) {
+        if (!this.remove && entity.team !== this.entity.team && this.damaged.includes(entity)) {
           if (this.multiHit && !this.collidesWith(entity)) {
             //Unpierce it
             this.damaged.splice(this.damaged.indexOf(entity), 1);
@@ -376,5 +381,6 @@ function telegraph(bullet, opts = { time: 20, width: 2 }) {
     followsSource: bullet.followsSource,
     followsScreen: bullet.followsScreen,
     fragBullet: ob,
+    createEffect: opts.createEffect ?? "none",
   };
 }

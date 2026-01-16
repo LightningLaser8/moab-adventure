@@ -72,11 +72,20 @@ class EmissionEffect extends VisualEffect {
 class MultiEffect extends VisualEffect {
   /**@type {VisualEffect[]} */
   effects = [];
+  x = 0;
+  y = 0;
   init() {
     this.effects = this.effects.map((x) => construct(x, VisualEffect));
   }
-  execute(world, x = 0, y = 0, direction = 0, scale = 1) {
-    this.effects.forEach((z) => z.execute(world, x, y, direction, scale));
+  execute(
+    world,
+    x = 0,
+    y = 0,
+    direction = 0,
+    scale = 1,
+    pos = () => ({ x: 0, y: 0, direction: 0 })
+  ) {
+    this.effects.forEach((z) => z.execute(world, x + this.x, y + this.y, direction, scale, pos));
   }
 }
 
@@ -93,6 +102,7 @@ class ParticleEmissionEffect extends EmissionEffect {
     moveWithBackground: false,
     //Shape
     shape: "circle",
+    reverse: false,
     //Shape/Image
     widthFrom: 20,
     widthTo: 30,
@@ -120,8 +130,7 @@ class ParticleEmissionEffect extends EmissionEffect {
           y + this.y,
           direction +
             radians(
-              (this.particle.direction ?? 0) +
-                rnd(-(this.cone ?? 360) / 2, (this.cone ?? 360) / 2)
+              (this.particle.direction ?? 0) + rnd(-(this.cone ?? 360) / 2, (this.cone ?? 360) / 2)
             ),
           this.particle.lifetime ?? 60,
           (this.particle.speed ?? 1) * scale,
@@ -134,7 +143,8 @@ class ParticleEmissionEffect extends EmissionEffect {
           (this.particle.heightFrom ?? 20) * scale,
           (this.particle.heightTo ?? 30) * scale,
           radians(this.particle.rotateSpeed ?? 0),
-          this.particle.moveWithBackground ?? false
+          this.particle.moveWithBackground ?? false,
+          this.particle.reverse ?? false
         )
       )
     );
@@ -151,10 +161,7 @@ class TextParticleEmissionEffect extends ParticleEmissionEffect {
           direction +
             radians(
               (this.particle.direction ?? 0) +
-                rnd(
-                  -(this.particle.cone ?? 360) / 2,
-                  (this.particle.cone ?? 360) / 2
-                )
+                rnd(-(this.particle.cone ?? 360) / 2, (this.particle.cone ?? 360) / 2)
             ),
           this.particle.lifetime ?? 60,
           (this.particle.speed ?? 1) * scale,
@@ -201,6 +208,7 @@ function repeat(n, func, ...params) {
 /**
  * Creates an effect, independently of any objects.
  * @param {string | Object} effect Registry name of the visual effect, or a constructible visual effect.
+ * @param {World?} world If present, this is the world in which the effect will spawn. If not, then it's a UI effect.
  * @param {float} x X position of the effect's origin
  * @param {float} y Y position of the effect's origin
  * @param {float} direction Direction *in radians* of the effect. Only for directed effects, such as `ParticleEmissionEffect`
@@ -209,11 +217,9 @@ function repeat(n, func, ...params) {
  * @returns
  */
 function createEffect(effect, world, x, y, direction, scale, pos) {
+  if (effect === "none") return;
   /**@type {VisualEffect} */
-  let fx = construct(
-    typeof effect === "object" ? effect : Registry.vfx.get(effect),
-    VisualEffect
-  );
+  let fx = construct(typeof effect === "object" ? effect : Registry.vfx.get(effect), VisualEffect);
   if (!world) fx.isUI = true;
   fx.execute(world, x, y, direction, scale, pos);
   return fx;
@@ -221,15 +227,7 @@ function createEffect(effect, world, x, y, direction, scale, pos) {
 
 function autoScaledEffect(effect, world, x, y, direction, pos) {
   let effectparts = effect.split("~");
-  createEffect(
-    effectparts[0],
-    world,
-    x,
-    y,
-    direction,
-    effectparts[1] ?? 1,
-    pos
-  );
+  createEffect(effectparts[0], world, x, y, direction, effectparts[1] ?? 1, pos);
 }
 
 /**

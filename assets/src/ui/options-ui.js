@@ -51,7 +51,6 @@ const rainbowCols = [
     [0, 255, 0],
     [0, 0, 255],
     [192, 0, 255],
-    [255, 255, 255],
   ],
   monoCols = [
     [0, 0, 0],
@@ -59,7 +58,6 @@ const rainbowCols = [
     [128, 128, 128],
     [192, 192, 192],
     [255, 255, 255],
-    [255, 128, 0],
   ];
 createGamePropertySelector(
   ["options.ui"],

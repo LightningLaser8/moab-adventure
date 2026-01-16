@@ -62,5 +62,9 @@ Registry.images.add("boss.monkey-ace.impos", { path: "assets/textures/entity/mon
 Registry.images.add("minion.plane", { path: "assets/textures/entity/plane-minion.svg"});
 Registry.images.add("boss.super-monkey", { path: "assets/textures/entity/super-monkey.svg"});
 Registry.images.add("boss.super-monkey.impos", { path: "assets/textures/entity/super-monkey-laser-edition.svg"});
-Registry.images.add("final-boss.robo-monkey", { path: "assets/textures/entity/robo-monkey.svg"});
 Registry.images.add("minion.drone", { path: "assets/textures/entity/drone.svg"});
+//multipart
+Registry.images.add("final-boss.robo-monkey", { path: "assets/textures/entity/robo-monkey.svg"});
+Registry.images.add("final-boss.robo-monkey.left-arm", { path: "assets/textures/entity/robo-monkey-arm-left.svg"});
+Registry.images.add("final-boss.robo-monkey.right-arm", { path: "assets/textures/entity/robo-monkey-arm-right.svg"});
+Registry.images.add("final-boss.robo-monkey.gun-arm", { path: "assets/textures/entity/robo-monkey-arm-gun.svg"});

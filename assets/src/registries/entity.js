@@ -873,7 +873,87 @@ Registry.entities.add("robo-monkey", {
     displayWidth: 276,
     displayHeight: 160,
     parts: {
+      rarm: {
+        image: "final-boss.robo-monkey.right-arm",
+        width: 103,
+        height: 38,
+        y: 30,
+        x: 45,
+        direction: 140,
+        slide: 52,
+      },
+      larm: {
+        image: "final-boss.robo-monkey.left-arm",
+        width: 103,
+        height: 38,
+        y: -30,
+        x: 45,
+        direction: -140,
+        slide: 52,
+      },
+      lgun: {
+        image: "final-boss.robo-monkey.gun-arm",
+        width: 81,
+        height: 50,
+        slide: -70,
+        anchor: "larm",
+      },
       main: { image: "final-boss.robo-monkey", width: 276, height: 160 },
+      lshot: {
+        hidden: true,
+        slide: 42,
+        anchor: "larm",
+      },
+      rshot: {
+        hidden: true,
+        slide: 42,
+        anchor: "rarm",
+      },
+    },
+    animations: {
+      "aim-larm": [
+        {
+          part: "larm",
+          drot: 130,
+          duration: 20,
+        },
+        {
+          part: "lgun",
+          dslide: 90,
+          duration: 20,
+        },
+        {
+          part: "lgun",
+          dslide: -90,
+          duration: 20,
+          delay: 120,
+        },
+        {
+          part: "larm",
+          drot: -130,
+          duration: 20,
+          delay: 140,
+        },
+      ],
+      "aim-al-.3": [
+        {
+          part: "rarm",
+          drot: -16,
+          duration: 10,
+        },
+        {
+          part: "rarm",
+          drot: -33,
+          duration: 10,
+          delay: 75,
+        },
+        {
+          part: "rarm",
+          drot: 49,
+          duration: 10,
+          delay: 180,
+        },
+      ],
     },
   },
   bounceable: false,
@@ -886,22 +966,20 @@ Registry.entities.add("robo-monkey", {
     bloonstones: 500,
   },
   actions: {
-    "dart-throw": {
-      type: "action.fire-weapon",
-      slotIndex: 0,
-    },
-    "dart-throw-impos": {
-      type: "action.fire-weapon",
-      slotIndex: 3,
+    "rarm-glow": {
+      type: "action.vfx",
+      part: "rshot",
+      effect: "laser-charge-mini",
+      delay: 8
     },
     "laser-beam": {
       type: "action.fire-weapon",
-      slotIndex: 1,
+      slotIndex: 0,
       duration: 75,
     },
     "laser-beam-impos": {
       type: "action.fire-weapon",
-      slotIndex: 2,
+      slotIndex: 1,
       duration: 75,
     },
     "wait-3s": {
@@ -963,6 +1041,12 @@ Registry.entities.add("robo-monkey", {
       max: 1,
     },
     airlaser: {
+      type: "action.multi",
+      actions: ["al", "rarm-glow"],
+      duration: 1
+    },
+    al: {
+      animation: "aim-al-.3",
       type: "action.spawn-bullet",
       x: 800,
       y: 0,
@@ -982,6 +1066,7 @@ Registry.entities.add("robo-monkey", {
         followsSource: true,
         intervalTime: 999,
         intervalNumber: 1,
+        intervalOffset: 70,
         intervalBullet: {
           type: "continuous-laser",
           spawnSound: "laser-beam",
@@ -1001,7 +1086,8 @@ Registry.entities.add("robo-monkey", {
           ],
           telegraph: {
             time: 75,
-            width: 5,
+            width: 0,
+            createEffect: "laser-charge",
           },
         },
       },
@@ -1025,6 +1111,7 @@ Registry.entities.add("robo-monkey", {
     },
     "airlaser-impos": {
       type: "action.spawn-bullet",
+      animation: "aim-al-.3",
       x: 800,
       y: 0,
       xVar: 800,
@@ -1043,6 +1130,7 @@ Registry.entities.add("robo-monkey", {
         followsSource: true,
         intervalTime: 999,
         intervalNumber: 1,
+        intervalOffset: 70,
         intervalBullet: {
           type: "continuous-laser",
           spawnSound: "laser-beam",
@@ -1096,8 +1184,9 @@ Registry.entities.add("robo-monkey", {
             },
           },
           telegraph: {
-            time: 45,
-            width: 5,
+            time: 75,
+            width: 0,
+            createEffect: "laser-charge",
           },
         },
       },
@@ -1119,22 +1208,146 @@ Registry.entities.add("robo-monkey", {
         trailColourTo: [121, 0, 255],
       },
     },
+    dart: {
+      type: "action.fire-bullet",
+      part: "lshot",
+      spread: 15,
+      amount: 5,
+      delay: 20,
+      bullet: {
+        type: "missile",
+        trailColour: [255, 169, 207],
+        trailColourTo: [212, 0, 255],
+        trailShape: "rhombus",
+        targetType: "nearest",
+        turnSpeed: 0.25,
+        trailInterval: 5,
+        trailWidth: 5,
+        lifetime: 90,
+        speed: 25,
+        hitSize: 5,
+        trail: true,
+        damage: [
+          {
+            type: "ballistic",
+            amount: 5,
+          },
+          {
+            type: "no",
+            amount: 0,
+            area: 40,
+            smokeColour: [0, 0, 0, 0],
+            smokeColourTo: [0, 0, 0, 0],
+            waveColour: [255, 255, 255, -2000],
+            sparkColour: [255, 169, 207],
+            sparkColourTo: [212, 0, 255],
+          },
+        ],
+        drawer: {
+          image: "bullet.normal", //should really be a dart but i don't have the asset
+          width: 32,
+          height: 16,
+        },
+      },
+    },
+    "dart-throw": {
+      type: "action.sequence",
+      duration: 100,
+      animation: "aim-larm",
+      sequence: ["dart", "wait-.5s", "dart", "wait-.5s", "dart", "wait-.5s", "dart"],
+    },
+    "dart-throw-impos": {
+      animation: "aim-larm",
+      type: "action.fire-bullet",
+      part: "lshot",
+      delay: 20,
+      bullet: {
+        type: "Bullet",
+        lifetime: 100,
+        speed: 10,
+        pierce: 9999999,
+        hitSize: 10,
+        trail: true,
+        intervalBullet: {
+          type: "missile",
+          turnSpeed: 360,
+          targetType: "nearest",
+          fragNumber: 1,
+          speed: 0,
+          lifetime: 1,
+          trail: false,
+          fragSpread: 10,
+          fragBullet: {
+            type: "missile",
+            trailColour: [255, 169, 207],
+            trailColourTo: [212, 0, 255],
+            trailShape: "rhombus",
+            targetType: "nearest",
+            turnSpeed: 0.5,
+            trailInterval: 5,
+            trailWidth: 5,
+            lifetime: 90,
+            speed: 25,
+            hitSize: 5,
+            trail: true,
+            damage: [
+              {
+                type: "ballistic",
+                amount: 3,
+              },
+              {
+                type: "no",
+                amount: 0,
+                area: 40,
+                smokeColour: [0, 0, 0, 0],
+                smokeColourTo: [0, 0, 0, 0],
+                waveColour: [255, 255, 255, -2000],
+                sparkColour: [255, 169, 207],
+                sparkColourTo: [212, 0, 255],
+              },
+            ],
+            drawer: {
+              image: "bullet.normal", //should really be a dart but i don't have the asset
+              width: 32,
+              height: 16,
+            },
+          },
+        },
+        intervalTime: 2,
+        intervalNumber: 1,
+        fragSpacing: 72,
+        fragNumber: 5,
+        fragBullet: {
+          type: "continuous-laser",
+          spawnSound: "laser-beam",
+          lifetime: 30,
+          length: 2000,
+          pierce: 999,
+          hitSize: 7.5,
+          drawer: {
+            shape: "rect",
+            fill: [234, 84, 232],
+          },
+          damage: [
+            {
+              amount: 1,
+              type: "laser",
+            },
+          ],
+          telegraph: {
+            time: 15,
+          },
+        },
+      },
+    },
   },
   weaponSlots: [
-    {
-      upgrades: [".robo-monkey-throw"],
-      tier: 1,
-    },
     {
       upgrades: [".robo-monkey-laser"],
       tier: 1,
     },
     {
       upgrades: [".robo-monkey-laser-impos"],
-      tier: 1,
-    },
-    {
-      upgrades: [".robo-monkey-throw-impos"],
       tier: 1,
     },
   ],

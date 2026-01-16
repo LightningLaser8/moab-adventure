@@ -1,8 +1,12 @@
 class BossAction {
   duration = 1;
+  animation = "";
   #timer = 0;
   get complete() {
     return this.#timer > this.duration;
+  }
+  animate(entity) {
+    if (this.animation) entity.getModel().fire(this.animation);
   }
   /**
    * @param {Entity} entity
@@ -172,8 +176,9 @@ class SummonMinionAction extends BossAction {
     }
   }
 }
-//Like having a weapon, but also not having one at the same time.
-//Allows bullet hell attacks, without having to work with difficult weapon stuff.
+/**Like having a weapon, but also not having one at the same time.
+ *Allows bullet hell attacks, without having to work with difficult weapon stuff.
+ */
 class SpawnBulletAction extends BossAction {
   xVar = 0;
   yVar = 0;
@@ -198,6 +203,50 @@ class SpawnBulletAction extends BossAction {
       entity,
       null
     );
+  }
+}
+/** Launches a bullet from a model part. Easier to use than weapons. */
+class FireBulletAction extends BossAction {
+  xVar = 0;
+  yVar = 0;
+  part = "main"; // the default part for drawer-converted entities.
+  bullet = {};
+  amount = 1;
+  spread = 0;
+  spacing = 0;
+  delay = 0;
+  /**@param {Boss} entity  */
+  execute(entity) {
+    let model = entity.getModel();
+
+    model.timer.do(() => {
+      model.eject(
+        this.part,
+        entity.x + rnd(-this.xVar, this.xVar),
+        entity.y + rnd(-this.yVar, this.yVar),
+        entity.direction,
+        this.bullet,
+        this.spread,
+        this.spacing,
+        this.amount,
+        entity.world,
+        entity
+      );
+    }, this.delay);
+  }
+}
+// spawns a visual effect.
+class VFXAction extends BossAction {
+  effect = "none";
+  part = "main"; // the default part for drawer-converted entities.
+  delay = 0;
+  /**@param {Boss} entity  */
+  execute(entity) {
+    let model = entity.getModel();
+    model.timer.do(() => {
+      let p = model.pos(this.part).rotate(entity.direction).addParts(entity.x, entity.y);
+      createEffect(this.effect, entity.world, p.x, p.y, p.rotation, 1, () => model.pos(this.part).rotate(entity.direction).addParts(entity.x, entity.y));
+    }, this.delay);
   }
 }
 //Changes a boss' speed for a time
@@ -243,13 +292,38 @@ class EnableAIAction extends BossAction {
   }
 }
 //Does a whole sequence of other actions.
+//You'll need to set duration too, like with MultiAction.
 class CollapsedSequenceAction extends BossAction {
   sequence = [];
-  init() {}
+  #action = 0;
+  init() {
+    let expanded = [];
+    if (this.sequence)
+      this.sequence.forEach((x) => {
+        let aspos = x.indexOf("*") + 1;
+        if (aspos) {
+          let mul = parseInt(x.substring(0, aspos - 1));
+          for (let i = 0; i < mul; i++) {
+            expanded.push(x.substring(aspos));
+          }
+        } else expanded.push(x);
+      });
+    this.sequence = expanded;
+    console.log(this);
+  }
+  /**@param {Boss} entity  */
+  tick(entity) {
+    super.tick(entity);
+    this.#action = entity.tickSeq(this.sequence, this.#action);
+  }
 }
 //Does other actions at once. Won't compute duration by itself, though.
 class MultiAction extends BossAction {
   actions = [];
+  animate(entity) {
+    super.animate(entity);
+    this.actions.forEach((str) => entity.actions[str].animate(entity));
+  }
   /**@param {Boss} entity  */
   execute(entity) {
     super.execute(entity);

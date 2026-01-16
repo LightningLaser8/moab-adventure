@@ -29,7 +29,7 @@ class Boss extends ScalingEntity {
     for (let name in this.actions) {
       this.actions[name] = construct(this.actions[name], BossAction);
     }
-    this.triggers = this.triggers.map((x) => construct(x, ActionTrigger));
+    this.triggers.forEach((v, i, a) => (a[i] =  construct(v, ActionTrigger)));
 
     let expanded = [];
     if (this.sequence)
@@ -77,7 +77,7 @@ class Boss extends ScalingEntity {
       this.imposModel = construct(this.imposModel, Model);
     }
 
-    //Instantly use first action
+    //Instantly use first action, no animation
     let currentAction = this.getAction();
     if (currentAction) currentAction.execute(this);
     this.previousRot = this.direction;
@@ -91,13 +91,13 @@ class Boss extends ScalingEntity {
   #eval(condition, seppos, evaluator) {
     let lvalue = this.#valueof(condition.substring(0, seppos - 1));
     let rvalue = this.#valueof(condition.substring(seppos));
-    console.log(`check ${lvalue} and ${rvalue}`);
+    // console.log(`check ${lvalue} and ${rvalue}`);
     let res = evaluator(lvalue, rvalue);
-    console.log(res ? "passed" : "failed");
+    // console.log(res ? "passed" : "failed");
     return !!res;
   }
   #valueof(valueString) {
-    console.log(`value ${valueString}`);
+    // console.log(`value ${valueString}`);
     if (valueString.startsWith("#")) {
       valueString = valueString.substring(1);
       let dg = this.data.get(valueString);
@@ -111,8 +111,8 @@ class Boss extends ScalingEntity {
     }
     return valueString;
   }
-  #satisfies(condition) {
-    console.log(`only if ${condition}`);
+  satisfies(condition) {
+    // console.log(`only if ${condition}`);
     let ltpos = condition.indexOf("<") + 1;
     let rtpos = condition.indexOf(">") + 1;
     let eqpos = condition.indexOf("=") + 1;
@@ -137,10 +137,10 @@ class Boss extends ScalingEntity {
         let ifAction = actName.substring(0, epos - 1);
         let elseAction = actName.substring(epos);
         // console.log(`if ${condition} then ${ifAction} else ${elseAction}`);
-        if (this.#satisfies(condition)) actName = ifAction;
+        if (this.satisfies(condition)) actName = ifAction;
         else actName = elseAction;
         // console.log(`-> doing ${actName}`);
-      } else if (!this.#satisfies(condition)) return actIndex + 1;
+      } else if (!this.satisfies(condition)) return actIndex + 1;
     }
 
     /**@type {BossAction} */
@@ -161,6 +161,7 @@ class Boss extends ScalingEntity {
     }
     let next = this.actions[seq[actIndex]];
     if (!next) return actIndex; //Stop if the only action has been done
+    next.animate(this);
     next.execute(this);
     next.tick(this); // correction for ticking actions
     if (next.duration === 1 && actIndex !== 0) {

@@ -168,6 +168,7 @@ function draw() {
   }
 }
 
+/** To be replaced with other code in devtools console :) */
 function customDrawCode() {}
 
 function uiFrame() {
@@ -200,7 +201,6 @@ function drawCursor(x, y) {
         slot.weapon && i < 5 ? slot.weapon._cooldown / slot.weapon.reload : 0
       )
     );
-
   ImageCTX.draw(ui.waitingForMouseUp ? "ui.cursor-wait" : "ui.cursor", x, y, 64, 64);
 }
 
@@ -390,7 +390,7 @@ function debugUI() {
     let dist = Infinity,
       min = null;
     world.entities.forEach((ent) => {
-      if (!ent || ent.dead || ent.team === game.player.team) return;
+      if (!ent || ent.dead || ent.team === game.player?.team) return;
       let d = ent.lastPos.distanceTo(ui.mouse);
       if (d < dist) {
         dist = d;
@@ -445,12 +445,7 @@ function debugUI() {
 }
 
 function isOffscreen(entity) {
-  return (
-    entity.x < -entity.hitSize ||
-    entity.x > 1920 + entity.hitSize ||
-    entity.y < -entity.hitSize ||
-    entity.y > 1080 + entity.hitSize
-  );
+  return entity.x < 0 || entity.x > 1920 || entity.y < 0 || entity.y > 1080;
 }
 
 function distanceOffscreen(entity) {
@@ -499,7 +494,7 @@ function showOffscreenBosses() {
       let m = boss.getModel();
       let size = new Vector(m.displayWidth, m.displayHeight);
       let scale = size.x > size.y ? 110 / size.x : 110 / size.y;
-      console.log(scale);
+      // console.log(scale);
       boss.drawIcon(circlepos.x, circlepos.y, scale);
       textFont(fonts.ocr);
       fill(150, 150, 150);
@@ -549,7 +544,7 @@ function createSupport() {
   world.particles.push(
     new WaveParticle(suppor.x, suppor.y, 60, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0)
   );
-  console.log("spawned support blimp", game.support);
+  // console.log("spawned support blimp", game.support);
 }
 
 function fireIfPossible() {

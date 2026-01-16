@@ -1,4 +1,3 @@
-
 class Model {
   /**@type {{[name: string]: ModelPart}} */
   parts = {};
@@ -29,7 +28,7 @@ class Model {
   freeze() {
     this.timer.cancel("*");
   }
-  move(name, x, y, rot) {
+  move(name, x, y, rot, slide) {
     const p = this.parts[name];
     if (!p) {
       console.warn("Animation references part '" + name + "', which doesn't exist.");
@@ -38,14 +37,30 @@ class Model {
     p.x += x;
     p.y += y;
     p.direction += rot;
+    p.slide += slide;
   }
-  pos(name) {
+  details(name) {
     const p = this.parts[name];
     if (!p) {
       console.warn("Animation references part '" + name + "', which doesn't exist.");
       return [0, 0, 0, 0];
     }
     return [p.x, p.y, p.direction, p.slide];
+  }
+  get(name) {
+    const p = this.parts[name];
+    if (!p) {
+      console.warn("Animation references part '" + name + "', which doesn't exist.");
+    }
+    return p;
+  }
+  pos(name) {
+    const p = this.parts[name];
+    if (!p) {
+      console.warn("Animation references part '" + name + "', which doesn't exist.");
+      return new Orientation();
+    }
+    return p.pos(this);
   }
   tick() {
     this.timer.tick();
@@ -67,6 +82,14 @@ class Model {
     }
     return null;
   }
+  eject(name, ox, oy, od, bullet, spread, spacing, amount, world, entity) {
+    const p = this.parts[name];
+    if (!p) {
+      console.warn("Animation references part '" + name + "', which doesn't exist.");
+      return;
+    }
+    p.eject(this, ox, oy, od, bullet, spread, spacing, amount, world, entity);
+  }
 }
 
 class ModelPart {
@@ -82,48 +105,28 @@ class ModelPart {
   rotate = true;
   anchor = "";
   outl = false;
-  /** @returns {Orientation} */
-  pos(model, x, y, rotation) {
-    let slide = 0;
-    if (!this.rotate) rotation = 0;
-    if (this.anchor !== "") {
-      let move = model.pos(this.anchor);
-      x += move[0];
-      y += move[1];
-      rotation += move[2];
-      slide = move[3];
-    }
-    let angle = rotation + this.direction;
-    return new Orientation(x, y, angle).add(Vector.fromAngle(rotation).scale(slide)).add(
-      Vector.fromAngle(rotation + 90)
-        .scale(this.y)
-        .add(
-          Vector.fromAngle(rotation).scale(this.x).add(Vector.fromAngle(angle).scale(this.slide))
-        )
-    );
-    /*
-    let pos = new Vector(x, y).add(Vector.fromAngle(rotation).scale(slide));
-    let angle = rotation + this.direction;
-    let xOffsetVct = Vector.fromAngle(rotation).scale(this.x);
-    let yOffsetVct = Vector.fromAngle(rotation + 90).scale(this.y);
-    let slideVct = Vector.fromAngle(angle).scale(this.slide);
-    let toffset = yOffsetVct.add(xOffsetVct.add(slideVct));
-    let finalPos = pos.add(toffset); //Add them all up
-    */
+  hidden = false;
+  /**Returns the *relative* position of this part, and its rotation.
+   * @param {Model} model The model to draw on.
+   * @returns {Orientation} */
+  pos(model) {
+    /**@type {Orientation} */
+    let origin = this.anchor === "" ? Orientation.ZERO : model.pos(this.anchor);
+
+    let relpos = new Vector(this.x, this.y).add(Vector.fromAngle(this.direction).scale(this.slide));
+    let rotpos = relpos.rotate(origin.rotation);
+    let np = origin.addParts(rotpos.x, rotpos.y, this.rotate ? this.direction : 0);
+
+    return np;
   }
+
   /**@param {Model} model  */
-  draw(model, x, y, rotation, slide = 0) {
-    let finalPos = this.pos(model, x, y, rotation, slide);
+  draw(model, x, y, rotation) {
+    if (this.hidden) return;
+    let p = this.pos(model).rotate(rotation).addParts(x, y);
     if (this.image instanceof ImageContainer || typeof this.image === "string") {
       //If it's an image, draw it
-      ImageCTX.draw(
-        this.image,
-        finalPos.x,
-        finalPos.y,
-        this.width,
-        this.height,
-        radians(finalPos.rotation)
-      );
+      ImageCTX.draw(this.image, p.x, p.y, this.width, this.height, radians(p.rotation));
     } else {
       //If it isn't, draw a rectangle
       push();
@@ -132,20 +135,29 @@ class ModelPart {
         stroke(...this.colour);
         noFill();
       } else fill(...this.colour);
-      rotatedShape(
-        this.shape,
-        finalPos.x,
-        finalPos.y,
-        this.width,
-        this.height,
-        radians(finalPos.rotation)
-      );
+      rotatedShape(this.shape, p.x, p.y, this.width, this.height, radians(p.rotation));
       pop();
     }
   }
   hitTest(model, x, y, rotation, hx, hy, hsize) {
-    let finalPos = this.pos(model, x, y, rotation);
-    return finalPos.distanceTo(new Vector(hx, hy)) <= hsize + (this.width + this.height) / 4;
+    let finalPos = this.pos(model).rotate(rotation).addParts(x, y).pos;
+    return finalPos.distanceToXY(hx, hy) <= hsize + (this.width + this.height) / 4;
+  }
+  /**@param {Model} model  */
+  eject(model, ox, oy, od, bullet, spread, spacing, amount, world, entity) {
+      let p = this.pos(model).rotate(od).addParts(ox, oy);
+      patternedBulletExpulsion(
+        p.x,
+        p.y,
+        bullet,
+        amount,
+        p.rotation,
+        spread,
+        spacing,
+        world,
+        entity,
+        null
+      );
   }
 }
 
@@ -153,13 +165,14 @@ class ModelAnimation {
   /**@type {ModelMovement[]} */
   movements = [];
   init() {
-    this.movements.forEach((v, i, a) => (a[i] = constructFromType(v, ModelMovement)));
+    console.log(this);
+    this.movements.forEach((v, i, a) => (a[i] = construct(v, ModelMovement)));
   }
   /**@param {Model} model */
   on(model) {
     this.movements.forEach((m) => {
       model.timer.repeat(
-        () => model.move(m.part, m.dx / m.duration, m.dy / m.duration, m.drot / m.duration),
+        () => model.move(m.part, m.dx / m.duration, m.dy / m.duration, m.drot / m.duration, m.dslide / m.duration),
         m.duration,
         1,
         m.delay
@@ -173,6 +186,7 @@ class ModelMovement {
   dx = 0;
   dy = 0;
   drot = 0;
+  dslide = 0;
   duration = 0;
   delay = 0;
 }

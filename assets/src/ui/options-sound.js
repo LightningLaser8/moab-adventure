@@ -149,8 +149,17 @@ createGamePropertySelector(
 
 function recenterBars() {
   volBar._current = ui.volume;
+  SoundCTX.volume.gain.setValueAtTime(ui.volume / 100, 0);
+
   eVolBar._current = ui.piecewiseVolume.entities;
+  SoundCTX.piecewiseVolume.entities.gain.setValueAtTime(ui.entities / 100, 0);
+
   mVolBar._current = ui.piecewiseVolume.music;
+  SoundCTX.piecewiseVolume.music.gain.setValueAtTime(ui.music / 100, 0);
+
   wVolBar._current = ui.piecewiseVolume.weapons;
+  SoundCTX.piecewiseVolume.weapons.gain.setValueAtTime(ui.weapons / 100, 0);
+
   oVolBar._current = ui.piecewiseVolume.other;
+  SoundCTX.piecewiseVolume.other.gain.setValueAtTime(ui.other / 100, 0);
 }
