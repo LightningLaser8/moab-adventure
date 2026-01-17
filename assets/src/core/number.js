@@ -5,6 +5,7 @@ const sizes = ["", "k", "m", "b", "t", "q", "Q", "s", "S", "o", "n", "d"];
  * Does not round, but truncates instead, e.g. 12850 -> 1.28k
  */
 function shortenedNumber(num = 0, digits = 3) {
+  if(typeof num !== "number") num = 0;
   let exponential = num.toExponential();
   //Split the first bit and the power of 10
   let parts = exponential.split("e");

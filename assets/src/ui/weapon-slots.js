@@ -177,7 +177,7 @@ createUIComponent(
   0,
   "none",
   null,
-  "Wide-range exploding projectile attacks.\n\nFire rate: Slow\nDamage: High\nArea: Large\nAim Required: Medium-High\nSupport Value: None",
+  "Wide-range exploding projectile attacks.\n\nFire rate: Slow\nDamage: High\nArea: Large\nAim Required: Medium\nSupport Value: None",
   true,
   30
 );

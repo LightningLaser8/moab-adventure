@@ -1,8 +1,8 @@
 class World {
   particles = [];
-  /** @type {Array<Entity>} */
+  /** @type {Entity[]} */
   entities = [];
-  /** @type {Array<Bullet>} */
+  /** @type {Bullet[]} */
   bullets = [];
   spawning = [];
   background = "background.sea";

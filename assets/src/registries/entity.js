@@ -34,12 +34,10 @@ Registry.entities.add("wooden-box", {
   get y() {
     return random(0, 1080);
   },
-  reward: {
-    shards: 2,
-  },
-  destroyReward: {
-    shards: 5,
-  },
+  reward: 2,
+
+  destroyReward: 5,
+
   team: "enemy",
   health: 4,
   healthIncrease: 1,
@@ -70,12 +68,10 @@ Registry.entities.add("metal-box", {
   get y() {
     return random(0, 1080);
   },
-  reward: {
-    shards: 2,
-  },
-  destroyReward: {
-    shards: 10, //Worth more
-  },
+  reward: 2,
+
+  destroyReward: 10, //Worth more
+
   team: "enemy",
   health: 16, //More HP
   healthIncrease: 2,
@@ -102,12 +98,10 @@ Registry.entities.add("hardwood-box", {
   get y() {
     return random(0, 1080);
   },
-  reward: {
-    shards: 2,
-  },
-  destroyReward: {
-    shards: 5,
-  },
+  reward: 2,
+
+  destroyReward: 5,
+
   team: "enemy",
   health: 5,
   healthIncrease: 1.25,
@@ -150,12 +144,10 @@ Registry.entities.add("robox", {
   get y() {
     return random(0, 1080);
   },
-  reward: {
-    shards: 2,
-  },
-  destroyReward: {
-    shards: 10,
-  },
+  reward: 2,
+
+  destroyReward: 10,
+
   team: "enemy",
   health: 20,
   healthIncrease: 5,
@@ -184,9 +176,8 @@ Registry.entities.add("gigantic-box", {
   get y() {
     return random(0, 1080);
   },
-  reward: {
-    bloonstones: 100,
-  },
+  reward: 100,
+
   actions: {
     charge: {
       type: "action.move",
@@ -364,9 +355,8 @@ Registry.entities.add("monkey-ace", {
   hitSize: 136,
   x: 0,
   y: 540,
-  reward: {
-    bloonstones: 100,
-  },
+  reward: 100,
+
   weaponSlots: [
     {
       posX: 0,
@@ -667,9 +657,8 @@ Registry.entities.add("super-monkey", {
   get y() {
     return random(0, 1080);
   },
-  reward: {
-    bloonstones: 100,
-  },
+  reward: 100,
+
   actions: {
     charge: {
       type: "action.move",
@@ -963,15 +952,13 @@ Registry.entities.add("robo-monkey", {
   x: 1920,
   y: 0,
   healthColour: [234, 84, 232],
-  reward: {
-    bloonstones: 500,
-  },
+  reward: 500,
   actions: {
     "rarm-glow": {
       type: "action.vfx",
       part: "rshot",
       effect: "laser-charge-mini",
-      delay: 8
+      delay: 8,
     },
     "laser-beam": {
       type: "action.fire-weapon",
@@ -1044,7 +1031,7 @@ Registry.entities.add("robo-monkey", {
     airlaser: {
       type: "action.multi",
       actions: ["al", "rarm-glow"],
-      duration: 1
+      duration: 1,
     },
     al: {
       animation: "aim-al-.3",
