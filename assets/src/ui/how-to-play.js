@@ -64,7 +64,7 @@ createUIComponent(["how-to-play"], [], 1650, 150, 0, 0, "none", null, "v", true,
 UIComponent.invert(createUIComponent(["how-to-play"], [], 1650, 220, 450, 62.5, "right"));
 const fakehp = {
   get health() {
-    return 0//frameCount % 300 > 200 ? 200 : 200 - (frameCount % 300);
+    return frameCount % 300 > 200 ? 200 : 200 - (frameCount % 300);
   },
   maxHealth: 200,
 };

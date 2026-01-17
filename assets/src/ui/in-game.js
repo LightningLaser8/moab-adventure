@@ -1947,7 +1947,6 @@ createUIComponent(
   "none",
   () => {
     game.mode = "adventure";
-    UIComponent.setCondition("mode:adventure");
   },
   "Adventure",
   true,
@@ -1963,7 +1962,6 @@ createUIComponent(
   "none",
   () => {
     game.mode = "boss-rush";
-    UIComponent.setCondition("mode:boss-rush");
   },
   "*Boss Rush",
   true,

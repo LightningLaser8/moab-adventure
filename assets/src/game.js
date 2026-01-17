@@ -9,8 +9,15 @@ const game = {
     UIComponent.setCondition("difficulty:" + _);
     world.updateDifficulty();
   },
+  _m: "none",
   /**@type {"none"|"adventure"|"boss-rush"|"sandbox"} */
-  mode: "none",
+  get mode() {
+    return this._m;
+  },
+  set mode(_){
+    this._m = _;
+    UIComponent.setCondition("mode:" + _);
+  },
   /**@type {-1|0|1|2|3|4|5} */
   saveslot: -1,
   music: true,
@@ -775,7 +782,6 @@ function reload() {
 function saveGame() {
   let save = {
     saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
-    achs: game.achievements,
     level: game.level,
     zone: game.world,
     znlvl: world.getBossIndex(),
@@ -806,6 +812,7 @@ function saveGame() {
     won: game.won,
   };
   Serialiser.set("save." + game.saveslot, save);
+  Serialiser.set("achievements", game.achievements);
   notifyEffect("Game saved in slot " + game.saveslot);
   regenSaveDescrs();
 }
@@ -822,7 +829,6 @@ function loadGame(slot) {
   game.mode = save.mode ?? "adventure";
   //Progress
   game.bossdelay = 0;
-  game.achievements = save.achs ?? [];
   moveToWorld(save.zone ?? "ocean-skies");
   world.setBossIndex(save.znlvl ?? 1);
   game.level = save.level ?? 1;
