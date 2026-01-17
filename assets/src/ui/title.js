@@ -73,3 +73,71 @@ Object.defineProperty(
       ).substring(0, Math.floor((frameCount ?? 0) / 10)),
   }
 );
+
+createUIImageComponent(
+  [
+    "title",
+    "new-game",
+    "load-game",
+    "options",
+    "options.sound",
+    "options.ui",
+    "start-menu",
+    "weapon-slots",
+    "you-win",
+    "crash",
+  ],
+  ["mode:sandbox"],
+  200,
+  200,
+  1920,
+  20,
+  null,
+  "ui.warn-tape",
+  false
+).angle = -Math.PI / 4;
+
+createUIImageComponent(
+  [
+    "title",
+    "new-game",
+    "load-game",
+    "options",
+    "options.sound",
+    "options.ui",
+    "start-menu",
+    "weapon-slots",
+    "you-win",
+    "crash",
+  ],
+  ["mode:sandbox"],
+  1100,
+  1100,
+  1920,
+  20,
+  null,
+  "ui.warn-tape",
+  false
+).angle = -Math.PI / 7;
+createUIImageComponent(
+  [
+    "title",
+    "new-game",
+    "load-game",
+    "options",
+    "options.sound",
+    "options.ui",
+    "start-menu",
+    "weapon-slots",
+    "you-win",
+    "crash",
+  ],
+  ["mode:sandbox"],
+  1450,
+  950,
+  1920,
+  20,
+  null,
+  "ui.warn-tape",
+  false
+).angle = -Math.PI / 5;

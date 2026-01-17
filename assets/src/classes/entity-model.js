@@ -165,7 +165,7 @@ class ModelAnimation {
   /**@type {ModelMovement[]} */
   movements = [];
   init() {
-    console.log(this);
+    // console.log(this);
     this.movements.forEach((v, i, a) => (a[i] = construct(v, ModelMovement)));
   }
   /**@param {Model} model */

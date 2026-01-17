@@ -121,8 +121,7 @@ function regenSaveDescrs() {
           ui.menuState = "in-game";
           UIComponent.setCondition("saveslot:" + i);
           game.saveslot = i;
-          createPlayer();
-          createSupport();
+          startGame();
           loadGame(i);
         }
       : () => {};

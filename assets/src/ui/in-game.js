@@ -23,9 +23,40 @@ const background = {
 
 //###################################################################
 //
+// in-game UI > sandbox UI > INDICATOR
+//
+//###################################################################
+//#region indicator
+
+createUIImageComponent(
+  ["in-game"],
+  ["mode:sandbox"],
+  960,
+  1070,
+  1920,
+  20,
+  null,
+  "ui.warn-tape",
+  false
+);
+createUIImageComponent(
+  ["in-game"],
+  ["mode:sandbox"],
+  960,
+  10,
+  1920,
+  20,
+  null,
+  "ui.warn-tape",
+  false
+);
+//#endregion
+//###################################################################
+//
 // in-game UI > informative UI > CURRENCY COUNTERS
 //
 //###################################################################
+//#region currency counter
 
 createUIComponent(["in-game"], [], 350, 55, 700, 125, "right");
 //Shards
@@ -83,11 +114,13 @@ UIComponent.alignLeft(
   )
 );
 
+//#endregion
 //###################################################################
 //
 // in-game UI > informative UI > HEALTHBAR
 //
 //###################################################################
+//#region healthbar
 
 UIComponent.invert(
   //Healthbar container
@@ -268,52 +301,16 @@ UIComponent.alignLeft(
     }
   )
 );
+//#endregion
 //###################################################################
 //
 // in-game UI > informative UI > BOSSBAR
 //
 //###################################################################
+//#region bossbar
 
 UIComponent.setCondition("boss:no"); //No boss by default
 
-//    When boss inactive
-//Like healthbar, but not
-UIComponent.invert(
-  //boss timer bar container
-  createUIComponent(
-    ["in-game"],
-    ["boss:no"], //Only show if no boss, if boss then show boss' healthbar instead
-    1520,
-    50,
-    800,
-    100,
-    "left"
-  )
-);
-
-//Timer
-UIComponent.invert(
-  createHealthbarComponent(
-    ["in-game"],
-    ["boss:no"],
-    1505,
-    50,
-    580,
-    50,
-    "both",
-    undefined,
-    undefined,
-    undefined,
-    20,
-    () => game,
-    [255, 0, 0]
-  )
-    .setGetters("bosstimer", "bossinterval")
-    .reverseBarDirection()
-    .setColours(null, null, [255, 0, 0])
-);
-
-createUIImageComponent(["in-game"], ["boss:no"], 1870, 50, 80, 80, null, "ui.clock", false);
 //  When boss active
 //Boss healthbar
 createUIComponent(
@@ -343,7 +340,7 @@ UIComponent.alignRight(
     }
   )
 );
-UIComponent.invert(
+let bhb = UIComponent.invert(
   createHealthbarComponent(
     ["in-game"],
     ["boss:yes"],
@@ -358,7 +355,10 @@ UIComponent.invert(
     20,
     () => world.getFirstBoss(),
     [255, 0, 0]
-  ).reverseBarDirection()
+  )
+    .reverseBarDirection()
+    .setColours(null, () => world.boss?.healthColour ?? [255, 0, 0], null)
+    .setIsHigher(() => world.boss?.higher ?? false)
 );
 UIComponent.invert(
   createUIComponent(
@@ -424,11 +424,102 @@ Object.defineProperty(
   }
 );
 
+//#endregion
+//###################################################################
+//
+// in-game UI > informative UI > BOSS TIMER
+//
+//###################################################################
+//#region boss timer
+
+UIComponent.invert(
+  //boss timer bar container
+  createUIComponent(
+    ["in-game"],
+    ["boss:no", "mode:adventure"], //Only show if no boss, if boss then show boss' healthbar instead
+    1520,
+    50,
+    800,
+    100,
+    "left"
+  )
+);
+
+UIComponent.invert(
+  createHealthbarComponent(
+    ["in-game"],
+    ["boss:no", "mode:adventure"],
+    1505,
+    50,
+    580,
+    50,
+    "both",
+    undefined,
+    undefined,
+    undefined,
+    20,
+    () => game,
+    [255, 0, 0]
+  )
+    .setGetters("bosstimer", "bossinterval")
+    .reverseBarDirection()
+    .setColours(null, null, [255, 0, 0])
+);
+
+createUIImageComponent(
+  ["in-game"],
+  ["boss:no", "mode:adventure"],
+  1870,
+  50,
+  80,
+  80,
+  null,
+  "ui.clock",
+  false
+);
+
+//#endregion
+//###################################################################
+//
+// in-game UI > informative UI > BOSS RUSH PLATE
+//
+//###################################################################
+//#region br plate
+
+UIComponent.invert(
+  createUIComponent(["in-game"], ["boss:no", "mode:boss-rush"], 1670, 50, 500, 100, "left")
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["boss:no", "mode:boss-rush"],
+    1720,
+    50,
+    0,
+    0,
+    "none",
+    null,
+    "*Next:    ",
+    true,
+    40
+  ),
+  "text",
+  {
+    get: () => {
+      let b = world.bosses[world.cbi];
+      if (b) return "Next:\n" + Registry.entities.get(b).name;
+      return "Transferring...";
+    },
+  }
+);
+
+//#endregion
 //###################################################################
 //
 // in-game UI > interactable UI > UPGRADE MENU
 //
 //###################################################################
+//#region upgrade menu
 
 //Translucent blue background
 UIComponent.removeOutline(
@@ -650,11 +741,13 @@ createUIComponent(
   60
 ).isBackButton = true;
 
+//#endregion
 //###################################################################
 //
 // in-game UI > interactable UI > upgrade menu > WEAPON UPGRADE MENU
 //
 //###################################################################
+//#region w. upgrade
 
 //Title
 Object.defineProperty(
@@ -944,11 +1037,13 @@ createUIComponent(
   20
 );
 
+//#endregion
 //###################################################################
 //
 // in-game UI > interactable UI > upgrade menu > BLIMP UPGRADE MENU
 //
 //###################################################################
+//#region b. upgrade
 
 //Entry Button
 createUIComponent(
@@ -1354,11 +1449,13 @@ createUIComponent(
   20
 );
 
+//#endregion
 //###################################################################
 //
 // in-game UI > interactable UI > upgrade menu > SUPPORT UPGRADE MENU
 //
 //###################################################################
+//#region s. upgrade
 
 //Title
 Object.defineProperty(
@@ -1647,13 +1744,31 @@ createUIComponent(
   20
 );
 
+//#endregion
 //###################################################################
 //
 // in-game UI > indicative UI > PAUSE INDICATOR
 //
 //###################################################################
+//#region pause
+
 UIComponent.setCondition("paused:false");
-createUIComponent(["in-game"], ["paused:true", "upgrade-menu-open:false"], 960, 275, 1920, 20);
+createUIComponent(
+  ["in-game"],
+  ["paused:true", "upgrade-menu-open:false", "mode:adventure|boss-rush"],
+  960,
+  275,
+  1920,
+  20
+);
+createUIComponent(
+  ["in-game"],
+  ["paused:true", "upgrade-menu-open:false", "mode:sandbox"],
+  960,
+  275,
+  1920,
+  20
+).bgimg = "ui.warn-tape";
 UIComponent.setBackgroundOf(
   createUIComponent(
     ["in-game"],
@@ -1691,6 +1806,432 @@ createUIComponent(
   true,
   55
 );
+//#endregion
+//###################################################################
+//
+// in-game UI > utility UI > SANDBOX TOOLS
+//
+//###################################################################
+//#region sand tools
+UIComponent.setCondition("tool:none");
+UIComponent.setCondition("min:true");
+UIComponent.setCondition("c:shards");
+UIComponent.setCondition("d:add");
+let tocreate = 0;
+
+createUIComponent(["in-game"], ["mode:sandbox", "min:false"], 1500, 1000, 800, 80).bgimg =
+  "ui.warn-tape-wide";
+createUIComponent(["in-game"], ["mode:sandbox", "min:true"], 1860, 1000, 80, 80).bgimg =
+  "ui.warn-tape-wide";
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1860,
+  1000,
+  55,
+  55,
+  "none",
+  () => UIComponent.setCondition("min:true"),
+  "-"
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:true"],
+  1860,
+  1000,
+  55,
+  55,
+  "none",
+  () => UIComponent.setCondition("min:false"),
+  "+"
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher|diff|currency"],
+  1860,
+  1000,
+  55,
+  55,
+  "none",
+  () => UIComponent.setCondition("tool:none"),
+  "X"
+);
+
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1250,
+  930,
+  0,
+  0,
+  "none",
+  null,
+  "Sandbox Tools",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1170,
+  1000,
+  120,
+  55,
+  "none",
+  () => UIComponent.setCondition("tool:switcher"),
+  "Mode\nSwitch",
+  true,
+  20
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1320,
+  1000,
+  120,
+  55,
+  "none",
+  () => UIComponent.setCondition("tool:diff"),
+  "Difficulty\nSwitch",
+  true,
+  20
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1470,
+  1000,
+  120,
+  55,
+  "none",
+  () => UIComponent.setCondition("tool:currency"),
+  "Currency\nSpawner",
+  true,
+  20
+);
+
+// mode switcher
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher", "min:false"],
+  1250,
+  930,
+  0,
+  0,
+  "none",
+  null,
+  "Mode Switcher",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher", "min:false"],
+  1750,
+  930,
+  300,
+  40,
+  "none",
+  null,
+  "Not reversible!",
+  true,
+  30
+).textColour = [255, 197, 0];
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher", "min:false"],
+  1200,
+  1000,
+  180,
+  55,
+  "none",
+  () => {
+    game.mode = "adventure";
+    UIComponent.setCondition("mode:adventure");
+  },
+  "Adventure",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher", "min:false"],
+  1400,
+  1000,
+  180,
+  55,
+  "none",
+  () => {
+    game.mode = "boss-rush";
+    UIComponent.setCondition("mode:boss-rush");
+  },
+  "*Boss Rush",
+  true,
+  30
+);
+
+// diff switcher
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:diff", "min:false"],
+  1300,
+  930,
+  0,
+  0,
+  "none",
+  null,
+  "Difficulty Switcher",
+  true,
+  30
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:diff", "min:false"],
+    1190,
+    1000,
+    150,
+    55,
+    "none",
+    () => {
+      game.difficulty = "easy";
+    },
+    "Easy",
+    true,
+    30
+  ),
+  "emphasised",
+  { get: () => game.difficulty === "easy" }
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:diff", "min:false"],
+    1360,
+    1000,
+    150,
+    55,
+    "none",
+    () => {
+      game.difficulty = "normal";
+    },
+    "Normal",
+    true,
+    30
+  ),
+  "emphasised",
+  { get: () => game.difficulty === "normal" }
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:diff", "min:false"],
+    1530,
+    1000,
+    150,
+    55,
+    "none",
+    () => {
+      game.difficulty = "hard";
+    },
+    "Hard",
+    true,
+    30
+  ),
+  "emphasised",
+  { get: () => game.difficulty === "hard" }
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:diff", "min:false"],
+    1700,
+    1000,
+    150,
+    55,
+    "none",
+    () => {
+      game.difficulty = "impossible";
+    },
+    "Impos",
+    true,
+    30
+  ),
+  "emphasised",
+  { get: () => game.difficulty === "impossible" }
+);
+
+// currency adder
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1300,
+  930,
+  0,
+  0,
+  "none",
+  null,
+  "Currency Spawner",
+  true,
+  30
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:currency", "min:false"],
+    1470,
+    1000,
+    240,
+    55,
+    "none",
+    () => {
+      if (UIComponent.evaluateCondition("c:shards")) game.shards += tocreate;
+      if (UIComponent.evaluateCondition("c:bloonstones")) game.bloonstones += tocreate;
+      tocreate = 0;
+    },
+    "",
+    true,
+    30
+  ),
+  "text",
+  { get: () => "" + tocreate }
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1305,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    if (UIComponent.evaluateCondition("c:shards")) UIComponent.setCondition("c:bloonstones");
+    else if (UIComponent.evaluateCondition("c:bloonstones")) UIComponent.setCondition("c:shards");
+  }
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1223,
+  1000,
+  70,
+  55,
+  "none",
+  () => {
+    tocreate = 0;
+  },
+  "Reset",
+  true,
+  20
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false", "d:add"],
+  1140,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    UIComponent.setCondition("d:sub");
+  },
+  "+",
+  true,
+  40
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false", "d:sub"],
+  1140,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    UIComponent.setCondition("d:add");
+  },
+  "-",
+  true,
+  40
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1635,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    if (UIComponent.evaluateCondition("d:add")) tocreate += 10000;
+    if (UIComponent.evaluateCondition("d:sub")) tocreate -= 10000;
+  },
+  "10k",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1710,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    if (UIComponent.evaluateCondition("d:add")) tocreate += 1000;
+    if (UIComponent.evaluateCondition("d:sub")) tocreate -= 1000;
+  },
+  "1k",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1785,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    if (UIComponent.evaluateCondition("d:add")) tocreate += 100;
+    if (UIComponent.evaluateCondition("d:sub")) tocreate -= 100;
+  },
+  "100",
+  true,
+  30
+);
+createUIImageComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false", "c:shards"],
+  1305,
+  1000,
+  55,
+  55,
+  null,
+  "ui.shard",
+  false
+);
+createUIImageComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false", "c:bloonstones"],
+  1305,
+  1000,
+  55,
+  55,
+  null,
+  "ui.bloonstone",
+  false
+);
+
+//#endregion
+//###################################################################
+//
+// in-game UI > universal UI > CLOSE BUTTON
+//
+//###################################################################
+//#region close
 
 // menu close button
 createUIComponent(
@@ -1708,3 +2249,4 @@ createUIComponent(
   },
   "Close"
 ).isBackButton = true;
+//#endregion

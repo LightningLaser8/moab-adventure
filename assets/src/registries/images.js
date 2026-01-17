@@ -35,6 +35,9 @@ Registry.images.add("ui.dash-spike", { path: "assets/textures/ui/dash-spike.png"
 Registry.images.add("ui.shotgun", { path: "assets/textures/ui/shotgun.png"});
 Registry.images.add("ui.shield-projector", { path: "assets/textures/ui/shield-projector.png"});
 Registry.images.add("ui.double-booster", { path: "assets/textures/ui/double-booster.png"});
+
+Registry.images.add("ui.warn-tape", { path: "assets/textures/ui/warn-screen.png"});
+Registry.images.add("ui.warn-tape-wide", { path: "assets/textures/ui/warn-wide.png"});
 //boxes
 Registry.images.add("box.wood", { path: "assets/textures/entity/box/wood.svg"});
 Registry.images.add("box.hardwood", { path: "assets/textures/entity/box/hardwood.svg"});

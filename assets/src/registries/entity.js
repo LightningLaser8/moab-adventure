@@ -962,6 +962,7 @@ Registry.entities.add("robo-monkey", {
   speed: 10,
   x: 1920,
   y: 0,
+  healthColour: [234, 84, 232],
   reward: {
     bloonstones: 500,
   },

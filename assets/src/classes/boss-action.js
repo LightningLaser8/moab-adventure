@@ -309,7 +309,7 @@ class CollapsedSequenceAction extends BossAction {
         } else expanded.push(x);
       });
     this.sequence = expanded;
-    console.log(this);
+    // console.log(this);
   }
   /**@param {Boss} entity  */
   tick(entity) {

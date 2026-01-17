@@ -45,13 +45,23 @@ createGamePropertySelector(
   50,
   (value) => UIComponent.setCondition("mode:" + value)
 );
+Object.defineProperty(
+UIComponent.alignLeft(
+  createUIComponent(["new-game"], [], 250, 490, 0, 0, "none", null, "description of shit here", true, 30)
+), "text", {get: () => 
+  game.mode === "adventure" ? "Default mode. Travel through waves of boxes, with regular bossfights.\nThe intended experience." :
+  game.mode === "boss-rush" ? "No intermissions, only bossfights. Short breaks only, and no passive income.\nMuch more challenging: Not recommended for first-time players." :
+  game.mode === "sandbox" ? "Infinite health and currency, the ability to spawn anything, and other tools.\nFor creating fun scenarios or challenges alike. Also good for testing." :
+  "Select a game mode.\n"
+});
+
 UIComponent.setCondition("saveslot:none");
 //Save slot selector
 createGamePropertySelector(
   ["new-game"],
   [],
   250,
-  540,
+  625,
   100,
   140,
   60,
@@ -74,7 +84,7 @@ createUIComponent(
   () => {
     ui.menuState = "weapon-slots";
   },
-  "Weapons...  ",
+  "*Weapons...  ",
   false,
   35
 );
@@ -97,8 +107,7 @@ createUIComponent(
   "none",
   () => {
     ui.menuState = "in-game";
-    createPlayer();
-    createSupport();
+    startGame();
   },
   "Start!",
   false,
@@ -428,8 +437,7 @@ function quickstart(subslot) {
     UIComponent.setCondition("ap5-slot:" + subslot);
 
     ui.menuState = "in-game";
-    createPlayer();
-    createSupport();
+    startGame();
 
     if (game.saveslot === -1)
       notifyEffect(

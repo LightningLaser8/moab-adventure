@@ -12,6 +12,9 @@ class World {
   bosses = [];
   #bossList = [];
   #currentBossIndex = 0;
+  get cbi() {
+    return this.#currentBossIndex;
+  }
 
   //Sounds!
   bgm = null; //Background Music
@@ -51,11 +54,13 @@ class World {
       SoundCTX.play(this.ambientSound);
     }
     if (game.music) {
-      if (!this.boss) {
-        SoundCTX.swap(this.bossmusic, this.bgm, true)
-      } else {
-        SoundCTX.swap(this.bgm, this.bossmusic, true)
-      }
+      if (this.bossmusic) {
+        if (!this.boss) {
+          SoundCTX.swap(this.bossmusic, this.bgm, true);
+        } else {
+          SoundCTX.swap(this.bgm, this.bossmusic, true);
+        }
+      } else SoundCTX.play(this.bgm, true);
     }
   }
   tickAll() {

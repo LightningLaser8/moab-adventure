@@ -1,5 +1,5 @@
 class Boss extends ScalingEntity {
-  reward = { shards: 0, bloonstones: 0 };
+  reward = 0;
   /** @type {Object<string, BossAction>} */
   actions = {}; // Essentially a registry, holds actions that this boss can perform
   /**@type {ActionTrigger[]} */
@@ -23,13 +23,16 @@ class Boss extends ScalingEntity {
   isMinion = false; //Stops this counting for boss kills
   dv = 250;
 
+  healthColour = null;
+  higher = false;
+
   init() {
     super.init();
     //Construct boss actions
     for (let name in this.actions) {
       this.actions[name] = construct(this.actions[name], BossAction);
     }
-    this.triggers.forEach((v, i, a) => (a[i] =  construct(v, ActionTrigger)));
+    this.triggers.forEach((v, i, a) => (a[i] = construct(v, ActionTrigger)));
 
     let expanded = [];
     if (this.sequence)
@@ -195,8 +198,9 @@ class Boss extends ScalingEntity {
   }
   onDeath(source) {
     //Give destroy reward
-    game.shards += this.reward.shards ??= 0;
-    game.bloonstones += this.reward.bloonstones ??= 0;
+    game.bloonstones += this.reward ??= 0;
+    if (game.mode === "boss-rush")
+      game.shards += this.reward * 15 * Math.floor(Math.sqrt(game.level));
     if (!source) return;
     //Stats
     if (!this.isMinion) source.destroyed.bosses++;

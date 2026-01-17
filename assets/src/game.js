@@ -9,7 +9,9 @@ const game = {
     UIComponent.setCondition("difficulty:" + _);
     world.updateDifficulty();
   },
+  /**@type {"none"|"adventure"|"boss-rush"|"sandbox"} */
   mode: "none",
+  /**@type {-1|0|1|2|3|4|5} */
   saveslot: -1,
   music: true,
   /**@type {"keyboard"|"gamepad"} */
@@ -67,6 +69,8 @@ function getCanvasDimensions(baseWidth, baseHeight) {
 let fonts = {};
 let backgrounds = {
   grad_normal: null,
+  grad_boss_rush: null,
+  grad_sandbox: null,
   grad_impossible: null,
 };
 
@@ -100,6 +104,37 @@ async function setup() {
       backgrounds.grad_normal.noStroke(); //Remove outline
       backgrounds.grad_normal.fill(col); //Set fill colour to use
       backgrounds.grad_normal.rect(0, y, 2, 1); //Draw the rectangle
+    }
+    backgrounds.grad_boss_rush = createGraphics(1, 100);
+    for (let y = 0; y < 100; y++) {
+      //For each vertical unit
+      let col = colinterp(
+        [
+          [0, 0, 0],
+          [50, 0, 100],
+          [200, 0, 255],
+        ],
+        y / 100
+      ); //you get it by now
+      backgrounds.grad_boss_rush.noStroke();
+      backgrounds.grad_boss_rush.fill(col);
+      backgrounds.grad_boss_rush.rect(0, y, 2, 1);
+    }
+    backgrounds.grad_sandbox = createGraphics(1, 100);
+    for (let y = 0; y < 100; y++) {
+      //For each vertical unit
+      let col = colinterp(
+        [
+          [0, 0, 0],
+          [50, 35, 0],
+          [150, 100, 0],
+          [255, 200, 0],
+        ],
+        y / 100
+      ); //you get it by now
+      backgrounds.grad_sandbox.noStroke();
+      backgrounds.grad_sandbox.fill(col);
+      backgrounds.grad_sandbox.rect(0, y, 2, 1);
     }
     backgrounds.grad_impossible = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
@@ -142,7 +177,13 @@ function draw() {
     if (game.gl) translate(-width / 2, -height / 2);
     scale(contentScale);
     image(
-      game.difficulty === "impossible" ? backgrounds.grad_impossible : backgrounds.grad_normal,
+      game.difficulty === "impossible"
+        ? backgrounds.grad_impossible
+        : game.mode === "boss-rush"
+        ? backgrounds.grad_boss_rush
+        : game.mode === "sandbox"
+        ? backgrounds.grad_sandbox
+        : backgrounds.grad_normal,
       960,
       540,
       1920,
@@ -275,13 +316,26 @@ function tickBossEvent() {
     // If there's no boss active
     else if (game.bosstimer <= 0) {
       //If timer has run out
-      game.bosstimer = game.bossinterval; //Reset timer
+      if (game.mode === "boss-rush") {
+        game.bossdelay = 180;
+        game.bosstimer = 1;
+      } else game.bosstimer = game.bossinterval; //Reset timer
       world.nextBoss();
       world.reducedSpawns = true;
     } else {
       game.bosstimer -= game.player.speed * 0.0167;
-      if (world.reducedSpawns) world.reducedSpawns = false;
+      if (world.reducedSpawns && game.mode !== "boss-rush") world.reducedSpawns = false;
     }
+  }
+}
+
+function startGame() {
+  createPlayer();
+  createSupport();
+  if (game.mode === "boss-rush") {
+    game.bossdelay = 180;
+    game.bosstimer = 1;
+    world.reducedSpawns = true;
   }
 }
 
@@ -574,7 +628,8 @@ function checkBoxCollisions() {
     }
   }
   if (game.player.dead) {
-    playerDies();
+    if (game.mode === "sandbox") game.player.dead = false;
+    else playerDies();
   }
 }
 

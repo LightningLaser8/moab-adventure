@@ -128,7 +128,8 @@ class UIComponent {
     return uicomponent;
   }
   static setBackgroundOf(uicomponent, colour = null) {
-    uicomponent.backgroundColour = colour;
+    if(typeof colour === "string") uicomponent.bgimg = colour;
+    else uicomponent.backgroundColour = colour;
     return uicomponent;
   }
   static removeOutline(uicomponent) {
@@ -192,6 +193,8 @@ class UIComponent {
   outline = true;
   backgroundColour = null;
   textColour = 0;
+  special = false;
+  bgimg = null;
   updateActivity() {
     //It's active if it should show *and* all the conditions are met
     this.active = this.getActivity();
@@ -271,7 +274,15 @@ class UIComponent {
     if (this.width > 0 && this.height > 0) {
       if (this.outline && this.outlineColour) {
         fill(...this.outlineColour);
-        if (this.emphasised) fill(...this.emphasisColour);
+        if (this.emphasised) {
+          if (this.special) {
+            fillGradient("linear", {
+              from: [this.x, this.y],
+              to: [this.x + this.width / 2, this.y + this.height / 2],
+              steps: [color(0, 255, 255), color(0, 96, 164), color(0)],
+            });
+          } else fill(...this.emphasisColour);
+        }
         push();
         if (this.bevel !== "none") {
           beginClip({ invert: true });
@@ -300,6 +311,7 @@ class UIComponent {
           endClip();
         }
         //Draw outline behind background
+
         rect(
           this.x + (this.bevel === "right" ? 10 : this.bevel === "left" ? -10 : 0),
           this.y,
@@ -349,7 +361,7 @@ class UIComponent {
         rect(this.x, this.y, this.width - 2, this.height - 2);
       } else {
         ImageCTX.draw(
-          "ui.background",
+          this.bgimg ?? "ui.background",
           this.x,
           this.y,
           this.width - 2,
@@ -491,6 +503,7 @@ class HealthbarComponent extends UIComponent {
   /**@type {Entity?} */
   source = null;
   healthbarColour = [255, 255, 255];
+  isHigher = () => false;
   backgroundColour = [0, 0, 0];
   healthbarReversed = false;
   fracReversed = false;
@@ -500,6 +513,21 @@ class HealthbarComponent extends UIComponent {
   #max = "maxHealth";
   #frac = 0;
   #painColour = null;
+  setIsHigher(f = () => false) {
+    this.isHigher = f;
+    return this;
+  }
+  // setGradient(...colours) {
+  //   let x = this.x - (this.healthbarReversed ? -this.width / 2 : this.width / 2);
+  //   this.gradient = {
+  //     from: [x, this.y],
+  //     to: [x + this.width / 1.25, this.y + this.height / 2],
+  //     steps: colours,
+  //   };
+  // }
+  // clearGradient() {
+  //   this.gradient = null;
+  // }
   setGetters(current = "health", max = "maxHealth") {
     this.#current = current;
     this.#max = max;
@@ -608,7 +636,14 @@ class HealthbarComponent extends UIComponent {
         true
       );
       //health
-      fill(hbc);
+
+      if (this.isHigher()) {
+        fillGradient("linear", {
+          from: [this.x - this.width / 2, this.y - this.height / 2],
+          to: [this.x + this.width / 2, this.y + this.height / 2],
+          steps: [[color(...hbc.map((x) => x + 200)), .3], color(...hbc), [color(0), .8]],
+        });
+      } else fill(hbc);
       this.#shape(
         this.x - (this.healthbarReversed ? -this.width / 2 : this.width / 2),
         this.y,
@@ -622,20 +657,22 @@ class HealthbarComponent extends UIComponent {
     }
     pop();
     //Draw optional text
-    noStroke();
-    textFont(this.ocr ? fonts.ocr : fonts.darktech);
-    if (this.ocr) {
-      stroke(...this.textColour);
-      strokeWeight(this.textSize / 15);
+    if (this.text) {
+      noStroke();
+      textFont(this.ocr ? fonts.ocr : fonts.darktech);
+      if (this.ocr) {
+        stroke(...this.textColour);
+        strokeWeight(this.textSize / 15);
+      }
+      fill(...this.textColour);
+      textAlign(LEFT, CENTER);
+      textSize(this.textSize);
+      text(
+        " " + (src ? this.text : "No source"),
+        (this.x - this.width / 2) * (this.invertedX ? -1 : 1),
+        this.y * (this.inverted ? -1 : 1)
+      );
     }
-    fill(...this.textColour);
-    textAlign(LEFT, CENTER);
-    textSize(this.textSize);
-    text(
-      " " + (src ? this.text : "No source"),
-      (this.x - this.width / 2) * (this.invertedX ? -1 : 1),
-      this.y * (this.inverted ? -1 : 1)
-    );
     pop();
   }
   #shape(
@@ -668,14 +705,14 @@ class HealthbarComponent extends UIComponent {
       v(x - width / 2 + height / 2, y - height / 2);
     } else if (this.bevel === "right") {
       v(x - width / 2, y + height / 2);
-      v(x + width / 2 , y + height / 2);
+      v(x + width / 2, y + height / 2);
       v(x + width / 2 + height, y - height / 2);
       v(x - width / 2, y - height / 2);
     } else if (this.bevel === "left") {
       v(x - width / 2 - height, y + height / 2);
       v(x + width / 2, y + height / 2);
       v(x + width / 2, y - height / 2);
-      v(x - width / 2 , y - height / 2);
+      v(x - width / 2, y - height / 2);
     } else if (this.bevel === "reverse") {
       v(x - width / 2 + height / 2, y + height / 2);
       v(x + width / 2 + height / 2, y + height / 2);
@@ -1136,7 +1173,8 @@ class UIParticleEmitter extends UIComponent {
   draw() {
     if (this.#countdown <= 0) {
       this.#countdown = this.interval;
-      if(this.effect !== "none") createEffect(this.effect, null, this.x, this.y, this.direction, this.scale);
+      if (this.effect !== "none")
+        createEffect(this.effect, null, this.x, this.y, this.direction, this.scale);
     } else this.#countdown--;
   }
   checkMouse(mouse) {}
