@@ -13,7 +13,7 @@ function splashDamageInstance(
   waveColour = [255, 128, 0, 0], //The colour the wave ends at. It always starts white.
   status = "none",
   statusDuration = 0,
-  bossDamageMultiplier = 1
+  bossDamageMultiplier = 1,
 ) {
   //Most of these powers are just to make it less insane at high radii
   //They are tested repeatedly to make sure they look good
@@ -37,8 +37,8 @@ function splashDamageInstance(
           radius ** 0.85,
           0,
           0,
-          true
-        )
+          true,
+        ),
       );
     }
     //Yellow sparks
@@ -59,8 +59,8 @@ function splashDamageInstance(
           radius ** 0.75,
           radius ** 0.5,
           0,
-          true
-        )
+          true,
+        ),
       );
     }
     world.particles.push(
@@ -74,33 +74,22 @@ function splashDamageInstance(
         waveColour,
         radius ** 0.75,
         0,
-        true
-      )
+        true,
+      ),
     );
   }
   for (let e of world.entities) {
     if (
       e.collides &&
       e.team !== sourceEntity.team &&
-      ((centreX - e.x) ** 2 + (centreY - e.y) ** 2) ** 0.5 <=
-        damageRadius + e.hitSize 
+      ((centreX - e.x) ** 2 + (centreY - e.y) ** 2) ** 0.5 <= damageRadius + e.hitSize
     ) {
-      e.damage(
-        damageType,
-        amount * (e instanceof Boss ? bossDamageMultiplier : 1),
-        sourceEntity
-      );
+      e.damage(damageType, amount * (e instanceof Boss ? bossDamageMultiplier : 1), sourceEntity);
       if (status !== "none") e.applyStatus(status, statusDuration);
     }
   }
 }
-function blindingFlash(
-  x = 0,
-  y = 0,
-  opacity = 255,
-  duration = 60,
-  glareSize = 600
-) {
+function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 600) {
   world.particles.push(
     //Obscure screen
     new ShapeParticle(
@@ -118,7 +107,7 @@ function blindingFlash(
       0,
       1080 * 3,
       0,
-      true
+      true,
     ),
     new ShapeParticle(
       x,
@@ -135,7 +124,7 @@ function blindingFlash(
       0,
       1080 * 5,
       0,
-      true
+      true,
     ),
     new ShapeParticle(
       x,
@@ -152,7 +141,7 @@ function blindingFlash(
       0,
       1080 * 8,
       0,
-      true
+      true,
     ),
     new ShapeParticle(
       960,
@@ -169,7 +158,7 @@ function blindingFlash(
       1080,
       1080,
       0,
-      false
+      false,
     ),
     //Glare effect
     new ShapeParticle(
@@ -187,7 +176,7 @@ function blindingFlash(
       glareSize / 5,
       0,
       0,
-      true
+      true,
     ),
     new ShapeParticle(
       x,
@@ -204,7 +193,7 @@ function blindingFlash(
       (glareSize / 5) * 0.6,
       0,
       0,
-      true
+      true,
     ),
     new ShapeParticle(
       x,
@@ -221,8 +210,8 @@ function blindingFlash(
       (glareSize / 5) * 0.3,
       0,
       0,
-      true
-    )
+      true,
+    ),
   );
 }
 function worldTransitionEffect(worldName, duration = 120) {
@@ -243,7 +232,7 @@ function worldTransitionEffect(worldName, duration = 120) {
       1920,
       1920,
       0,
-      false
+      false,
     ),
     new TextParticle(
       960,
@@ -259,9 +248,23 @@ function worldTransitionEffect(worldName, duration = 120) {
       100,
       0,
       false,
-      false
-    )
+      false,
+    ),
   );
+  if (world.endless)
+    effectTimer.repeat(() =>world.particles.push(
+      new LightningParticle(
+        new Vector(200, 540).multiLerp(new Vector(1720, 540), 100),
+        10,
+        [[0, 0, 0]],
+        0,
+        10,
+        0,
+        40,
+        2,
+        2,
+      ),
+    ), duration/5, 5);
 }
 function notifyEffect(text, duration = 120) {
   push();
@@ -286,7 +289,7 @@ function notifyEffect(text, duration = 120) {
         textWidth(ln) + 60,
         textWidth(ln) + 60,
         0,
-        false
+        false,
       ),
       new TextParticle(
         960,
@@ -302,8 +305,8 @@ function notifyEffect(text, duration = 120) {
         30,
         0,
         false,
-        true
-      )
+        true,
+      ),
     );
   });
   pop();

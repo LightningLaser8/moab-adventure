@@ -10,11 +10,11 @@ const game = {
     world.updateDifficulty();
   },
   _m: "none",
-  /**@type {"none"|"adventure"|"boss-rush"|"sandbox"} */
+  /**@type {"none"|"adventure"|"boss-rush"|"sandbox"|"endless"} */
   get mode() {
     return this._m;
   },
-  set mode(_){
+  set mode(_) {
     this._m = _;
     UIComponent.setCondition("mode:" + _);
   },
@@ -79,6 +79,7 @@ let backgrounds = {
   grad_boss_rush: null,
   grad_sandbox: null,
   grad_impossible: null,
+  grad_endless: null,
 };
 
 async function preload() {
@@ -88,15 +89,15 @@ async function preload() {
   SoundCTX.commit();
   await SoundCTX.loadAll();
   fonts.ocr = await loadFont(
-    game.gl ? "assets/font/ocr_a_extended_bold.ttf" : "assets/font/ocr_a_extended.ttf"
+    game.gl ? "assets/font/ocr_a_extended_bold.ttf" : "assets/font/ocr_a_extended.ttf",
   );
   fonts.darktech = await loadFont("assets/font/darktech_ldr.ttf");
 }
 //Set up the canvas, using the previous function
 async function setup() {
+  createCanvas(...getCanvasDimensions(baseWidth, baseHeight), game.gl ? WEBGL : undefined);
   console.log("starting game...");
   try {
-    createCanvas(...getCanvasDimensions(baseWidth, baseHeight), game.gl ? WEBGL : undefined);
     //Creates background stuff
     backgrounds.grad_normal = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
@@ -106,7 +107,7 @@ async function setup() {
           [0, 0, 0],
           [0, 200, 255],
         ],
-        y / 100
+        y / 100,
       ); //Get colour interpolation
       backgrounds.grad_normal.noStroke(); //Remove outline
       backgrounds.grad_normal.fill(col); //Set fill colour to use
@@ -121,7 +122,7 @@ async function setup() {
           [50, 0, 100],
           [200, 0, 255],
         ],
-        y / 100
+        y / 100,
       ); //you get it by now
       backgrounds.grad_boss_rush.noStroke();
       backgrounds.grad_boss_rush.fill(col);
@@ -137,7 +138,7 @@ async function setup() {
           [150, 100, 0],
           [255, 200, 0],
         ],
-        y / 100
+        y / 100,
       ); //you get it by now
       backgrounds.grad_sandbox.noStroke();
       backgrounds.grad_sandbox.fill(col);
@@ -157,7 +158,7 @@ async function setup() {
           [255, 255, 0],
           [255, 255, 255],
         ],
-        y / 100
+        y / 100,
       ); //you get it by now
       backgrounds.grad_impossible.noStroke();
       backgrounds.grad_impossible.fill(col);
@@ -184,17 +185,14 @@ function draw() {
     if (game.gl) translate(-width / 2, -height / 2);
     scale(contentScale);
     image(
-      game.difficulty === "impossible"
-        ? backgrounds.grad_impossible
-        : game.mode === "boss-rush"
-        ? backgrounds.grad_boss_rush
-        : game.mode === "sandbox"
-        ? backgrounds.grad_sandbox
-        : backgrounds.grad_normal,
+      game.difficulty === "impossible" ? backgrounds.grad_impossible
+      : game.mode === "boss-rush" ? backgrounds.grad_boss_rush
+      : game.mode === "sandbox" ? backgrounds.grad_sandbox
+      : backgrounds.grad_normal,
       960,
       540,
       1920,
-      1080
+      1080,
     );
     translate(0, 0, 2);
     if (world) {
@@ -236,18 +234,16 @@ function drawCursor(x, y) {
     drawReloadBars(
       x,
       y,
-      game.reloadBarTheme === "rainbow"
-        ? rainbowCols
-        : game.reloadBarTheme === "mono"
-        ? monoCols
-        : game.reloadBarTheme === "thematic"
-        ? game.player.weaponSlots.map((slot, i) =>
-            slot.weapon && i < 5 ? slot.weapon.themeColour : null
-          )
-        : null,
+      game.reloadBarTheme === "rainbow" ? rainbowCols
+      : game.reloadBarTheme === "mono" ? monoCols
+      : game.reloadBarTheme === "thematic" ?
+        game.player.weaponSlots.map((slot, i) =>
+          slot.weapon && i < 5 ? slot.weapon.themeColour : null,
+        )
+      : null,
       game.player.weaponSlots.map((slot, i) =>
-        slot.weapon && i < 5 ? slot.weapon._cooldown / slot.weapon.reload : 0
-      )
+        slot.weapon && i < 5 ? slot.weapon._cooldown / slot.weapon.reload : 0,
+      ),
     );
   ImageCTX.draw(ui.waitingForMouseUp ? "ui.cursor-wait" : "ui.cursor", x, y, 64, 64);
 }
@@ -256,21 +252,19 @@ function fakeCursor(x, y) {
   drawReloadBars(
     x,
     y,
-    game.reloadBarTheme === "rainbow"
-      ? rainbowCols
-      : game.reloadBarTheme === "mono"
-      ? monoCols
-      : game.reloadBarTheme === "thematic"
-      ? [
-          [255, 0, 0],
-          [0, 255, 255],
-          [0, 255, 0],
-          [200, 0, 255],
-          [0, 0, 255],
-          [255, 128, 0],
-        ]
-      : null,
-    [0, 1, 2, 3, 4].map((i) => 1 - ((frameCount + i * 10) % 60) / 60)
+    game.reloadBarTheme === "rainbow" ? rainbowCols
+    : game.reloadBarTheme === "mono" ? monoCols
+    : game.reloadBarTheme === "thematic" ?
+      [
+        [255, 0, 0],
+        [0, 255, 255],
+        [0, 255, 0],
+        [200, 0, 255],
+        [0, 0, 255],
+        [255, 128, 0],
+      ]
+    : null,
+    [0, 1, 2, 3, 4].map((i) => 1 - ((frameCount + i * 10) % 60) / 60),
   );
 
   ImageCTX.draw("ui.cursor", x, y, 64, 64);
@@ -406,7 +400,12 @@ function labeledLine(x1, y1, x2, y2, label, align = "end") {
   textFont(fonts.ocr);
   textSize(20);
   let w = textWidth(label);
-  let xoffset = align === "start" ? (invert ? -w : 0) : invert ? 0 : w;
+  let xoffset =
+    align === "start" ?
+      invert ? -w
+      : 0
+    : invert ? 0
+    : w;
   noStroke();
   if (align === "end" && !invert) xoffset = -xoffset;
   text(label, xoffset, 10);
@@ -419,8 +418,14 @@ function labeledCircle(x, y, radius, label, align = "top") {
   textFont(fonts.ocr);
   textSize(20);
   let w = textWidth(label);
-  let xoffset = align === "left" ? -5 - w / 2 - radius : align === "right" ? 5 + w / 2 + radius : 0;
-  let yoffset = align === "top" ? -15 - radius : align === "bottom" ? 15 + radius : 0;
+  let xoffset =
+    align === "left" ? -5 - w / 2 - radius
+    : align === "right" ? 5 + w / 2 + radius
+    : 0;
+  let yoffset =
+    align === "top" ? -15 - radius
+    : align === "bottom" ? 15 + radius
+    : 0;
   noStroke();
   text(label, x + xoffset, y + yoffset);
   pop();
@@ -478,8 +483,8 @@ function debugUI() {
             blt.x,
             blt.y,
             blt.x + Math.cos(blt.directionRad) * 60 * blt.updates,
-            blt.y + Math.sin(blt.directionRad) * 60 * blt.updates
-          )
+            blt.y + Math.sin(blt.directionRad) * 60 * blt.updates,
+          ),
     );
   pop();
   colour(200, 200, 255);
@@ -499,7 +504,7 @@ function debugUI() {
       (ui.mouse.x - game.player.x) * 2000 + game.player.x,
       (ui.mouse.y - game.player.y) * 2000 + game.player.y,
       "  extrapolated aim",
-      "start"
+      "start",
     );
   }
   pop();
@@ -512,7 +517,7 @@ function isOffscreen(entity) {
 function distanceOffscreen(entity) {
   return new Vector(
     entity.x < -entity.hitSize ? entity.x + entity.hitSize : entity.x + entity.hitSize - 1920,
-    entity.y < -entity.hitSize ? entity.y + entity.hitSize : entity.y + entity.hitSize - 1080
+    entity.y < -entity.hitSize ? entity.y + entity.hitSize : entity.y + entity.hitSize - 1080,
   ).magnitude;
 }
 
@@ -588,7 +593,7 @@ function createPlayer() {
   });
 
   world.particles.push(
-    new WaveParticle(player.x, player.y, 120, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0)
+    new WaveParticle(player.x, player.y, 120, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0),
   );
 }
 
@@ -603,7 +608,7 @@ function createSupport() {
   suppor.target = game.player;
 
   world.particles.push(
-    new WaveParticle(suppor.x, suppor.y, 60, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0)
+    new WaveParticle(suppor.x, suppor.y, 60, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0),
   );
   // console.log("spawned support blimp", game.support);
 }
@@ -676,6 +681,7 @@ function playerWins() {
 }
 
 function reset() {
+  SoundCTX.unmuffle();
   world.entities.splice(0);
   world.particles.splice(0);
   world.bullets.splice(0);
@@ -750,6 +756,8 @@ function moveToWorld(worldName = "ocean-skies") {
   if (world?.bgm) SoundCTX.stop(world.bgm);
   //Construct registry item as a new World.
   let newWorld = construct(Registry.worlds.get(worldName), World);
+  if (newWorld.muffleSound) SoundCTX.muffle();
+  else SoundCTX.unmuffle();
   //If the player exists
   if (game.player) {
     //Put them in it

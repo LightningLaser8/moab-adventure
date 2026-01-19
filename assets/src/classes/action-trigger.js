@@ -100,6 +100,19 @@ class ActionEndedTrigger extends ActionTrigger {
     this.#triggered = false;
   }
 }
+class ActionStartedTrigger extends ActionTrigger {
+  actionStarting = "";
+  #triggered = true;
+  trigger(entity) {
+    if (!this.#triggered) super.trigger(entity);
+  }
+  onexec(entity) {
+    this.#triggered = true;
+  }
+  go() {
+    this.#triggered = false;
+  }
+}
 class DataValueTrigger extends ActionTrigger {
   name = "data";
   value = 1;

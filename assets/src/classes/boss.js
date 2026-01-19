@@ -86,7 +86,7 @@ class Boss extends ScalingEntity {
     this.previousRot = this.direction;
   }
   seq() {
-    return game.difficulty === "impossible" ? this.imposSequence ?? this.sequence : this.sequence;
+    return game.difficulty === "impossible" ? (this.imposSequence ?? this.sequence) : this.sequence;
   }
   getAction() {
     return this.actions[this.seq()[this.#action]];
@@ -113,6 +113,14 @@ class Boss extends ScalingEntity {
       if (valueString in this && tv !== "function" && tv !== "object") valueString = v;
     }
     return valueString;
+  }
+  lobotomise(){
+    this.data.clear();
+    this.#action = 0;
+    for (let name in this.actions) {
+      this.actions[name] = construct(this.actions[name], BossAction);
+    }
+    this.triggers.forEach((v, i, a) => (a[i] = construct(v, ActionTrigger)));
   }
   satisfies(condition) {
     // console.log(`only if ${condition}`);
@@ -166,11 +174,17 @@ class Boss extends ScalingEntity {
     if (!next) return actIndex; //Stop if the only action has been done
     next.animate(this);
     next.execute(this);
+    this.triggerStart(seq[actIndex]);
     next.tick(this); // correction for ticking actions
     if (next.duration === 1 && actIndex !== 0) {
       this.tickSeq(seq, actIndex); //skip through, unless all actions are 0 duration to avoid freezing
     }
     return actIndex;
+  }
+  triggerStart(action) {
+    this.triggers.forEach((t) => {
+      if (t instanceof ActionStartedTrigger && t.actionStarting == action) t.go();
+    });
   }
   triggerEnd(action) {
     this.triggers.forEach((t) => {
@@ -220,7 +234,7 @@ class Boss extends ScalingEntity {
   getModel() {
     return (
       this.overrideModel ??
-      (game.difficulty === "impossible" ? this.imposModel ?? this.model : this.model)
+      (game.difficulty === "impossible" ? (this.imposModel ?? this.model) : this.model)
     );
   }
   draw() {

@@ -1136,7 +1136,7 @@ Registry.weapons.add("missile-launcher", {
   fireSound: "bomb-shoot",
   themeColour: [255,64,0],
   cost: {
-    shards: 800,
+    shards: 900,
     bloonstones: 0,
   },
   shoot: {
@@ -1157,7 +1157,7 @@ Registry.weapons.add("missile-launcher", {
         {
           type: "explosion",
           area: 125,
-          amount: 7.5,
+          amount: 10,
         },
       ],
       drawer: {

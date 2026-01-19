@@ -100,7 +100,7 @@ class SelfDestructAction extends BossAction {
       this.sparkColourTo,
       this.smokeColour,
       this.smokeColourTo,
-      this.waveColour
+      this.waveColour,
     );
     if (!this.isLeaving && this.givesRewards) {
       //Give destroy rewards if there's a difference, regular rewards if not
@@ -145,11 +145,12 @@ class SummonMinionAction extends BossAction {
       Object.assign(toSpawn, this.differences);
       //construct the entity
       /**@type {Entity} */
-      let spawned = this.isBoss
-        ? //Spawn it as a boss, if isBoss is true
+      let spawned =
+        this.isBoss ?
+          //Spawn it as a boss, if isBoss is true
           entity.world.spawnBoss(toSpawn, this.bossClass)
-        : //If not, spawn it normally
-          construct(toSpawn, Entity).addToWorld(entity.world);
+          //If not, spawn it normally
+        : construct(toSpawn, Entity).addToWorld(entity.world);
       //Position and rotate the entity with trigonometry
       let xo =
           this.randomOffsetX * rnd(1, -1) +
@@ -201,7 +202,7 @@ class SpawnBulletAction extends BossAction {
       this.spacing,
       entity.world,
       entity,
-      null
+      null,
     );
   }
 }
@@ -230,7 +231,7 @@ class FireBulletAction extends BossAction {
         this.spacing,
         this.amount,
         entity.world,
-        entity
+        entity,
       );
     }, this.delay);
   }
@@ -245,7 +246,9 @@ class VFXAction extends BossAction {
     let model = entity.getModel();
     model.timer.do(() => {
       let p = model.pos(this.part).rotate(entity.direction).addParts(entity.x, entity.y);
-      createEffect(this.effect, entity.world, p.x, p.y, p.rotation, 1, () => model.pos(this.part).rotate(entity.direction).addParts(entity.x, entity.y));
+      createEffect(this.effect, entity.world, p.x, p.y, p.rotation, 1, () =>
+        model.pos(this.part).rotate(entity.direction).addParts(entity.x, entity.y),
+      );
     }, this.delay);
   }
 }
@@ -373,11 +376,20 @@ class ResetVisualAction extends BossAction {
     entity.overrideModel = null;
   }
 }
-
-class AnimateAction extends BossAction {
-  animation = "";
+class LobotomiseAction extends BossAction {
   /**@param {Boss} entity  */
   execute(entity) {
-    entity.getModel().fire(this.animation);
+    entity.lobotomise();
+  }
+}
+class StatusEffectAction extends BossAction {
+  status = "none";
+  clear = false;
+  statusDuration = 180;
+  /**@param {Boss} entity  */
+  execute(entity) {
+    if (this.status === "none") return;
+    if (clear) entity.clearStatus(this.status);
+    else entity.applyStatus(this.status, this.statusDuration);
   }
 }

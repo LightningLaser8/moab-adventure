@@ -34,7 +34,12 @@ class MASoundEngine {
     entities: this.context.createGain(),
     music: this.context.createGain(),
     other: this.context.createGain(),
+    bypass: this.context.createGain(),
   };
+  muffler = this.context.createBiquadFilter();
+  // parallel channels
+  unprocessed = this.context.createGain();
+  processed = this.context.createGain();
   /**@type {Registry?} */
   sounds = null;
   /** @type {Map<SoundContainer,AudioBufferSourceNode>} */
@@ -44,7 +49,27 @@ class MASoundEngine {
     this.piecewiseVolume.entities.connect(this.volume);
     this.piecewiseVolume.music.connect(this.volume);
     this.piecewiseVolume.other.connect(this.volume);
-    this.volume.connect(this.context.destination);
+    this.piecewiseVolume.bypass.connect(this.context.destination);
+    this.volume.connect(this.unprocessed);
+    this.volume.connect(this.processed);
+
+    this.processed.connect(this.muffler);
+    this.unprocessed.connect(this.context.destination);
+
+    this.processed.gain.setValueAtTime(0, this.context.currentTime)
+
+    this.muffler.connect(this.context.destination);
+    this.muffler.type = 'lowpass';
+    this.muffler.frequency.value = 800; // Reduce high frequencies (e.g., set to 800 Hz for a muffled sound)
+    this.muffler.Q.value = 1; // Sharpness of the filter (1 is standard)
+  }
+  muffle(){
+    this.unprocessed.gain.setValueAtTime(0, this.context.currentTime)
+    this.processed.gain.setValueAtTime(1, this.context.currentTime)
+  }
+  unmuffle(){
+    this.unprocessed.gain.setValueAtTime(1, this.context.currentTime)
+    this.processed.gain.setValueAtTime(0, this.context.currentTime)
   }
   async load(path) {
     try {

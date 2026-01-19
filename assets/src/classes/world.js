@@ -10,6 +10,10 @@ class World {
   boss = null;
   reducedSpawns = false;
   bosses = [];
+
+  endless = false;
+  muffleSound = false;
+
   #bossList = [];
   #currentBossIndex = 0;
   get cbi() {

@@ -50,13 +50,15 @@ Registry.genericType.add("action.multi", MultiAction);
 Registry.genericType.add("action.data", SetDataAction);
 Registry.genericType.add("action.change-visual", ChangeVisualAction);
 Registry.genericType.add("action.reset-visual", ResetVisualAction);
-Registry.genericType.add("action.animate", AnimateAction);
+Registry.genericType.add("action.status", StatusEffectAction);
 Registry.genericType.add("action.vfx", VFXAction);
+Registry.genericType.add("action.lobotomise", LobotomiseAction);
 //Boss Triggers
 Registry.genericType.add("trigger.tick", ActionTrigger);
 Registry.genericType.add("trigger.single-hp", SingleHPPointTrigger);
 Registry.genericType.add("trigger.multi-hp", MultiHPPointTrigger);
 Registry.genericType.add("trigger.action-ended", ActionEndedTrigger);
+Registry.genericType.add("trigger.action-started", ActionStartedTrigger);
 Registry.genericType.add("trigger.data", DataValueTrigger);
 Registry.genericType.add("trigger.h-pos", HorizontalPositionTrigger);
 Registry.genericType.add("trigger.v-pos", VerticalPositionTrigger);

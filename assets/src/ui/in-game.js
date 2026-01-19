@@ -336,7 +336,7 @@ UIComponent.alignRight(
     ),
     "text",
     {
-      get: () => world.getFirstBoss()?.name ?? "Boss", //Text is name
+      get: () => world.boss?.name ?? "Boss", //Text is name
     }
   )
 );
@@ -344,16 +344,16 @@ let bhb = UIComponent.invert(
   createHealthbarComponent(
     ["in-game"],
     ["boss:yes"],
-    1500,
+    1480,
     200,
-    550,
+    460,
     50,
     "both",
     undefined,
     undefined,
     undefined,
     20,
-    () => world.getFirstBoss(),
+    () => world.boss,
     [255, 0, 0]
   )
     .reverseBarDirection()
@@ -389,7 +389,7 @@ UIComponent.alignRight(
     "text",
     {
       get: () => {
-        let boss = world.getFirstBoss();
+        let boss = world.boss;
         if (!boss) return "unknown";
         return (
           shortenedNumber(boss.health ?? 1) +
@@ -420,7 +420,7 @@ Object.defineProperty(
   ),
   "text",
   {
-    get: () => world.getFirstBoss()?.class ?? "o", //Show boss class if it exists, otherwise show "o"
+    get: () => world.boss?.class ?? "o", //Show boss class if it exists, otherwise show "o"
   }
 );
 

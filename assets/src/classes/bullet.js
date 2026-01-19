@@ -168,8 +168,8 @@ class Bullet {
                 this.hitSize * this.trailInterval * 0.25,
                 this.hitSize * this.trailInterval * 0.25,
                 0,
-                this.followsScreen
-              )
+                this.followsScreen,
+              ),
             );
           }
           this._trailCounter = this.trailInterval;
@@ -185,8 +185,8 @@ class Bullet {
           [this.trailColour, this.trailColourTo],
           0,
           this.trailWidth * 1.9,
-          0
-        )
+          0,
+        ),
       );
     } else if (this.trailType === "lightning") {
       this.world.particles.push(
@@ -197,8 +197,8 @@ class Bullet {
           0,
           this.trailWidth,
           0,
-          this.trailWidth
-        )
+          this.trailWidth,
+        ),
       );
     }
   }
@@ -214,7 +214,7 @@ class Bullet {
         this.y,
         this.drawer.width,
         this.drawer.height,
-        this.directionRad
+        this.directionRad,
       );
     } else {
       //If no image, draw shape instead
@@ -225,7 +225,7 @@ class Bullet {
         this.y,
         this.drawer.width,
         this.drawer.height,
-        this.directionRad
+        this.directionRad,
       );
     }
   }
@@ -236,9 +236,7 @@ class Bullet {
     return this.distanceTo(obj.x, obj.y) <= this.hitSize + obj.hitSize;
   }
   frag() {
-    let v = new Vector(this.x, this.y).add(
-      Vector.fromAngle(this.direction).scale(this.fragOffset)
-    );
+    let v = new Vector(this.x, this.y).add(Vector.fromAngle(this.direction).scale(this.fragOffset));
     patternedBulletExpulsion(
       v.x,
       v.y,
@@ -249,12 +247,12 @@ class Bullet {
       this.fragSpacing,
       this.world,
       this.entity,
-      this.source
+      this.source,
     );
   }
   interval() {
     let v = new Vector(this.x, this.y).add(
-      Vector.fromAngle(this.direction).scale(this.intervalOffset)
+      Vector.fromAngle(this.direction).scale(this.intervalOffset),
     );
     patternedBulletExpulsion(
       v.x,
@@ -266,7 +264,7 @@ class Bullet {
       this.intervalSpacing,
       this.world,
       this.entity,
-      this.source
+      this.source,
     );
   }
   intervalTick() {
@@ -290,7 +288,7 @@ class Bullet {
       this.hitSpacing,
       this.world,
       this.entity,
-      this.source
+      this.source,
     );
     //If dead, spawn destroy bullets
     if (entity.dead) {
@@ -304,7 +302,7 @@ class Bullet {
         this.destroySpacing,
         this.world,
         this.entity,
-        this.source
+        this.source,
       );
     }
   }
@@ -329,8 +327,8 @@ class Bullet {
                 (this.source ? this.source.getDVScale() : 0) +
                 (instance.levelScaling ?? 0) * game.level) *
                 //If boss, multiply damage by boss damage multiplier, if present, or else 1. If not boss, multiply by 1.
-                (entity instanceof Boss ? instance.bossDamageMultiplier ?? 1 : 1),
-              this.entity
+                (entity instanceof Boss ? (instance.bossDamageMultiplier ?? 1) : 1),
+              this.entity,
             ); //Wait if kaboom
           entity.maxHealth -= instance.amount * this.maxHPReductionFactor;
         }
@@ -348,7 +346,11 @@ class Bullet {
         this.damaged.push(entity);
         this.onHit(entity);
         if (!this.silent) {
-          SoundCTX.play(entity.hitSound);
+          SoundCTX.play(
+            this.damage.some((d) => entity.immuneTo(d.type)) ?
+              (entity.deflectSound ?? entity.hitSound)
+            : entity.hitSound,
+          );
           SoundCTX.play(this.hitSound);
         }
         //Reduce pierce

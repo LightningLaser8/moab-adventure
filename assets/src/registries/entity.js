@@ -62,6 +62,10 @@ Registry.entities.add("metal-box", {
       type: "laser",
       amount: 0.3, //30% resistance
     },
+    {
+      type: "fire",
+      amount: 0.7, //70% resistance
+    },
   ],
   x: 1920,
   //Return a random height each time
@@ -75,7 +79,8 @@ Registry.entities.add("metal-box", {
   team: "enemy",
   health: 16, //More HP
   healthIncrease: 2,
-  hitSound: "metal-hit",
+  hitSound: "metal-hit-low",
+  deflectSound: "metal-hit",
   deathSound: "metal-break",
 });
 Registry.entities.add("hardwood-box", {
@@ -151,7 +156,7 @@ Registry.entities.add("robox", {
   team: "enemy",
   health: 20,
   healthIncrease: 5,
-  hitSound: "metal-hit",
+  hitSound: "metal-hit-low",
   deathSound: "metal-break",
 });
 //### BOSSES ###
@@ -182,7 +187,7 @@ Registry.entities.add("gigantic-box", {
     charge: {
       type: "action.move",
       duration: 20,
-      x: -350,
+      x: -250,
     },
     spin: {
       type: "action.move",
@@ -332,7 +337,7 @@ Registry.entities.add("gigantic-box", {
   team: "enemy",
   health: 200,
   healthIncrease: 200,
-  trackingOffsetX: 300,
+  trackingOffsetX: 200,
   turnWhileMoving: true,
   turnSpeed: 10,
   hitSound: "wood-hit",
@@ -1466,7 +1471,6 @@ Registry.entities.add("robo-monkey", {
   ],
   team: "enemy",
   health: 2500,
-  healthIncrease: 0,
   trackingOffsetX: 1000,
   turnWhileMoving: false,
   turnSpeed: 4,
@@ -1534,8 +1538,7 @@ Registry.entities.add("robo-drone", {
   sequence: ["wait-3s", "speed.aim", "laser-beam", "speed.normal"],
   imposSequence: ["wait-1s", "wait-1s", "speed.aim", "laser-beam-impos", "speed.normal"],
   team: "enemy",
-  health: 250,
-  healthIncrease: 0,
+  health: 200,
   trackingOffsetX: 200,
   trackingOffsetY: -500,
   turnWhileMoving: true,
