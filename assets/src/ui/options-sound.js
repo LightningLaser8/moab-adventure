@@ -10,7 +10,7 @@ createUIComponent(
   undefined,
   "Sound Options",
   false,
-  50
+  50,
 );
 createUIComponent(
   ["options.sound"],
@@ -26,7 +26,7 @@ createUIComponent(
   },
   "*< Back",
   false,
-  30
+  30,
 ).isBackButton = true;
 
 //Volume sliders
@@ -47,9 +47,10 @@ let volBar = createSliderComponent(
   (value) => {
     ui.volume = value;
     SoundCTX.volume.gain.setValueAtTime(value / 100, 0);
+    SoundCTX.piecewiseVolume.bypass.gain.setValueAtTime(ui.volume / 100, 0);
   },
   0,
-  100
+  100,
 );
 SoundCTX.piecewiseVolume.entities.gain.setValueAtTime(0.5, 0);
 let eVolBar = createSliderComponent(
@@ -70,7 +71,7 @@ let eVolBar = createSliderComponent(
   },
   0,
   100,
-  100
+  100,
 );
 let wVolBar = createSliderComponent(
   ["options.sound"],
@@ -90,7 +91,7 @@ let wVolBar = createSliderComponent(
   },
   0,
   100,
-  100
+  100,
 );
 let mVolBar = createSliderComponent(
   ["options.sound"],
@@ -110,7 +111,7 @@ let mVolBar = createSliderComponent(
   },
   0,
   100,
-  100
+  100,
 );
 let oVolBar = createSliderComponent(
   ["options.sound"],
@@ -130,7 +131,7 @@ let oVolBar = createSliderComponent(
   },
   0,
   100,
-  100
+  100,
 );
 createGamePropertySelector(
   ["options.sound"],
@@ -144,12 +145,13 @@ createGamePropertySelector(
   [true, false],
   0,
   ["Enabled", "Disabled"],
-  40
+  40,
 );
 
 function recenterBars() {
   volBar._current = ui.volume;
   SoundCTX.volume.gain.setValueAtTime(ui.volume / 100, 0);
+  SoundCTX.piecewiseVolume.bypass.gain.setValueAtTime(ui.volume / 100, 0);
 
   eVolBar._current = ui.piecewiseVolume.entities;
   SoundCTX.piecewiseVolume.entities.gain.setValueAtTime(ui.piecewiseVolume.entities / 100, 0);

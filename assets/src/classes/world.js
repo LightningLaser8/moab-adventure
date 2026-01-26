@@ -7,9 +7,13 @@ class World {
   spawning = [];
   background = "background.sea";
   name = "World";
-  boss = null;
+
   reducedSpawns = false;
+  transitioning = false;
+
   bosses = [];
+  boss = null;
+  bossInterval = 400;
 
   endless = false;
   muffleSound = false;
@@ -170,6 +174,7 @@ class World {
     }
   }
   tickSpawns(dt) {
+    if(this.transitioning) return;
     for (let spawnGroup of this.spawning) {
       if (
         (spawnGroup.imposMode === "when-on" && game.difficulty !== "impossible") ||
@@ -242,6 +247,7 @@ class World {
     this.#bossList = bosses;
   }
   nextBoss() {
+    if(this.transitioning) return;
     this.spawnBoss(Registry.entities.get(this.#bossList[this.#currentBossIndex]));
     this.#currentBossIndex++;
     if (this.#currentBossIndex >= this.#bossList.length) this.#currentBossIndex = 0;

@@ -61,24 +61,6 @@ class Deflection extends Bullet {
         this.damaged.push(entity);
       }
     }
-    for (let bullet of this.world.bullets) {
-      //If colliding with a this on different team, that it hasn't already been hit by and that still exists
-      if (
-        this.collides &&
-        !this.remove &&
-        bullet !== this &&
-        bullet.bounceable && // don't deflect deflections
-        bullet.entity.team !== this.entity.team &&
-        this.collidesWith(bullet) //check collisions last for performance reasons
-      ) {
-        this.bulbonk(bullet);
-        if (!this.silent) {
-          if (!this.damaged.includes(bullet)) SoundCTX.play(bullet.hitSound);
-          SoundCTX.play(this.hitSound);
-        }
-        this.damaged.push(bullet);
-      }
-    }
   }
   bonk(entity) {
     let d = this.pos.directionTo(entity.x, entity.y);

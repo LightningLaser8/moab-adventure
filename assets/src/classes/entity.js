@@ -242,7 +242,7 @@ class Entity {
     slot.entity = this;
   }
   tick() {
-    if (this.trackTarget)
+    if (this.aiActive && this.trackTarget)
       if (this.target)
         this.trackPoint(this.target.x + this.trackingOffsetX, this.target.y + this.trackingOffsetY);
     for (let slot of this.weaponSlots) {

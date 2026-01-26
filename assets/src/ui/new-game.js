@@ -13,7 +13,7 @@ createGamePropertySelector(
   ["easy", "normal", "hard"],
   null,
   ["Easy", "Normal", "Hard"],
-  50
+  45,
 );
 createUIComponent(
   ["new-game"],
@@ -26,7 +26,7 @@ createUIComponent(
   null,
   "Impossible",
   true,
-  50
+  45,
 ).outlineColour = [255, 255, 0];
 UIComponent.setCondition("mode:none");
 //Game mode selector
@@ -42,22 +42,41 @@ createGamePropertySelector(
   ["adventure", "boss-rush", "sandbox"],
   null,
   ["Adventure", "Boss Rush", "Sandbox"],
-  50,
-  (value) => UIComponent.setCondition("mode:" + value)
+  45,
+  (value) => UIComponent.setCondition("mode:" + value),
 );
 Object.defineProperty(
-UIComponent.alignLeft(
-  createUIComponent(["new-game"], [], 250, 490, 0, 0, "none", null, "description of shit here", true, 30)
-), "text", {get: () => 
-  game.mode === "adventure" ? "Default mode. Travel through waves of boxes, with regular bossfights.\nThe intended experience." :
-  game.mode === "boss-rush" ? "No intermissions, only bossfights. Short breaks only, and no passive income.\nMuch more challenging: Not recommended for first-time players." :
-  game.mode === "sandbox" ? "Infinite health and currency, the ability to spawn anything, and other tools.\nFor creating fun scenarios or challenges alike. Also good for testing." :
-  "Select a game mode.\n"
-});
+  UIComponent.alignLeft(
+    createUIComponent(
+      ["new-game"],
+      [],
+      250,
+      490,
+      0,
+      0,
+      "none",
+      null,
+      "description of shit here",
+      true,
+      30,
+    ),
+  ),
+  "text",
+  {
+    get: () =>
+      game.mode === "adventure" ?
+        "Default mode. Travel through several zones, with boxes and bosses.\nThe intended experience."
+      : game.mode === "boss-rush" ?
+        "No intermissions, only bossfights. Short breaks only, and no passive income.\nMuch more challenging: Not recommended for first-time players."
+      : game.mode === "sandbox" ?
+        "Infinite health and currency, the ability to spawn anything, and other tools.\nFor creating fun scenarios or challenges alike. Also good for testing."
+      : "Select a game mode.\n",
+  },
+);
 
 UIComponent.setCondition("saveslot:none");
 //Save slot selector
-createGamePropertySelector(
+let saveSlotSel = createGamePropertySelector(
   ["new-game"],
   [],
   250,
@@ -70,7 +89,14 @@ createGamePropertySelector(
   null,
   ["0", "1", "2", "3", "4", "5"],
   50,
-  (value) => UIComponent.setCondition("saveslot:" + value)
+  (value) => UIComponent.setCondition("saveslot:" + value),
+  undefined,
+  (prop) => !Serialiser.get("save." + prop),
+  (i) => {
+    ui.menuState = "load-game";
+    let c = ss[+i]?.info;
+    if (c) ui.timer.repeat((i) => (c.emphasised = i % 2 === 0), 6, 10, 5);
+  },
 );
 //Weapon slot button
 createUIComponent(
@@ -86,7 +112,7 @@ createUIComponent(
   },
   "*Weapons...  ",
   false,
-  35
+  35,
 );
 //Start game button
 createUIComponent(
@@ -111,7 +137,7 @@ createUIComponent(
   },
   "Start!",
   false,
-  60
+  60,
 );
 createUIComponent(
   ["new-game"],
@@ -122,7 +148,7 @@ createUIComponent(
   0,
   "none",
   null,
-  "Choose All\nWeapon Slots"
+  "Choose All\nWeapon Slots",
 );
 createUIComponent(["new-game"], ["mode:none"], 960, 840, 0, 0, "none", null, "Choose Game Mode");
 createUIComponent(
@@ -134,7 +160,7 @@ createUIComponent(
   0,
   "none",
   null,
-  "Choose Save Slot"
+  "Choose Save Slot",
 );
 createUIComponent(
   ["new-game"],
@@ -145,7 +171,7 @@ createUIComponent(
   0,
   "none",
   null,
-  "Choose Difficulty"
+  "Choose Difficulty",
 );
 
 //what?! impossible! inconceivable!
@@ -162,7 +188,7 @@ createUIComponent(
     game.difficulty = "impossible";
     uiBlindingFlash(1925, 60, 255, 100, 1500);
   },
-  ""
+  "",
 );
 //fires
 createParticleEmitter(
@@ -193,7 +219,7 @@ createParticleEmitter(
       colourFrom: [255, 255, 50, 50],
       colourTo: [255, 0, 0, 0],
     },
-  }
+  },
 );
 createParticleEmitter(["start-menu"], ["difficulty:impossible"], 960, 1000, 0, 1, {
   type: "vfx.particle",
@@ -267,7 +293,7 @@ createParticleEmitter(
       colourTo: [255, 0, 0, 0],
     },
   },
-  3
+  3,
 );
 createParticleEmitter(
   ["you-died", "you-win", "crash"],
@@ -297,7 +323,7 @@ createParticleEmitter(
       colourFrom: [255, 255, 50, 50],
       colourTo: [255, 0, 0, 0],
     },
-  }
+  },
 );
 createParticleEmitter(["in-game"], ["difficulty:impossible"], 960, 1080, 0, 1, {
   type: "vfx.particle",
@@ -374,7 +400,7 @@ Object.defineProperties(
         colourTo: [255, 0, 0, 0],
       },
     },
-    5
+    5,
   ),
   {
     x: {
@@ -383,10 +409,10 @@ Object.defineProperties(
     y: {
       get: () => ui.mouse.y,
     },
-  }
+  },
 );
 
-//quickstart
+//#region quickstart
 function getNextFreeSlot() {
   for (let sl = 0; sl < 6; sl++) {
     if (!Serialiser.get("save." + sl)) return sl;
@@ -404,7 +430,7 @@ createUIComponent(
   () => quickstart(1),
   "*Quickstart X.1",
   true,
-  30
+  30,
 );
 
 createUIComponent(
@@ -418,17 +444,24 @@ createUIComponent(
   () => quickstart(2),
   "*Quickstart X.2",
   true,
-  30
+  30,
 );
 
-function quickstart(subslot) {
+//quicksand
+UIComponent.setBackgroundOf(
+  createUIComponent(["new-game"], [], 1550, 740, 270, 60, "none", () => quickstart(1, "sandbox")),
+  "ui.warn-tape-wide",
+);
+createUIComponent(["new-game"], [], 1550, 740, 245, 35, "none", null, "*Quicksand X.1", true, 30);
+
+function quickstart(subslot, mode = "adventure") {
   {
-    UIComponent.setCondition("difficulty:normal");
-    UIComponent.setCondition("saveslot:" + getNextFreeSlot());
-    UIComponent.setCondition("mode:adventure");
+    let slt = getNextFreeSlot();
+    UIComponent.setCondition("saveslot:" + slt);
+    game.saveslot = slt;
+
     game.difficulty = "normal";
-    game.saveslot = getNextFreeSlot();
-    game.mode = "adventure";
+    game.mode = mode;
 
     UIComponent.setCondition("ap1-slot:" + subslot);
     UIComponent.setCondition("ap2-slot:" + subslot);
@@ -442,7 +475,7 @@ function quickstart(subslot) {
     if (game.saveslot === -1)
       notifyEffect(
         "All slots full, using temporary slot\nSaving will override previous temp. game",
-        360
+        360,
       );
     else notifyEffect("Playing on slot " + game.saveslot);
   }

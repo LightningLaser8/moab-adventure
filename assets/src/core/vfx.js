@@ -123,8 +123,10 @@ class ParticleEmissionEffect extends EmissionEffect {
     strokeTo: 0,
   };
   create(world, x = 0, y = 0, direction = 0, scale = 1) {
+    if(!game.effects) return;
+    let reduced = game.effects < 1
     repeat(this.amount, () =>
-      (this.isUI ? ui.particles : world.particles).unshift(
+      (!reduced || tru(game.effects)) && (this.isUI ? ui.particles : world.particles).unshift(
         new ShapeParticle(
           x + this.x,
           y + this.y,
@@ -182,8 +184,10 @@ class TextParticleEmissionEffect extends ParticleEmissionEffect {
 
 class WaveEmissionEffect extends ParticleEmissionEffect {
   create(world, x = 0, y = 0, direction = 0, scale = 1) {
+    if(!game.effects) return;
+    let reduced = game.effects < 1
     repeat(this.amount, () =>
-      (this.isUI ? ui.particles : world.particles).push(
+      (!reduced || tru(game.effects)) && (this.isUI ? ui.particles : world.particles).push(
         new WaveParticle(
           x + this.x,
           y + this.y,

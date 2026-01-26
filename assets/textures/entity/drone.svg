@@ -30,7 +30,7 @@
      inkscape:window-x="2869"
      inkscape:window-y="273"
      inkscape:window-maximized="1"
-     inkscape:current-layer="path6" />
+     inkscape:current-layer="g9" />
   <g
      transform="translate(-222.87045,-159.85177)"
      id="g10">
@@ -44,7 +44,7 @@
        style="mix-blend-mode: normal"
        id="g9">
       <path
-         d="m 246.12657,179.66631 c 0,4.1744 -4.1991,7.62299 -9.37806,7.55843 -4.10485,-0.0512 -10.99497,-1.95197 -11.06657,-7.4561 -0.0776,-5.96562 6.75705,-7.66076 11.06657,-7.66076 5.17936,0 9.37806,3.38403 9.37806,7.55843 z"
+         d="m 246.0754,179.97332 c 0,4.1744 -4.09676,7.72532 -9.27572,7.66076 -4.10485,-0.0512 -10.99497,-2.00314 -11.06657,-7.50727 -0.0776,-5.96562 6.70588,-7.96776 11.0154,-7.96776 5.17936,0 9.32689,3.63987 9.32689,7.81427 z"
          fill="#ffec00"
          stroke="#ff7b00"
          stroke-width="9"
@@ -96,6 +96,11 @@
              style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:#a6a6a6;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
              d="m 245.44336,178.74023 -16.4043,3.75586 31.42945,-1.16905 1.04795,1.19944 -1.45965,-3.53427 z"
              id="path12"
+             sodipodi:nodetypes="cccccc" />
+          <path
+             style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:#a6a6a6;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+             d="m 245.39219,181.50314 -16.4043,-3.75586 31.42945,1.16905 1.04795,-1.19944 -1.45965,3.53427 z"
+             id="path13"
              sodipodi:nodetypes="cccccc" />
         </g>
         <path

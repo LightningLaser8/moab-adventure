@@ -18,6 +18,7 @@ class Bullet {
   trailLifeFactor = 0.75;
   trailShape = "rhombus";
   trailWidth = -1;
+  trailDev = 3;
   /** @type {"dotted"|"linear"|"lightning"} */
   trailType = "dotted";
   remove = false;
@@ -33,6 +34,7 @@ class Bullet {
     height: 10,
   };
   updates = 1;
+  movements = 1;
   /** @type {World?} */
   world = null;
   /** @type {Entity?} */
@@ -116,39 +118,43 @@ class Bullet {
     this.prev = this.pos.clone();
     this.sound();
     //Not if dead
-    if (!this.remove) {
-      if (this.followsSource && this.source) {
-        this.pos = new Vector(this.source.x, this.source.y);
-        this.direction = this.source.rotation;
-      }
-      if (!this.inited) {
-        this.inited = true;
-        createEffect(this.createEffect, this.world, this.x, this.y, this.directionRad);
-      }
+    if (!this.remove)
+      repeat(this.movements, () => {
+        if (this.followsSource && this.source) {
+          this.pos = new Vector(this.source.x, this.source.y);
+          this.direction = this.source.rotation;
+        }
+        if (!this.inited) {
+          this.inited = true;
+          createEffect(this.createEffect, this.world, this.x, this.y, this.directionRad);
+        }
 
-      this.intervalTick();
-      //Which way to move
-      let moveVector = new DirectionVector(this.direction);
-      //Scale to speed
-      moveVector = moveVector.scale(this.speed * dt);
-      //Move
-      this.pos = this.pos.add(moveVector);
-      this.direction += this.rotateSpeed;
-      //Tick lifetime
-      if (this.lifetime <= 0) {
-        this.remove = true;
-      } else {
-        this.lifetime -= dt;
-      }
-      //Follow
-      if (this.followsScreen) this.pos = this.pos.subXY(game.player?.speed ?? 0, 0);
-      this.checkEntities();
-    }
+        this.intervalTick();
+        //Which way to move
+        let moveVector = new DirectionVector(this.direction);
+        //Scale to speed
+        moveVector = moveVector.scale(this.speed * dt);
+        //Move
+        this.pos = this.pos.add(moveVector);
+        this.direction += this.rotateSpeed;
+        //Tick lifetime
+        if (this.lifetime <= 0) {
+          this.remove = true;
+        } else {
+          this.lifetime -= dt;
+        }
+        //Follow
+        if (this.followsScreen) this.pos = this.pos.subXY(game.player?.speed ?? 0, 0);
+        this.checkEntities();
+      });
   }
   spawnTrail(dt) {
+    if(!game.effects) return;
+    let reduced = game.effects < 1
     if (this.trailType === "dotted") {
-      //This got too long
-      for (let e = 0; e < this.speed * dt; e++) {
+    //This got too long
+    for (let e = 0; e < this.speed * dt; e++) {
+    if(reduced && !tru(game.effects)) continue;
         if (this._trailCounter <= 0) {
           if (this.world?.particles != null && this.trail) {
             let v = new DirectionVector(this.direction, e);
@@ -178,6 +184,7 @@ class Bullet {
         }
       }
     } else if (this.trailType === "linear") {
+      if(!reduced || tru(game.effects))
       this.world.particles.push(
         new LinearParticle(
           [this.prev, this.pos],
@@ -189,6 +196,7 @@ class Bullet {
         ),
       );
     } else if (this.trailType === "lightning") {
+      if(!reduced || tru(game.effects))
       this.world.particles.push(
         new LightningParticle(
           this.pos.multiLerp(this.prev, Math.ceil((this.speed / this.trailInterval) * 5)),
@@ -197,7 +205,9 @@ class Bullet {
           0,
           this.trailWidth,
           0,
-          this.trailWidth,
+          this.trailDev,
+          2,
+          2,
         ),
       );
     }
@@ -367,6 +377,24 @@ class Bullet {
             this.damaged.splice(this.damaged.indexOf(entity), 1);
           }
         }
+      }
+    }
+    for (let bullet of this.world.bullets) {
+      //If colliding with a this on different team, that it hasn't already been hit by and that still exists
+      if (
+        this.collides &&
+        !this.remove &&
+        bullet instanceof Deflection &&
+        this.bounceable && // don't deflect deflections
+        bullet.entity.team !== this.entity.team &&
+        this.collidesWith(bullet) //check collisions last for performance reasons
+      ) {
+        bullet.bulbonk(this);
+        if (!bullet.silent) {
+          if (!bullet.damaged.includes(this)) SoundCTX.play(this.hitSound);
+          SoundCTX.play(bullet.hitSound);
+        }
+        bullet.damaged.push(bullet);
       }
     }
   }

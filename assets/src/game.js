@@ -39,15 +39,21 @@ const game = {
   level: 1,
   bosstimer: 400,
   bossdelay: 400,
-  bossinterval: 400,
+  get bossinterval() {
+    return world.bossInterval;
+  },
   paused: false,
   //progression
   world: "",
   achievements: [],
+  bossweapons: new Set(),
   won: false,
   //keys
   keybinds: new KeybindHandler(),
+
   gl: false,
+  flashing: true,
+  effects: 1
 };
 /** @type {World} */
 let world;
@@ -318,9 +324,8 @@ function tickBossEvent() {
     else if (game.bosstimer <= 0) {
       //If timer has run out
       if (game.mode === "boss-rush") {
-        game.bossdelay = 180;
-        game.bosstimer = 1;
-      } else game.bosstimer = game.bossinterval; //Reset timer
+        game.bossdelay = 360;
+      } else game.bosstimer = world.bossInterval; //Reset timer
       world.nextBoss();
       world.reducedSpawns = true;
     } else {
@@ -334,8 +339,8 @@ function startGame() {
   createPlayer();
   createSupport();
   if (game.mode === "boss-rush") {
-    game.bossdelay = 180;
-    game.bosstimer = 1;
+    game.bossdelay = 360;
+    game.bosstimer = 0;
     world.reducedSpawns = true;
   }
 }
@@ -375,12 +380,14 @@ function drawUI() {
     }
   }
   uiEffectTimer.tick();
+  toasts.draw();
   ui.particles.forEach((p) => p && (p.draw() || p.step(1)));
 }
 
 function tickUI() {
   if (!game.paused) background.tick(game.player?.speed ?? 0);
   ui.tick();
+  toasts.tick();
 }
 
 function colour(...params) {
@@ -818,6 +825,7 @@ function saveGame() {
     },
 
     won: game.won,
+    bossweapons: [...game.bossweapons]
   };
   Serialiser.set("save." + game.saveslot, save);
   Serialiser.set("achievements", game.achievements);
@@ -867,4 +875,5 @@ function loadGame(slot) {
   game.player.destroyed = save.destroyed ?? { bosses: 0, boxes: 0 };
   game.player.damageDealt = save.damage?.dealt ?? 0;
   game.player.damageTaken = save.damage?.taken ?? 0;
+  game.bossweapons = new Set(save.bossweapons ?? []);
 }

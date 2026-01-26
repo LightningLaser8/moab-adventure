@@ -84,10 +84,9 @@ class SelfDestructAction extends BossAction {
   glareSize = 0;
   givesRewards = true;
 
-  isLeaving = false;
   execute(entity) {
     entity.dead = true;
-    entity.left = this.isLeaving;
+    entity.left = false
     splashDamageInstance(
       entity.x,
       entity.y,
@@ -102,14 +101,20 @@ class SelfDestructAction extends BossAction {
       this.smokeColourTo,
       this.waveColour,
     );
-    if (!this.isLeaving && this.givesRewards) {
+    if (this.givesRewards) {
       //Give destroy rewards if there's a difference, regular rewards if not
       game.shards += (entity.destroyReward ?? entity.reward)?.shards ?? 0;
       game.bloonstones += (entity.destroyReward ?? entity.reward)?.bloonstones ?? 0;
     }
-    if (this.isLeaving) {
-      game.level++;
-    }
+  }
+}
+class SpareAction extends BossAction {
+  unlockedWeapon = "";
+  execute(entity) {
+    entity.dead = true;
+    entity.left = true;
+    Registry.weapons.get(this.unlockedWeapon);
+    game.bossweapons.add(this.unlockedWeapon);
   }
 }
 //Creates an entity with an offset.
@@ -231,7 +236,7 @@ class FireBulletAction extends BossAction {
         this.spacing,
         this.amount,
         entity.world,
-        entity,
+        entity
       );
     }, this.delay);
   }

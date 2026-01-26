@@ -21,6 +21,8 @@ class ChainedBullet extends Bullet {
   collideOnReturn = true;
 
   despawnOnSource = true;
+  accelOnSource = false;
+  #willAccel = false;
   resetCooldownOnReturn = false;
   returnStatus = "none";
   returnStatusDuration = 1;
@@ -42,69 +44,70 @@ class ChainedBullet extends Bullet {
   onHit(ent) {
     super.onHit(ent);
     if (this.bounceOffEnemies) {
-      [this.#psp, this.speed] = [
-        this.speed * this.restitution,
-        this.#psp * this.restitution,
-      ];
+      [this.#psp, this.speed] = [this.speed * this.restitution, this.#psp * this.restitution];
       this.collides = this.collideOnReturn;
     }
   }
   step(dt) {
     super.step(dt);
     this.#psp += this.pullAccel;
+    let o = Vector.ZERO;
     if (this.source) {
-      let vecToSrc = this.pos
-        .subXY(this.source.x, this.source.y)
+      o = new Vector(this.source.x, this.source.y);
+    } else if (this.entity) {
+      o = new Vector(this.entity.x, this.entity.y);
+    }
+    
+    let pullvec = this.pos
+        .sub(o)
         .normalise()
         .scale(this.#psp * dt);
-      this.pos = this.pos.sub(vecToSrc);
+    this.pos = this.pos.sub(pullvec);
 
-      if (this.despawnOnSource) {
-        let d = this.distanceTo(this.source.x, this.source.y);
-        if (!this.#willDespawn && d > this.hitSize + this.#psp) {
-          this.#willDespawn = true;
-        } else if (this.#willDespawn && d <= this.hitSize + this.#psp) {
-          this.remove = true;
-          this.fragDisabled = true;
-          if (this.resetCooldownOnReturn && this.source.resetCD) {
-            this.source.resetCD();
-          }
-          patternedBulletExpulsion(
-            this.x,
-            this.y,
-            this.returnBullet,
-            this.returnDirection,
-            this.direction + this.returnDirection,
-            this.returnSpread,
-            this.returnSpacing,
-            this.world,
-            this.entity,
-            this.source
-          );
-          if (this.entity && this.returnStatus !== "none")
-            this.entity.applyStatus(
-              this.returnStatus,
-              this.returnStatusDuration
-            );
+    if (this.accelOnSource) {
+      let d = this.distanceTo(o.x, o.y);
+      if (!this.#willAccel && d > this.hitSize + this.#psp) {
+        this.#willAccel = true;
+      } else if (this.#willAccel && d <= this.hitSize + this.#psp) {
+        this.direction = pullvec.normalise().scale(this.#psp).sub(Vector.fromAngle(this.direction).scale(this.speed)).angle;
+        this.#psp = 0;
+        this.pos = this.pos.add(pullvec)
+      }
+    }
+    if (this.despawnOnSource) {
+      let d = this.distanceTo(o.x, o.y);
+      if (!this.#willDespawn && d > this.hitSize + this.#psp) {
+        this.#willDespawn = true;
+      } else if (this.#willDespawn && d <= this.hitSize + this.#psp) {
+        this.remove = true;
+        this.fragDisabled = true;
+        if (this.resetCooldownOnReturn && this.source?.resetCD) {
+          this.source.resetCD();
         }
+        patternedBulletExpulsion(
+          this.x,
+          this.y,
+          this.returnBullet,
+          this.returnDirection,
+          this.direction + this.returnDirection,
+          this.returnSpread,
+          this.returnSpacing,
+          this.world,
+          this.entity,
+          this.source,
+        );
+        if (this.entity && this.returnStatus !== "none")
+          this.entity.applyStatus(this.returnStatus, this.returnStatusDuration);
       }
     }
   }
   draw() {
     if (this.drawChain && this.source) {
-      let segments =
-        this.distanceTo(this.source.x, this.source.y) / this.chainSegmentSize;
-      let directionToSource = this.pos.subXY(
-        this.source.x,
-        this.source.y
-      ).angleRad;
+      let segments = this.distanceTo(this.source.x, this.source.y) / this.chainSegmentSize;
+      let directionToSource = this.pos.subXY(this.source.x, this.source.y).angleRad;
       for (let seg = 0; seg <= segments; seg++) {
         let pos = this.pos.sub(
-          new DirectionVector(
-            directionToSource,
-            this.chainSegmentSize * seg,
-            true
-          )
+          new DirectionVector(directionToSource, this.chainSegmentSize * seg, true),
         );
         if (this.chainSegmentColour) {
           push();
@@ -117,7 +120,7 @@ class ChainedBullet extends Bullet {
             pos.y,
             this.chainSegmentSize,
             this.chainWidth,
-            directionToSource
+            directionToSource,
           );
           pop();
         } else
@@ -127,7 +130,7 @@ class ChainedBullet extends Bullet {
             pos.y,
             this.chainSegmentSize,
             this.chainWidth,
-            directionToSource
+            directionToSource,
           );
       }
     }

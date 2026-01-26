@@ -20,7 +20,7 @@ function splashDamageInstance(
   let radius = damageRadius ** 1.05;
   if (showExplosion) {
     //Spawn smoke
-    for (let i = 0; i < radius ** 0.6; i++) {
+    for (let i = 0; i < radius ** 0.6 * game.effects; i++) {
       world.particles.push(
         new ShapeParticle(
           centreX,
@@ -42,7 +42,7 @@ function splashDamageInstance(
       );
     }
     //Yellow sparks
-    for (let i = 0; i < radius ** 0.7; i++) {
+    for (let i = 0; i < radius ** 0.7 * game.effects; i++) {
       world.particles.push(
         new ShapeParticle(
           centreX,
@@ -90,6 +90,7 @@ function splashDamageInstance(
   }
 }
 function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 600) {
+  if(!game.flashing) return;
   world.particles.push(
     //Obscure screen
     new ShapeParticle(

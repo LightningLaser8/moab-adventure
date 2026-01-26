@@ -115,7 +115,7 @@ class ModelPart {
 
     let relpos = new Vector(this.x, this.y).add(Vector.fromAngle(this.direction).scale(this.slide));
     let rotpos = relpos.rotate(origin.rotation);
-    let np = origin.addParts(rotpos.x, rotpos.y, this.rotate ? this.direction : 0);
+    let np = origin.addParts(rotpos.x, rotpos.y, this.direction);
 
     return np;
   }
@@ -126,7 +126,7 @@ class ModelPart {
     let p = this.pos(model).rotate(rotation).addParts(x, y);
     if (this.image instanceof ImageContainer || typeof this.image === "string") {
       //If it's an image, draw it
-      ImageCTX.draw(this.image, p.x, p.y, this.width, this.height, radians(p.rotation));
+      ImageCTX.draw(this.image, p.x, p.y, this.width, this.height, this.rotate ? radians(p.rotation) : 0);
     } else {
       //If it isn't, draw a rectangle
       push();
@@ -135,7 +135,7 @@ class ModelPart {
         stroke(...this.colour);
         noFill();
       } else fill(...this.colour);
-      rotatedShape(this.shape, p.x, p.y, this.width, this.height, radians(p.rotation));
+      rotatedShape(this.shape, p.x, p.y, this.width, this.height, this.rotate ? radians(p.rotation) : 0);
       pop();
     }
   }
@@ -155,8 +155,7 @@ class ModelPart {
         spread,
         spacing,
         world,
-        entity,
-        null
+        entity
       );
   }
 }

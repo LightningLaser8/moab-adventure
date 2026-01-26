@@ -496,17 +496,17 @@ Registry.weapons.add("laser-blaster", {
       damage: [
         {
           type: "laser",
-          amount: 3,
+          amount: 4.5,
         },
       ],
       drawer: {
-        shape: "ellipse",
-        fill: "red",
-        width: 30,
-        height: 10,
+        hidden: true
       },
       trail: true,
-      trailColour: [255, 0, 0, 50],
+      trailColour: [255, 255, 255],
+      trailColourTo: [255, -500, -500],
+      trailLifeFactor: 0.3,
+      trailType: "linear"
     },
     pattern: {}, //Blank pattern
   },
@@ -2026,17 +2026,17 @@ Registry.weapons.add("accelerator", {
       damage: [
         {
           type: "laser",
-          amount: 3,
+          amount: 4.5,
         },
       ],
       drawer: {
-        shape: "ellipse",
-        fill: "red",
-        width: 30,
-        height: 10,
+        hidden: true
       },
       trail: true,
-      trailColour: [255, 0, 0, 50],
+      trailColour: [255, 255, 255],
+      trailColourTo: [255, -500, -500],
+      trailLifeFactor: 0.3,
+      trailType: "linear"
     },
     pattern: {}, //Blank pattern
   },
@@ -4526,17 +4526,17 @@ Registry.weapons.add("greenbeam", {
       damage: [
         {
           type: "laser",
-          amount: 6,
+          amount: 9,
         },
       ],
       drawer: {
-        shape: "ellipse",
-        fill: [0, 255, 0],
-        width: 30,
-        height: 10,
+        hidden: true
       },
       trail: true,
-      trailColour: [0, 255, 0, 50],
+      trailColour: [255, 255, 255],
+      trailColourTo: [-500, 255, -500],
+      trailLifeFactor: 0.3,
+      trailType: "linear"
     },
     pattern: {}, //Blank pattern
   },

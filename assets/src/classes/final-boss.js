@@ -12,6 +12,8 @@ class FinalBoss extends Boss {
     //If there is a next world
     if (!this.world.endless) {
       if (Registry.worlds.has(this.destinationWorld)) {
+        // disable most things
+        this.world.transitioning = true;
         //Create an effect as a warning, 3/4 of the way through the transport delay
         Timer.main.do(
           () =>
@@ -68,7 +70,12 @@ class FinalBoss extends Boss {
             false,
           ),
         );
-        Timer.main.do(playerWins, this.transportDelay);
+        Timer.main.do(() => {
+          //win and save it
+          game.won = true;
+          saveGame();
+          playerWins();
+        }, this.transportDelay);
       }
     }
   }

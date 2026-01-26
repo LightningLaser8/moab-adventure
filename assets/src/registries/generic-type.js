@@ -36,6 +36,7 @@ Registry.genericType.add("action.generic", BossAction);
 Registry.genericType.add("action.move", MovementAction);
 Registry.genericType.add("action.fire-weapon", FireWeaponAction);
 Registry.genericType.add("action.self-destruct", SelfDestructAction);
+Registry.genericType.add("action.spare", SpareAction);
 Registry.genericType.add("action.exit", ExitAction);
 Registry.genericType.add("action.entry", EntryAction);
 Registry.genericType.add("action.regen", RegenAction);
@@ -55,6 +56,7 @@ Registry.genericType.add("action.vfx", VFXAction);
 Registry.genericType.add("action.lobotomise", LobotomiseAction);
 //Boss Triggers
 Registry.genericType.add("trigger.tick", ActionTrigger);
+Registry.genericType.add("trigger.time", TimeTrigger);
 Registry.genericType.add("trigger.single-hp", SingleHPPointTrigger);
 Registry.genericType.add("trigger.multi-hp", MultiHPPointTrigger);
 Registry.genericType.add("trigger.action-ended", ActionEndedTrigger);

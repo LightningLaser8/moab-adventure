@@ -12,7 +12,7 @@ createUIComponent(
   undefined,
   "*         Load Game",
   false,
-  50
+  50,
 );
 //Back to title screen button
 createUIComponent(
@@ -28,14 +28,14 @@ createUIComponent(
   },
   "*< Back",
   false,
-  30
-);
+  30,
+).isBackButton = true;
 function getSaveDescription(sv) {
   if (!sv) return "No data";
   return (
-    (sv?.won
-      ? "< Completed >"
-      : Registry.worlds.get(sv?.world ?? "ocean-skies").name + ", Level " + (sv?.level ?? 0)) +
+    (sv?.won ? "< Completed >" : (
+      Registry.worlds.get(sv?.world ?? "ocean-skies").name + ", Level " + (sv?.level ?? 0)
+    )) +
     "\n" +
     (sv?.difficulty ?? "easy").substring(0, 4).toUpperCase() +
     "-" +
@@ -46,6 +46,7 @@ function getSaveDescription(sv) {
     shortenedNumber(sv?.bloonstones)
   );
 }
+/**@type {{info: UIComponent, deleter: UIComponent, converter: UIComponent}[]} */
 let ss = [];
 for (let i = 0; i < 6; i++) {
   ss.push({
@@ -60,7 +61,7 @@ for (let i = 0; i < 6; i++) {
       null,
       "please wait...",
       true,
-      30
+      30,
     ),
     deleter: createUIComponent(
       ["load-game"],
@@ -73,7 +74,7 @@ for (let i = 0; i < 6; i++) {
       () => deleteGame(i),
       "Delete",
       true,
-      30
+      30,
     ),
     converter: createUIComponent(
       ["load-game"],
@@ -86,7 +87,10 @@ for (let i = 0; i < 6; i++) {
       () => {
         try {
           let s = Serialiser.get("save." + i);
-          Serialiser.set("save."+i, convertSave(s, s?.saveFormatVersion, CURRENT_SAVE_FORMAT_VERSION));
+          Serialiser.set(
+            "save." + i,
+            convertSave(s, s?.saveFormatVersion, CURRENT_SAVE_FORMAT_VERSION),
+          );
           regenSaveDescrs();
         } catch (e) {
           console.error("Could not convert slot " + i + " to current save version:", e);
@@ -94,7 +98,7 @@ for (let i = 0; i < 6; i++) {
       },
       "Try Convert",
       true,
-      30
+      30,
     ),
   });
 }
@@ -109,15 +113,14 @@ function regenSaveDescrs() {
     slot.info.text =
       i +
       " | " +
-      (!existing
-        ? "No data"
-        : goodFormat
-        ? getSaveDescription(sv)
-        : `Incompatible Format\n(v${
-            sv?.saveFormatVersion ?? 0
-          }, current v${CURRENT_SAVE_FORMAT_VERSION})`);
-    slot.info.press = valid
-      ? () => {
+      (!existing ? "No data"
+      : goodFormat ? getSaveDescription(sv)
+      : `Incompatible Format\n(v${
+          sv?.saveFormatVersion ?? 0
+        }, current v${CURRENT_SAVE_FORMAT_VERSION})`);
+    slot.info.press =
+      valid ?
+        () => {
           ui.menuState = "in-game";
           UIComponent.setCondition("saveslot:" + i);
           game.saveslot = i;
@@ -138,5 +141,8 @@ function regenSaveDescrs() {
       slot.deleter.outlineColour = [50, 50, 50];
     }
   });
+  saveSlotSel.forEach((c, i) =>
+    UIComponent.setOutlineColour(c, Serialiser.get("save." + i) ? [150, 0, 0] : [50, 50, 50]),
+  );
 }
 regenSaveDescrs();

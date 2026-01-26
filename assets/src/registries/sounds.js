@@ -11,6 +11,7 @@ Registry.sounds.add("big-boom", { path: "assets/sound/big-boom.mp3", category: "
 Registry.sounds.add("biggest-boom", { path: "assets/sound/biggest-boom.ogg", category: "weapons" });
 // Hit / Death sounds
 Registry.sounds.add("metal-hit", { path: "assets/sound/metal-hit.ogg", category: "entities" });
+Registry.sounds.add("metal-hit-low", { path: "assets/sound/metal-hit-low.wav", category: "entities" });
 Registry.sounds.add("metal-break", { path: "assets/sound/metal-break.wav", category: "entities" });
 Registry.sounds.add("wood-hit", { path: "assets/sound/wood-hit.wav", category: "entities" });
 Registry.sounds.add("wood-break", { path: "assets/sound/wood-break.wav", category: "entities" });

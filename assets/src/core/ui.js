@@ -24,6 +24,7 @@ class UserInterfaceController {
   }
   #ms = "title";
   waitingForMouseUp = false;
+  timer = new Timer;
   mouse = new this.Mouse(this);
   get firing() {
     return this.mobile ? this.#mobileFire : this.mouse.down;
@@ -46,7 +47,7 @@ class UserInterfaceController {
   }
   findNonUITouch() {
     let t = this.touches.find(
-      (v) => v && this.components.every((c) => !c.active || !c.touching(v))
+      (v) => v && this.components.every((c) => !c.active || !c.touching(v)),
     );
     if (this.mouse.down) this.#mobileFire = !!t;
     return t;
@@ -87,6 +88,7 @@ class UserInterfaceController {
     return false;
   }
   tick() {
+    this.timer.tick();
     for (let component of this.components) {
       component.updateActivity();
       if (component.active && component.isInteractive) {
@@ -110,7 +112,7 @@ class UserInterfaceController {
     return text
       .replaceAll(/\{\{[^\{\}]*\}\}/g, (m) => getKeyDesc(m.substring(2, m.length - 2)))
       .replaceAll(/\[\[[^\[\]]*\]\]/g, (m) =>
-        UIComponent.getCondition(m.substring(2, m.length - 2))
+        UIComponent.getCondition(m.substring(2, m.length - 2)),
       );
   }
 }
@@ -128,7 +130,7 @@ class UIComponent {
     return uicomponent;
   }
   static setBackgroundOf(uicomponent, colour = null) {
-    if(typeof colour === "string") uicomponent.bgimg = colour;
+    if (typeof colour === "string") uicomponent.bgimg = colour;
     else uicomponent.backgroundColour = colour;
     return uicomponent;
   }
@@ -138,6 +140,7 @@ class UIComponent {
   }
   static setOutlineColour(uicomponent, colour = null) {
     uicomponent.outlineColour = colour;
+    uicomponent.baseOutlineColour = colour;
     return uicomponent;
   }
   static alignRight(uicomponent) {
@@ -227,7 +230,7 @@ class UIComponent {
     onpress = () => {},
     shownText = "",
     useOCR = false,
-    shownTextSize = 20
+    shownTextSize = 20,
   ) {
     //Initialise component
     this.x = x;
@@ -235,6 +238,7 @@ class UIComponent {
     this.width = width;
     this.height = height;
     this.outlineColour = [50, 50, 50];
+    this.baseOutlineColour = this.outlineColour;
     this.emphasisColour = [255, 255, 0];
     this.emphasised = false;
     this.ocr = useOCR;
@@ -294,7 +298,7 @@ class UIComponent {
               this.x + (this.width + 20) / 2 + 20,
               this.y - (this.height + 20) / 2,
               this.x + (this.width + 20) / 2 + 20,
-              this.y + (this.height + 20) / 2
+              this.y + (this.height + 20) / 2,
             );
           }
           //Cut out triangle from the left of the outline
@@ -305,7 +309,7 @@ class UIComponent {
               this.x - (this.width + 20) / 2 - 20,
               this.y + (this.height + 20) / 2,
               this.x - (this.width + 20) / 2 - 20,
-              this.y - (this.height + 20) / 2
+              this.y - (this.height + 20) / 2,
             );
           }
           endClip();
@@ -313,16 +317,17 @@ class UIComponent {
         //Draw outline behind background
 
         rect(
-          this.x + (this.bevel === "right" ? 10 : this.bevel === "left" ? -10 : 0),
+          this.x +
+            (this.bevel === "right" ? 10
+            : this.bevel === "left" ? -10
+            : 0),
           this.y,
           this.width +
-            (this.bevel === "right" || this.bevel === "left"
-              ? 38
-              : this.bevel === "both"
-              ? 56
-              : 18) -
+            (this.bevel === "right" || this.bevel === "left" ? 38
+            : this.bevel === "both" ? 56
+            : 18) -
             2,
-          this.height + 18
+          this.height + 18,
         );
         pop();
       }
@@ -339,7 +344,7 @@ class UIComponent {
             this.x + this.width / 2,
             this.y - this.height / 2,
             this.x + this.width / 2,
-            this.y + this.height / 2
+            this.y + this.height / 2,
           );
         }
         //Cut out triangle from the left of the background
@@ -350,7 +355,7 @@ class UIComponent {
             this.x - this.width / 2,
             this.y + this.height / 2,
             this.x - this.width / 2,
-            this.y - this.height / 2
+            this.y - this.height / 2,
           );
         }
         endClip();
@@ -370,7 +375,7 @@ class UIComponent {
           0,
           0,
           this.width - 2,
-          this.height - 2
+          this.height - 2,
         );
       }
       pop();
@@ -416,7 +421,7 @@ class UIComponent {
         this.outlineColour = [0, 128, 128];
       }
     } else {
-      this.outlineColour = [50, 50, 50];
+      this.outlineColour = this.baseOutlineColour;
     }
   }
 }
@@ -447,7 +452,7 @@ class ImageUIComponent extends UIComponent {
     height = 1,
     shownImage = null,
     onpress = () => {},
-    outline = true
+    outline = true,
   ) {
     //Initialise component
     super(x, y, width, height, "none", onpress, "", false, 0);
@@ -478,7 +483,7 @@ class ShapeUIComponent extends UIComponent {
     height = 1,
     drawnShape = null,
     onpress = () => {},
-    outline = true
+    outline = true,
   ) {
     //Initialise component
     super(x, y, width, height, "none", onpress, "", false, 0);
@@ -558,7 +563,7 @@ class HealthbarComponent extends UIComponent {
     useOCR = false,
     shownTextSize = 20,
     source = null,
-    healthcol = [255, 255, 0]
+    healthcol = [255, 255, 0],
   ) {
     //Initialise component
     super(x, y, width, height, bevel, onpress, shownText, useOCR, shownTextSize);
@@ -579,9 +584,9 @@ class HealthbarComponent extends UIComponent {
     let target = src ? this.width * (this.fracReversed ? 1 - fr : fr) : 0;
     this.#frac += (target - this.#frac) * 0.075;
 
-    let bgc = (typeof this.backgroundColour === "function"
-      ? this.backgroundColour()
-      : this.backgroundColour) ?? [95, 100, 100, 160];
+    let bgc = (typeof this.backgroundColour === "function" ?
+      this.backgroundColour()
+    : this.backgroundColour) ?? [95, 100, 100, 160];
     let pc = typeof this.#painColour === "function" ? this.#painColour() : this.#painColour;
     let hbc =
       typeof this.healthbarColour === "function" ? this.healthbarColour() : this.healthbarColour;
@@ -608,7 +613,7 @@ class HealthbarComponent extends UIComponent {
           this.height,
           true,
           false,
-          this.healthbarReversed
+          this.healthbarReversed,
         );
       }
       //bar
@@ -621,7 +626,7 @@ class HealthbarComponent extends UIComponent {
         this.height,
         true,
         false,
-        this.healthbarReversed
+        this.healthbarReversed,
       );
       //indicator
       fill(pc);
@@ -633,7 +638,7 @@ class HealthbarComponent extends UIComponent {
         true,
         false,
         this.healthbarReversed,
-        true
+        true,
       );
       //health
 
@@ -641,7 +646,7 @@ class HealthbarComponent extends UIComponent {
         fillGradient("linear", {
           from: [this.x - this.width / 2, this.y - this.height / 2],
           to: [this.x + this.width / 2, this.y + this.height / 2],
-          steps: [[color(...hbc.map((x) => x + 200)), .3], color(...hbc), [color(0), .8]],
+          steps: [[color(...hbc.map((x) => x + 200)), 0.3], color(...hbc), [color(0), 0.8]],
         });
       } else fill(hbc);
       this.#shape(
@@ -652,7 +657,7 @@ class HealthbarComponent extends UIComponent {
         true,
         false,
         this.healthbarReversed,
-        true
+        true,
       );
     }
     pop();
@@ -670,7 +675,7 @@ class HealthbarComponent extends UIComponent {
       text(
         " " + (src ? this.text : "No source"),
         (this.x - this.width / 2) * (this.invertedX ? -1 : 1),
-        this.y * (this.inverted ? -1 : 1)
+        this.y * (this.inverted ? -1 : 1),
       );
     }
     pop();
@@ -683,7 +688,7 @@ class HealthbarComponent extends UIComponent {
     realign = false,
     realignV = false,
     reverseX = false,
-    constrain = false
+    constrain = false,
   ) {
     if (realign) x += (width / 2) * (reverseX ? -1 : 1);
     if (realignV) y += height / 2;
@@ -746,7 +751,7 @@ function createHealthbarComponent(
   useOCR = false,
   shownTextSize = 20,
   source = null,
-  healthcol = [255, 255, 0]
+  healthcol = [255, 255, 0],
 ) {
   //Make component
   const component = new HealthbarComponent(
@@ -760,7 +765,7 @@ function createHealthbarComponent(
     useOCR,
     shownTextSize,
     source,
-    healthcol
+    healthcol,
   );
   component.conditions = conditions;
   //Set conditional things
@@ -824,7 +829,7 @@ class SliderUIComponent extends UIComponent {
     onchange = (value) => {},
     min = 0,
     max = 100,
-    current = null
+    current = null,
   ) {
     super(x, y, width, height, bevel, undefined, shownText, useOCR, shownTextSize);
     //Change callback
@@ -842,7 +847,7 @@ class SliderUIComponent extends UIComponent {
       this.x + (this.width + this.length) / 2 - this.height / 2,
       this.y,
       this.length + this.height + 18,
-      this.height / 2 + 18
+      this.height / 2 + 18,
     );
     //Empty bit
     fill(0);
@@ -850,7 +855,7 @@ class SliderUIComponent extends UIComponent {
       this.x + (this.width + this.length) / 2 - this.height / 2,
       this.y,
       this.length + this.height - 2,
-      this.height / 2 - 2
+      this.height / 2 - 2,
     );
     //Full bit
     fill(255, 255, 0);
@@ -907,7 +912,7 @@ function createUIComponent(
   onpress = null,
   shownText = "",
   useOCR = false,
-  shownTextSize = 20
+  shownTextSize = 20,
 ) {
   //Make component
   const component = new UIComponent(
@@ -919,7 +924,7 @@ function createUIComponent(
     onpress ?? (() => {}),
     shownText,
     useOCR,
-    shownTextSize
+    shownTextSize,
   );
   component.conditions = conditions;
   //Set conditional things
@@ -937,7 +942,7 @@ function createCustomUIComponent(
   width = 1,
   height = 1,
   draw = null,
-  onpress = null
+  onpress = null,
 ) {
   //Make component
   const component = new CustomDrawerComponent(
@@ -946,7 +951,7 @@ function createCustomUIComponent(
     width,
     height,
     draw ?? (() => {}),
-    onpress ?? (() => {})
+    onpress ?? (() => {}),
   );
   component.conditions = conditions;
   //Set conditional things
@@ -965,7 +970,7 @@ function createUIImageComponent(
   height = 1,
   onpress = null,
   shownImage = null,
-  outline = true
+  outline = true,
 ) {
   //Make component
   const component = new ImageUIComponent(
@@ -975,7 +980,7 @@ function createUIImageComponent(
     height,
     shownImage,
     onpress ?? (() => {}),
-    outline
+    outline,
   );
   component.conditions = conditions;
   //Set conditional things
@@ -993,7 +998,7 @@ function createUIShapeComponent(
   height = 1,
   onpress = null,
   drawnShape = null,
-  outline = true
+  outline = true,
 ) {
   //Make component
   const component = new ShapeUIComponent(
@@ -1003,7 +1008,7 @@ function createUIShapeComponent(
     height,
     drawnShape,
     onpress ?? (() => {}),
-    outline
+    outline,
   );
   component.conditions = conditions;
   //Set conditional things
@@ -1028,8 +1033,11 @@ function createGamePropertySelector(
   shownTexts = [""],
   shownTextSize = 50,
   onchange = (value) => {},
-  selectionColour = [255, 255, 0]
+  selectionColour = [255, 255, 0],
+  canPress = (property) => true,
+  whenBad = (property) => {},
 ) {
+  let parts = [];
   let display = property.split(/(?=[A-Z]+)/).join(" ");
   //Create display name
   createUIComponent(
@@ -1043,7 +1051,7 @@ function createGamePropertySelector(
     undefined,
     display,
     false,
-    shownTextSize * 0.8
+    shownTextSize * 0.8,
   );
   //Create indicator
   createUIComponent(
@@ -1057,7 +1065,7 @@ function createGamePropertySelector(
     undefined,
     "> ",
     false,
-    shownTextSize
+    shownTextSize,
   );
   let len = Math.min(options.length, shownTexts.length); //Get smallest array, don't use blanks
   for (let i = 0; i < len; i++) {
@@ -1072,20 +1080,25 @@ function createGamePropertySelector(
       height,
       "both",
       () => {
-        game[property] = options[i]; //Set the property
-        onchange(options[i]);
+        if (canPress(options[i])) {
+          game[property] = options[i]; //Set the property
+          onchange(options[i]);
+        } else whenBad(options[i]);
       },
       shownTexts[i],
       true,
-      shownTextSize
+      shownTextSize,
     );
     //colour thing
     component.emphasisColour = selectionColour;
+    
     //Highlight if the game has this option
     Object.defineProperty(component, "emphasised", {
       get: () => game[property] === options[i],
     });
+    parts.push(component)
   }
+  return parts;
 }
 
 function createSliderComponent(
@@ -1103,7 +1116,7 @@ function createSliderComponent(
   onchange = null,
   min = 0,
   max = 100,
-  current = null
+  current = null,
 ) {
   //Make component
   const component = new SliderUIComponent(
@@ -1119,7 +1132,7 @@ function createSliderComponent(
     onchange ?? (() => {}),
     min,
     max,
-    current
+    current,
   );
   component.conditions = conditions;
   //Set conditional things
@@ -1195,7 +1208,7 @@ function createParticleEmitter(
   direction = 0,
   scale = 1,
   effect = "none",
-  interval = 1
+  interval = 1,
 ) {
   //Make component
   const component = new UIParticleEmitter(x, y, direction, scale, effect, interval);
@@ -1206,6 +1219,7 @@ function createParticleEmitter(
 }
 
 function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 600) {
+  if(!game.flashing) return;
   ui.particles.push(
     //Obscure screen
     new ShapeParticle(
@@ -1222,7 +1236,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       1920 * 3,
       0,
       1080 * 3,
-      0
+      0,
     ),
     new ShapeParticle(
       x,
@@ -1238,7 +1252,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       1920 * 5,
       0,
       1080 * 5,
-      0
+      0,
     ),
     new ShapeParticle(
       x,
@@ -1254,7 +1268,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       1920 * 8,
       0,
       1080 * 8,
-      0
+      0,
     ),
     new ShapeParticle(
       960,
@@ -1271,7 +1285,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       1080,
       1080,
       0,
-      false
+      false,
     ),
     //Glare effect
     new ShapeParticle(
@@ -1288,7 +1302,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       glareSize * 2,
       glareSize / 5,
       0,
-      0
+      0,
     ),
     new ShapeParticle(
       x,
@@ -1304,7 +1318,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       glareSize * 1.5,
       (glareSize / 5) * 0.6,
       0,
-      0
+      0,
     ),
     new ShapeParticle(
       x,
@@ -1320,7 +1334,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       glareSize,
       (glareSize / 5) * 0.3,
       0,
-      0
-    )
+      0,
+    ),
   );
 }

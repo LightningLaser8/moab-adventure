@@ -264,8 +264,8 @@ Registry.entities.add("gigantic-box", {
       x: -350,
     },
     leave: {
-      type: "action.self-destruct",
-      isLeaving: true,
+      type: "action.spare",
+      unlockedWeapon: "boxer"
     },
     stop: {
       type: "action.disable-ai",
@@ -1470,7 +1470,7 @@ Registry.entities.add("robo-monkey", {
     "speed.normal",
   ],
   team: "enemy",
-  health: 2500,
+  health: 4500,
   trackingOffsetX: 1000,
   turnWhileMoving: false,
   turnSpeed: 4,
@@ -1538,8 +1538,8 @@ Registry.entities.add("robo-drone", {
   sequence: ["wait-3s", "speed.aim", "laser-beam", "speed.normal"],
   imposSequence: ["wait-1s", "wait-1s", "speed.aim", "laser-beam-impos", "speed.normal"],
   team: "enemy",
-  health: 200,
-  trackingOffsetX: 200,
+  health: 100,
+  trackingOffsetX: 100,
   trackingOffsetY: -500,
   turnWhileMoving: true,
   turnSpeed: 10,

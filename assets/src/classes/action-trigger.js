@@ -36,6 +36,12 @@ class ActionTrigger {
     return true;
   }
 }
+class TimeTrigger extends ActionTrigger {
+  time = 1;
+  condition(entity) {
+    return frameCount % this.time === 0;
+  }
+}
 // Triggers an action when the boss passes a certain health point - either a percentage or absolute value.
 class SingleHPPointTrigger extends ActionTrigger {
   percentage = 30;

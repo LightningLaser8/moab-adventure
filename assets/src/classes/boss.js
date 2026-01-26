@@ -26,6 +26,8 @@ class Boss extends ScalingEntity {
   healthColour = null;
   higher = false;
 
+  bossmusic = null;
+
   init() {
     super.init();
     //Construct boss actions
@@ -196,6 +198,7 @@ class Boss extends ScalingEntity {
     //Tick as normal
     super.tick();
     this.model.tick();
+    if(this.world.transitioning) return;
     if (this.aiActive) {
       //Temporarily, set target to player. This should almost always be the case, until player minions exist.
       this.target = game?.player;

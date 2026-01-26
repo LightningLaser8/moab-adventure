@@ -84,6 +84,8 @@ createUIComponent(
  * @prop {string} reloadBarStyle
  * @prop {boolean} music
  * @prop {number} volume
+ * @prop {boolean} flashing
+ * @prop {number} effects
  * @prop {typeof UserInterfaceController.prototype.piecewiseVolume} pwv
  */
 
@@ -95,6 +97,8 @@ function saveCachedOptions() {
     reloadBarStyle: game.reloadBarStyle,
     volume: ui.volume,
     pwv: ui.piecewiseVolume,
+    effects: game.effects,
+    flashing: game.flashing
   });
 }
 function reloadCachedOptions() {
@@ -105,6 +109,8 @@ function reloadCachedOptions() {
   game.music = opts.music ?? true;
   game.reloadBarStyle = opts.reloadBarStyle ?? "radial";
   game.reloadBarTheme = opts.reloadBarTheme ?? "rainbow";
+  game.effects = opts.effects ?? 1;
+  game.flashing = opts.flashing ?? true;
   ui.volume = opts.volume ?? 50;
   if (opts.pwv) ui.piecewiseVolume = opts.pwv;
   recenterBars();
