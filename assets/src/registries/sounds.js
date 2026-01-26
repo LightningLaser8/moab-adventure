@@ -20,5 +20,13 @@ Registry.sounds.add("boss-death", { path: "assets/sound/boss-death.mp3", categor
 // Soundtrack
 Registry.sounds.add("sky-high", { path: "assets/sound/music/sky-high.wav", category: "music" });
 Registry.sounds.add("deconstruction", { path: "assets/sound/music/deconstruction.mp3", category: "music" });
+Registry.sounds.add("air", { path: "assets/sound/music/aircon.wav", category: "bypass" });
+Registry.sounds.add("hum", { path: "assets/sound/music/mmmm.wav", category: "bypass" });
+// ambience
+Registry.sounds.add("bong", { path: "assets/sound/bong.wav", category: "bypass" });
 // Aim / Telegraphing
 Registry.sounds.add("whirr", { path: "assets/sound/whirr.wav", category: "entities" });
+// error
+Registry.sounds.add("error.beam", { path: "assets/sound/err-laser.wav", category: "bypass"});
+Registry.sounds.add("error.tone.long", { path: "assets/sound/err-tone-long.wav", category: "bypass"});
+Registry.sounds.add("error.tone", { path: "assets/sound/err-tone.wav", category: "bypass"});

@@ -188,3 +188,110 @@ Registry.vfx.add("laser-charge-mini", {
     reverse: true,
   },
 });
+Registry.vfx.add("eye-charge-1", {
+  type: "vfx.multi",
+  effects: [
+    {
+      type: "vfx.particle",
+      cone: 360,
+      emissions: 90,
+      interval: 1,
+      particle: {
+        //All
+        lifetime: 40,
+        speed: 6,
+        decel: -0.027,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rhombus",
+        widthFrom: 20,
+        widthTo: 10,
+        heightFrom: 50,
+        heightTo: 25,
+        colourFrom: [0, 0, 0, 100],
+        colourTo: [255, 255, 255, 255],
+        reverse: true,
+      },
+    },
+    {
+      type: "vfx.wave",
+      emissions: 6,
+      interval: 20,
+      particle: {
+        //All
+        lifetime: 20,
+        moveWithBackground: false,
+        radiusFrom: 450,
+        radiusTo: 20,
+        strokeFrom: 50,
+        strokeTo: 10,
+        colourFrom: [50, 50, 50, 100],
+        colourTo: [255, 255, 255, 255],
+      },
+    },
+  ],
+});
+Registry.vfx.add("eye-release-1", {
+  type: "vfx.multi",
+  effects: [
+    {
+      type: "vfx.particle",
+      cone: 360,
+      emissions: 100,
+      interval: 1,
+      particle: {
+        //All
+        lifetime: 60,
+        speed: 9,
+        decel: -0.05,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rhombus",
+        widthFrom: 20,
+        widthTo: 10,
+        heightFrom: 50,
+        heightTo: 25,
+        colourFrom: [255, 255, 255, 255],
+        colourTo: [255, 255, 255, 0],
+        reverse: false,
+      },
+    },
+    {
+      type: "vfx.particle",
+      cone: 360,
+      emissions: 100,
+      interval: 1,
+      particle: {
+        //All
+        lifetime: 4,
+        speed: 0,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rect",
+        widthFrom: 4,
+        widthTo: 1,
+        heightFrom: 5000,
+        heightTo: 5000,
+        colourFrom: [255, 255, 255, 255],
+        colourTo: [255, 255, 255, 0],
+        reverse: false,
+      },
+    },
+    {
+      type: "vfx.wave",
+      emissions: 5,
+      interval: 20,
+      particle: {
+        //All
+        lifetime: 20,
+        moveWithBackground: false,
+        radiusFrom: 20,
+        radiusTo: 900,
+        strokeFrom: 50,
+        strokeTo: 10,
+        colourFrom: [255, 255, 255, 255],
+        colourTo: [255, 255, 255, 0],
+      },
+    },
+  ],
+});

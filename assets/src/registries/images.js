@@ -14,6 +14,7 @@ Registry.images.add("blimp.vortex", { path: "assets/textures/entity/vortex.svg"}
 //Background
 Registry.images.add("background.sea", { path: "assets/textures/background/sea.png"});
 Registry.images.add("background.conveyor", { path: "assets/textures/background/conveyor.png"});
+Registry.images.add("background.p̴͕͕͛u̴̞͝ŗ̷̠̄g̷̨͌͝a̸͈̝̔̒ṯ̴̎o̸͎͝ṟ̸͚̍y̵̯̳̏͝", { path: "assets/textures/background/purgatory.png"});
 //UI images
 Registry.images.add("ui.cursor", { path: "assets/textures/ui/cursor.svg"});
 Registry.images.add("ui.cursor-wait", { path: "assets/textures/ui/cursor-click.svg"});
@@ -43,6 +44,8 @@ Registry.images.add("box.wood", { path: "assets/textures/entity/box/wood.svg"});
 Registry.images.add("box.hardwood", { path: "assets/textures/entity/box/hardwood.svg"});
 Registry.images.add("box.robox", { path: "assets/textures/entity/box/robox.svg"});
 Registry.images.add("box.metal", { path: "assets/textures/entity/box/metal.svg"});
+
+Registry.images.add("box.w̷̦̄͆i̸̯̯͗̚r̸̞̕͜e̷̺͛ͅf̴̰̚͝ṙ̴͍͉̈́á̵̮m̵̨͊e̶̤͒", { path: "assets/textures/entity/box/wireframe.svg"});
 //idk
 Registry.images.add("effect.glare", { path: "assets/textures/effect/glare.png"});
 //Bullets
@@ -71,3 +74,5 @@ Registry.images.add("final-boss.robo-monkey", { path: "assets/textures/entity/ro
 Registry.images.add("final-boss.robo-monkey.left-arm", { path: "assets/textures/entity/robo-monkey-arm-left.svg"});
 Registry.images.add("final-boss.robo-monkey.right-arm", { path: "assets/textures/entity/robo-monkey-arm-right.svg"});
 Registry.images.add("final-boss.robo-monkey.gun-arm", { path: "assets/textures/entity/robo-monkey-arm-gun.svg"});
+// error
+Registry.images.add("boss.ë̵͉̹́̍̕͝n̴̨͍̩̺̦̜̗͒̈́̇̀̍͊̆ť̸̡̟̣͙͔̣͙́̑̆̏͒̕i̶̯̥̙̮̐̊̀̀͘̕͜t̸͍̟̐̄͂͘͝y̴̼͉̰̮̽̿͛̆͗͠.eye", { path: "assets/textures/entity/eye.png"});

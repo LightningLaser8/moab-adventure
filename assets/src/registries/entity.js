@@ -1545,3 +1545,210 @@ Registry.entities.add("robo-drone", {
   turnSpeed: 10,
   deathSound: "explosion",
 });
+//### s̶̡͖̠̹̣̯̰̝̖̦͎̈̉͆͆ę̸̢̡̧̩͔̮̼̰͔̠̙̺̲̫͌͛͂͋̇̋͛̂͛̒͌̉ç̷̨̲̖̞̙̹͍̀̒̈́͋r̵͎̮̉͝ę̴͎̟̬̗̰̫͓̺̖͒͂̀̈́̉̔ṯ̶̲̿̓̈́̀̊̐̈́̎̂̇͗͐ ###
+
+Registry.entities.add("w̷̦̄͆i̸̯̯͗̚r̸̞̕͜e̷̺͛ͅf̴̰̚͝ṙ̴͍͉̈́á̵̮m̵̨͊e̶̤͒", {
+  type: "box",
+  name: "[X]",
+  drawer: {
+    image: "box.w̷̦̄͆i̸̯̯͗̚r̸̞̕͜e̷̺͛ͅf̴̰̚͝ṙ̴͍͉̈́á̵̮m̵̨͊e̶̤͒",
+    width: 50,
+    height: 50,
+  },
+  hitSize: 25,
+  x: 1920,
+  //Return a random height each time
+  get y() {
+    return random(0, 1080);
+  },
+  reward: 0,
+  destroyReward: 0,
+  team: "entity",
+  health: 12,
+  healthIncrease: 2,
+  hitSound: null,
+  deathSound: "error.tone",
+});
+// good luck typing this
+Registry.entities.add("ë̵͉̹́̍̕͝n̴̨͍̩̺̦̜̗͒̈́̇̀̍͊̆ť̸̡̟̣͙͔̣͙́̑̆̏͒̕i̶̯̥̙̮̐̊̀̀͘̕͜t̸͍̟̐̄͂͘͝y̴̼͉̰̮̽̿͛̆͗͠", {
+  type: "boss",
+  name: "[][][][][][][][][][][][][][][]",
+  model: {
+    displayWidth: 160,
+    displayHeight: 160,
+    parts: {
+      move: {
+        image: "ui.movement",
+        width: 240,
+        height: 240,
+      },
+      movel: {
+        image: "ui.movement",
+        width: 240,
+        height: 240,
+      },
+      mover: {
+        image: "ui.movement",
+        width: 240,
+        height: 240,
+      },
+      moveb: {
+        image: "ui.movement",
+        width: 240,
+        height: 240,
+      },
+      moveb2: {
+        image: "ui.movement",
+        width: 240,
+        height: 240,
+      },
+      eye: {
+        image: "boss.ë̵͉̹́̍̕͝n̴̨͍̩̺̦̜̗͒̈́̇̀̍͊̆ť̸̡̟̣͙͔̣͙́̑̆̏͒̕i̶̯̥̙̮̐̊̀̀͘̕͜t̸͍̟̐̄͂͘͝y̴̼͉̰̮̽̿͛̆͗͠.eye",
+        width: 100,
+        height: 49,
+        rotate: false,
+      },
+    },
+    animations: {
+      "charge-5": [
+        {
+          part: "movel",
+          drot: -72,
+          duration: 60,
+        },
+        {
+          part: "mover",
+          drot: 72,
+          duration: 60,
+        },
+        {
+          part: "moveb",
+          drot: 144,
+          duration: 60,
+        },
+        {
+          part: "moveb2",
+          drot: -144,
+          duration: 60,
+        },
+      ],
+      "release-5": [
+        {
+          part: "movel",
+          drot: 72,
+          duration: 60,
+        },
+        {
+          part: "mover",
+          drot: -72,
+          duration: 60,
+        },
+        {
+          part: "moveb",
+          drot: -144,
+          duration: 60,
+        },
+        {
+          part: "moveb2",
+          drot: 144,
+          duration: 60,
+        },
+      ],
+    },
+    constant: {
+
+    }
+  },
+  bounceable: false,
+  hitSize: 120,
+  direction: 180,
+  speed: 10,
+  turnSpeed: 4,
+  x: 1920,
+  y: 0,
+  healthColour: [0, 0, 0],
+  reward: 0,
+  actions: {
+    "stop-ai": {
+      type: "action.disable-ai",
+    },
+    "start-ai": {
+      type: "action.enable-ai",
+    },
+    zap: {
+      type: "action.fire-bullet",
+      duration: 2,
+      part: "eye",
+      spread: 360,
+      amount: 1,
+      bullet: {
+        lifetime: 0,
+        speed: 0,
+        drawer: { hidden: true },
+        fragNumber: 1,
+        fragBullet: {
+          type: "missile",
+          trailColour: [255, 255, 255],
+          trailColourTo: [0, 0, 0],
+          trailType: "lightning",
+          trailWidth: 7.5,
+          trailDev: 30,
+          trailInterval: 10,
+          flameLength: 1200,
+          targetType: "nearest",
+          turnSpeed: 25,
+          lifetime: 180,
+          speed: 15,
+          updates: 2,
+          movements: 9,
+          hitSize: 5,
+          trail: true,
+          damage: [
+            {
+              type: "electric",
+              amount: 5,
+            },
+          ],
+          drawer: {
+            hidden: true,
+          },
+        },
+      },
+    },
+    charge: {
+      type: "action.vfx",
+      effect: "eye-charge-1",
+      part: "eye",
+      animation: "charge-5",
+      duration: 120,
+    },
+    release: {
+      type: "action.vfx",
+      effect: "eye-release-1",
+      part: "eye",
+    },
+    zaps: {
+      type: "action.sequence",
+      duration: 100,
+      sequence: ["75*zap"],
+    },
+    finish: {
+      type: "action.generic",
+      animation: "release-5",
+    },
+    wait: {
+      type: "action.generic",
+      duration: 360,
+    },
+  },
+  sequence: ["wait", "stop-ai", "charge", "release", "zaps", "finish", "start-ai"],
+  triggers: [],
+  team: "entity",
+  health: -1,
+  collides: false,
+  trackingOffsetX: 600,
+  turnWhileMoving: true,
+  deathSound: "boss-death",
+  bossmusic: "hum",
+  // destinationWorld: "workshop", //Commented out for win condition
+});
