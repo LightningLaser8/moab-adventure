@@ -12,38 +12,31 @@ createUIComponent(
   "Return",
   false,
   60
+).isBackButton = true;
+
+createUIComponent(
+  ["how-to-play"],
+  [],
+  1310,
+  970,
+  100,
+  100,
+  "none",
+  () => {
+    ui.menuState = "how-to-attack";
+  },
+  ">",
+  false,
+  60
 );
 
 createUIImageComponent(["how-to-play"], [], 400, 300, 230, 150, null, "blimp.moab", false);
 createUIImageComponent(["how-to-play"], [], 400, 300, 550, 550, null, "ui.4-move", false);
-Object.defineProperty(
-  createUIComponent(["how-to-play"], [], 400, 130, 75, 75, "none", null, "W", true, 60),
-  "text",
-  {
-    get: () => game.keybinds.key("move-up").toUpperCase(),
-  }
-);
-Object.defineProperty(
-  createUIComponent(["how-to-play"], [], 400, 470, 75, 75, "none", null, "S", true, 60),
-  "text",
-  {
-    get: () => game.keybinds.key("move-down").toUpperCase(),
-  }
-);
-Object.defineProperty(
-  createUIComponent(["how-to-play"], [], 230, 300, 75, 75, "none", null, "A", true, 60),
-  "text",
-  {
-    get: () => game.keybinds.key("move-left").toUpperCase(),
-  }
-);
-Object.defineProperty(
-  createUIComponent(["how-to-play"], [], 570, 300, 75, 75, "none", null, "D", true, 60),
-  "text",
-  {
-    get: () => game.keybinds.key("move-right").toUpperCase(),
-  }
-);
+
+createUIComponent(["how-to-play"], [], 400, 130, 75, 75, "none", null, "{{move-up}}", true, 60);
+createUIComponent(["how-to-play"], [], 400, 470, 75, 75, "none", null, "{{move-down}}", true, 60);
+createUIComponent(["how-to-play"], [], 230, 300, 75, 75, "none", null, "{{move-left}}", true, 60);
+createUIComponent(["how-to-play"], [], 570, 300, 75, 75, "none", null, "{{move-right}}", true, 60);
 
 createUIImageComponent(["how-to-play"], [], 800, 400, 193, 130, null, "ui.shotgun", false);
 createUIImageComponent(["how-to-play"], [], 1100, 380, 75, 75, null, "box.wood", false).angle = 1;
@@ -102,13 +95,7 @@ createUIComponent(
   200,
   "none",
   null,
-  `
-Movement controls on left. 
-Click to fire.
-
-Dodge or shoot the boxes, don't let your
-health hit zero.
-`,
+  "Movement controls are shown to the left. Click the left mouse button to fire. Dodge or shoot the boxes, don't let your health hit zero (illustrated on right).\nBoxes will spawn on the right, and must be dodged or shot.",
   true,
   24
 );
@@ -134,14 +121,7 @@ createUIComponent(
   200,
   "none",
   null,
-  `
-The boss timer on the top-right will
-constantly go down.
-When it hits zero, the next boss will
-spawn. There are 10 bosses per zone,
-and the final one is much harder than
-the others.
-`,
+  "The boss timer on the top-right will constantly go down. When it hits zero, the next boss will spawn. There are 10 bosses per zone, and the final one is much harder than the others.",
   true,
   24
 );
@@ -157,106 +137,23 @@ createUIComponent(
   200,
   "none",
   null,
-  `
-Bosses cannot simply be dodged, they
-must be shot.
-Some bosses may have minions, which
-will leave when there are no more
-bosses left.
-`,
+  "Bosses cannot simply be dodged, they must be shot. Some bosses may have minions, which will leave when there are no more bosses left.",
   true,
   24
 );
-createUIComponent(
-  ["how-to-play"],
-  [],
-  1450,
-  718,
-  0,
-  0,
-  "none",
-  null,
-  "must be shot.",
-  true,
-  24
-).textColour = "#900";
-(function () {
-  let effect = createUIComponent(
-    ["how-to-play"],
-    [],
-    1450,
-    722,
-    0,
-    0,
-    "none",
-    null,
-    "must be shot.",
-    true,
-    24
-  );
-  Object.defineProperty(effect, "y", { get: () => 721 + Math.sin(frameCount / 10) / 2 });
-  effect.textColour = "#f00";
-
-  createParticleEmitter(
-    ["how-to-play"],
-    [],
-    1500,
-    722,
-    0,
-    1,
-    {
-      type: "vfx.particle",
-      cone: 360,
-      maxXOffset: 30,
-      maxYOffset: 0,
-      amount: 6,
-      particle: {
-        //All
-        lifetime: 90,
-        speed: 0.4,
-        decel: 0.005,
-        rotateSpeed: 0,
-        moveWithBackground: false,
-        shape: "circle",
-        widthFrom: 40,
-        widthTo: 50,
-        colourFrom: [255, 0, 0, 4],
-        colourTo: [255, 0, 0, 0],
-      },
-    },
-    5
-  );
-
-  let s = createUIComponent(
-    ["how-to-play"],
-    [],
-    990,
-    595,
-    0,
-    0,
-    "none",
-    null,
-    "Shoot them all.",
-    false,
-    90
-  );
-  s.getActivity = () =>
-    ui.mouse.x > 1475 && ui.mouse.y > 715 && ui.mouse.x < 1540 && ui.mouse.y < 730;
-  s.textColour = "#ff000005";
-})();
 
 ////////////////////////////////////////////////////
 
 createUIComponent(
-    ["how-to-play"],
-    [],
-    960,
-    50,
-    0,
-    0,
-    "none",
-    null,
-    "How to Play",
-    false,
-    60
-  ).textColour = "#fff";
+  ["how-to-play"],
+  [],
+  960,
+  50,
+  0,
+  0,
+  "none",
+  null,
+  "How to Play",
+  false,
+  60
+).textColour = "#fff";

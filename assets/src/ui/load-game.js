@@ -10,9 +10,9 @@ createUIComponent(
   75,
   "none",
   undefined,
-  "         Load Game",
+  "*         Load Game",
   false,
-  50
+  50,
 );
 //Back to title screen button
 createUIComponent(
@@ -26,17 +26,16 @@ createUIComponent(
   () => {
     ui.menuState = "start-menu";
   },
-  "< Back",
+  "*< Back",
   false,
-  30
-);
-function getSaveDescription(slot) {
-  let sv = Serialiser.get("save." + slot);
+  30,
+).isBackButton = true;
+function getSaveDescription(sv) {
   if (!sv) return "No data";
   return (
-    (sv?.won
-      ? "< Completed >"
-      : Registry.worlds.get(sv?.world ?? "ocean-skies").name + ", Level " + (sv?.level ?? 0)) +
+    (sv?.won ? "< Completed >" : (
+      Registry.worlds.get(sv?.world ?? "ocean-skies").name + ", Level " + (sv?.level ?? 0)
+    )) +
     "\n" +
     (sv?.difficulty ?? "easy").substring(0, 4).toUpperCase() +
     "-" +
@@ -47,6 +46,7 @@ function getSaveDescription(slot) {
     shortenedNumber(sv?.bloonstones)
   );
 }
+/**@type {{info: UIComponent, deleter: UIComponent, converter: UIComponent}[]} */
 let ss = [];
 for (let i = 0; i < 6; i++) {
   ss.push({
@@ -61,7 +61,7 @@ for (let i = 0; i < 6; i++) {
       null,
       "please wait...",
       true,
-      30
+      30,
     ),
     deleter: createUIComponent(
       ["load-game"],
@@ -74,22 +74,57 @@ for (let i = 0; i < 6; i++) {
       () => deleteGame(i),
       "Delete",
       true,
-      30
+      30,
+    ),
+    converter: createUIComponent(
+      ["load-game"],
+      [],
+      1220,
+      330 + 100 * i,
+      120,
+      75,
+      "none",
+      () => {
+        try {
+          let s = Serialiser.get("save." + i);
+          Serialiser.set(
+            "save." + i,
+            convertSave(s, s?.saveFormatVersion, CURRENT_SAVE_FORMAT_VERSION),
+          );
+          regenSaveDescrs();
+        } catch (e) {
+          console.error("Could not convert slot " + i + " to current save version:", e);
+        }
+      },
+      "Try Convert",
+      true,
+      30,
     ),
   });
 }
 
 function regenSaveDescrs() {
   ss.forEach((slot, i) => {
-    let available = !!Serialiser.get("save." + i);
-    slot.info.text = i + " | " + getSaveDescription(i);
-    slot.info.press = available
-      ? () => {
+    let sv = Serialiser.get("save." + i);
+    let existing = !!sv;
+    let goodFormat = sv?.saveFormatVersion === CURRENT_SAVE_FORMAT_VERSION;
+    let valid = goodFormat;
+    // console.log("save ","save." + i, "->", sv, existing ? " exists" : " doesnt exist", "and", valid ? "is valid" : "is invalid")
+    slot.info.text =
+      i +
+      " | " +
+      (!existing ? "No data"
+      : goodFormat ? getSaveDescription(sv)
+      : `Incompatible Format\n(v${
+          sv?.saveFormatVersion ?? 0
+        }, current v${CURRENT_SAVE_FORMAT_VERSION})`);
+    slot.info.press =
+      valid ?
+        () => {
           ui.menuState = "in-game";
           UIComponent.setCondition("saveslot:" + i);
           game.saveslot = i;
-          createPlayer();
-          createSupport();
+          startGame();
           loadGame(i);
         }
       : () => {};
@@ -97,12 +132,17 @@ function regenSaveDescrs() {
       slot.deleter.isInteractive =
       slot.info.interactive =
       slot.info.isInteractive =
-        available;
-    slot.deleter.text = available ? "Delete" : "...";
-    if (!available) {
+        valid;
+    slot.converter.interactive = slot.converter.isInteractive = existing && !valid;
+    slot.converter.getActivity = () => existing && !valid;
+    slot.deleter.text = existing ? "Delete" : "...";
+    if (!existing) {
       slot.info.outlineColour = [50, 50, 50];
       slot.deleter.outlineColour = [50, 50, 50];
     }
   });
+  saveSlotSel.forEach((c, i) =>
+    UIComponent.setOutlineColour(c, Serialiser.get("save." + i) ? [150, 0, 0] : [50, 50, 50]),
+  );
 }
 regenSaveDescrs();

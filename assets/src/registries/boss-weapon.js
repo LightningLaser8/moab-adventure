@@ -20,7 +20,7 @@ Registry.weapons.add(".robox-gun", {
         {
           type: "laser",
           amount: 1.5,
-          levelScaling: 0.5
+          levelScaling: 0.5,
         },
       ],
       drawer: {
@@ -47,9 +47,7 @@ Registry.weapons.add(".robox-gun", {
       slide: 0,
       colour: [255, 0, 0],
       image: false,
-      recoilAnimations: [
-        { type: "recoil-animation", duration: 5, xOffset: -15 },
-      ],
+      recoilAnimations: [{ type: "recoil-animation", duration: 5, xOffset: -15 }],
     },
     {
       type: "part",
@@ -470,59 +468,6 @@ Registry.weapons.add(".super-monkey-shoot-laser", {
   },
 });
 //## ROBO-MONKEY ##
-Registry.weapons.add(".robo-monkey-throw", {
-  name: ".robo-monkey-throw",
-  shoot: {
-    bullet: {
-      type: "Bullet",
-      lifetime: 40,
-      speed: 0,
-      pierce: 9999999,
-      hitSize: -1000,
-      trail: false,
-      intervalBullet: {
-        type: "missile",
-        trailColour: [255, 169, 207],
-        trailColourTo: [212, 0, 255],
-        trailShape: "rhombus",
-        targetType: "nearest",
-        turnSpeed: 0.25,
-        trailInterval: 5,
-        trailWidth: 5,
-        lifetime: 90,
-        speed: 25,
-        hitSize: 5,
-        trail: true,
-        damage: [
-          {
-            type: "ballistic",
-            amount: 5,
-          },
-          {
-            type: "no",
-            amount: 0,
-            area: 40,
-            smokeColour: [0, 0, 0, 0],
-            smokeColourTo: [0, 0, 0, 0],
-            waveColour: [255, 255, 255, -2000],
-            sparkColour: [255, 169, 207],
-            sparkColourTo: [212, 0, 255],
-          },
-        ],
-        drawer: {
-          image: "bullet.normal", //should really be a dart but i don't have the asset
-          width: 32,
-          height: 16,
-        },
-      },
-      intervalTime: 10,
-      intervalNumber: 5,
-      intervalSpread: 15,
-      followsSource: true,
-    },
-    pattern: {},
-  },
-});
 Registry.weapons.add(".robo-monkey-laser", {
   name: ".robo-monkey-laser",
   rotate: false,
@@ -586,93 +531,6 @@ Registry.weapons.add(".robo-monkey-laser-impos", {
       amount: 3,
       spacing: 20,
     },
-  },
-});
-Registry.weapons.add(".robo-monkey-throw-impos", {
-  name: ".robo-monkey-throw",
-  shoot: {
-    bullet: {
-      type: "Bullet",
-      lifetime: 100,
-      speed: 10,
-      pierce: 9999999,
-      hitSize: 10,
-      trail: true,
-      intervalBullet: {
-        type: "missile",
-        turnSpeed: 360,
-        targetType: "nearest",
-        fragNumber: 1,
-        speed: 0,
-        lifetime: 1,
-        trail: false,
-        fragBullet: {
-          type: "missile",
-          trailColour: [255, 169, 207],
-          trailColourTo: [212, 0, 255],
-          trailShape: "rhombus",
-          targetType: "nearest",
-          turnSpeed: 0.5,
-          trailInterval: 5,
-          trailWidth: 5,
-          lifetime: 90,
-          speed: 25,
-          hitSize: 5,
-          trail: true,
-          damage: [
-            {
-              type: "ballistic",
-              amount: 10,
-            },
-            {
-              type: "no",
-              amount: 0,
-              area: 40,
-              smokeColour: [0, 0, 0, 0],
-              smokeColourTo: [0, 0, 0, 0],
-              waveColour: [255, 255, 255, -2000],
-              sparkColour: [255, 169, 207],
-              sparkColourTo: [212, 0, 255],
-            },
-          ],
-          drawer: {
-            image: "bullet.normal", //should really be a dart but i don't have the asset
-            width: 32,
-            height: 16,
-          },
-        },
-      },
-      intervalTime: 2,
-      intervalNumber: 1,
-      telegraph: {
-        time: 30,
-        width: 40,
-      },
-      fragSpacing: 72,
-      fragNumber: 5,
-      fragBullet: {
-        type: "continuous-laser",
-        spawnSound: "laser-beam",
-        lifetime: 30,
-        length: 2000,
-        pierce: 999,
-        hitSize: 7.5,
-        drawer: {
-          shape: "rect",
-          fill: [234, 84, 232],
-        },
-        damage: [
-          {
-            amount: 4,
-            type: "laser",
-          },
-        ],
-        telegraph: {
-          time: 15,
-        },
-      },
-    },
-    pattern: {},
   },
 });
 //## WORMS ##

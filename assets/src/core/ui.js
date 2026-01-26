@@ -1,4 +1,20 @@
 class UserInterfaceController {
+  Mouse = class Mouse {
+    /**@type {UserInterfaceController} */
+    #ui;
+    constructor(ui) {
+      this.#ui = ui;
+    }
+    get x() {
+      return (this.#ui.mobile ? this.#ui.#currentmobilemouse?.x : mouseX) / contentScale;
+    }
+    get y() {
+      return (this.#ui.mobile ? this.#ui.#currentmobilemouse?.y : mouseY) / contentScale;
+    }
+    get down() {
+      return this.#ui.mobile ? !!this.#ui.#currentmobilemouse : mouseIsPressed;
+    }
+  };
   set menuState(_) {
     this.#ms = _;
     this.components.forEach((x) => x.updateActivity());
@@ -8,8 +24,37 @@ class UserInterfaceController {
   }
   #ms = "title";
   waitingForMouseUp = false;
-  get mouse() {
-    return new Vector(mouseX / contentScale, mouseY / contentScale);
+  timer = new Timer;
+  mouse = new this.Mouse(this);
+  get firing() {
+    return this.mobile ? this.#mobileFire : this.mouse.down;
+  }
+  get target() {
+    if (this.mobile) {
+      let t = this.#currentmobiletarget ?? this.#lastmobiletarget;
+      return { x: t.x / contentScale, y: t.y / contentScale };
+    }
+    return this.mouse;
+  }
+  #lastmobiletarget = { x: 0, y: 0 };
+  #currentmobiletarget = { x: 0, y: 0 };
+  #currentmobilemouse = { x: 0, y: 0 };
+  #mobileFire = false;
+  mobile = false;
+  /**@type {Vector[]} */
+  get touches() {
+    return touches ?? [];
+  }
+  findNonUITouch() {
+    let t = this.touches.find(
+      (v) => v && this.components.every((c) => !c.active || !c.touching(v)),
+    );
+    if (this.mouse.down) this.#mobileFire = !!t;
+    return t;
+  }
+  findUITouch() {
+    let t = this.touches.find((v) => v && this.components.some((c) => c.active && c.touching(v)));
+    return t;
   }
   conditions = {};
   get components() {
@@ -33,6 +78,7 @@ class UserInterfaceController {
     music: 100,
     weapons: 100,
     entities: 100,
+    other: 100,
   };
   //particle
   particles = [];
@@ -42,10 +88,11 @@ class UserInterfaceController {
     return false;
   }
   tick() {
+    this.timer.tick();
     for (let component of this.components) {
       component.updateActivity();
       if (component.active && component.isInteractive) {
-        component.checkMouse();
+        component.checkMouse(ui.mouse);
       }
     }
     let len = this.particles.length;
@@ -54,7 +101,19 @@ class UserInterfaceController {
         this.particles.splice(p, 1);
       }
     }
+    if (this.mobile) {
+      if (this.#currentmobiletarget) this.#lastmobiletarget = this.#currentmobiletarget;
+      this.#currentmobiletarget = this.findNonUITouch();
+      this.#currentmobilemouse = this.findUITouch() ?? this.#currentmobiletarget;
+    }
     this.keybinds.tick();
+  }
+  revaluate(text) {
+    return text
+      .replaceAll(/\{\{[^\{\}]*\}\}/g, (m) => getKeyDesc(m.substring(2, m.length - 2)))
+      .replaceAll(/\[\[[^\[\]]*\]\]/g, (m) =>
+        UIComponent.getCondition(m.substring(2, m.length - 2)),
+      );
   }
 }
 
@@ -71,7 +130,8 @@ class UIComponent {
     return uicomponent;
   }
   static setBackgroundOf(uicomponent, colour = null) {
-    uicomponent.backgroundColour = colour;
+    if (typeof colour === "string") uicomponent.bgimg = colour;
+    else uicomponent.backgroundColour = colour;
     return uicomponent;
   }
   static removeOutline(uicomponent) {
@@ -80,6 +140,7 @@ class UIComponent {
   }
   static setOutlineColour(uicomponent, colour = null) {
     uicomponent.outlineColour = colour;
+    uicomponent.baseOutlineColour = colour;
     return uicomponent;
   }
   static alignRight(uicomponent) {
@@ -92,7 +153,10 @@ class UIComponent {
   static alignLeft(uicomponent) {
     uicomponent.ox = uicomponent.x; //Save old x
     Object.defineProperty(uicomponent, "x", {
-      get: () => uicomponent.ox + textWidth(uicomponent.text) / 2, //Add width to it
+      get: () => {
+        textFont(fonts.ocr);
+        return uicomponent.ox + textWidth(uicomponent.text) / 2;
+      }, //Add width to it
     });
     return uicomponent;
   }
@@ -113,12 +177,7 @@ class UIComponent {
   }
   //Gets the value of a condition
   static getCondition(condition) {
-    if (ui.conditions[condition]) {
-      //Separate property values
-      //If property exists
-      return ui.conditions[condition]; //Check it and return
-    }
-    return null; //If unsure, ignore
+    return ui.conditions[condition] ?? ""; //Check it and return
   }
   //Sets property:value on game ui: input "slot:1" => sets "slot" to "1"
   static setCondition(condition) {
@@ -137,6 +196,8 @@ class UIComponent {
   outline = true;
   backgroundColour = null;
   textColour = 0;
+  special = false;
+  bgimg = null;
   updateActivity() {
     //It's active if it should show *and* all the conditions are met
     this.active = this.getActivity();
@@ -159,6 +220,7 @@ class UIComponent {
     }
     return false;
   }
+  #txtinited = false;
   constructor(
     x = 0,
     y = 0,
@@ -168,7 +230,7 @@ class UIComponent {
     onpress = () => {},
     shownText = "",
     useOCR = false,
-    shownTextSize = 20
+    shownTextSize = 20,
   ) {
     //Initialise component
     this.x = x;
@@ -176,6 +238,7 @@ class UIComponent {
     this.width = width;
     this.height = height;
     this.outlineColour = [50, 50, 50];
+    this.baseOutlineColour = this.outlineColour;
     this.emphasisColour = [255, 255, 0];
     this.emphasised = false;
     this.ocr = useOCR;
@@ -186,13 +249,44 @@ class UIComponent {
     this.interactive = !!onpress;
   }
   draw() {
+    if (!this.#txtinited) {
+      this.#txtinited = true;
+      let processed;
+      if (!this.text.startsWith("*")) {
+        let c = 1;
+        if (this.width > 0) {
+          textFont(this.ocr ? fonts.ocr : fonts.darktech);
+          textSize(this.textSize);
+          let singleCharWidth = textWidth("-");
+          // console.log(
+          //   `test char width: ${singleCharWidth} (charsize ${this.textSize}, font ${
+          //     this.ocr ? "ocr" : "darktech"
+          //   })`
+          // );
+          while (singleCharWidth * c <= this.width) c++;
+          // console.log(`${c} max chars for width ${this.width}`);
+        } else c = 100001;
+        c -= 2;
+        processed = wrapWords(this.text, c);
+        // console.log(`raw:\n${this.text}\nprocessed text:\n${processed}`);
+      } else processed = this.text.substring(1);
+      if (Object.getOwnPropertyDescriptor(this, "text").writable) this.text = processed;
+    }
     push();
     noStroke();
     if (this.inverted) scale(1, -1);
     if (this.width > 0 && this.height > 0) {
       if (this.outline && this.outlineColour) {
         fill(...this.outlineColour);
-        if (this.emphasised) fill(...this.emphasisColour);
+        if (this.emphasised) {
+          if (this.special) {
+            fillGradient("linear", {
+              from: [this.x, this.y],
+              to: [this.x + this.width / 2, this.y + this.height / 2],
+              steps: [color(0, 255, 255), color(0, 96, 164), color(0)],
+            });
+          } else fill(...this.emphasisColour);
+        }
         push();
         if (this.bevel !== "none") {
           beginClip({ invert: true });
@@ -204,7 +298,7 @@ class UIComponent {
               this.x + (this.width + 20) / 2 + 20,
               this.y - (this.height + 20) / 2,
               this.x + (this.width + 20) / 2 + 20,
-              this.y + (this.height + 20) / 2
+              this.y + (this.height + 20) / 2,
             );
           }
           //Cut out triangle from the left of the outline
@@ -215,27 +309,30 @@ class UIComponent {
               this.x - (this.width + 20) / 2 - 20,
               this.y + (this.height + 20) / 2,
               this.x - (this.width + 20) / 2 - 20,
-              this.y - (this.height + 20) / 2
+              this.y - (this.height + 20) / 2,
             );
           }
           endClip();
         }
         //Draw outline behind background
+
         rect(
-          this.x + (this.bevel === "right" ? 10 : this.bevel === "left" ? -10 : 0),
+          this.x +
+            (this.bevel === "right" ? 10
+            : this.bevel === "left" ? -10
+            : 0),
           this.y,
           this.width +
-            (this.bevel === "right" || this.bevel === "left"
-              ? 38
-              : this.bevel === "both"
-              ? 56
-              : 18) -
+            (this.bevel === "right" || this.bevel === "left" ? 38
+            : this.bevel === "both" ? 56
+            : 18) -
             2,
-          this.height + 18
+          this.height + 18,
         );
         pop();
       }
       push();
+      translate(0, 0, 1);
       //Add bevels
       if (this.bevel !== "none") {
         beginClip({ invert: true });
@@ -247,7 +344,7 @@ class UIComponent {
             this.x + this.width / 2,
             this.y - this.height / 2,
             this.x + this.width / 2,
-            this.y + this.height / 2
+            this.y + this.height / 2,
           );
         }
         //Cut out triangle from the left of the background
@@ -258,7 +355,7 @@ class UIComponent {
             this.x - this.width / 2,
             this.y + this.height / 2,
             this.x - this.width / 2,
-            this.y - this.height / 2
+            this.y - this.height / 2,
           );
         }
         endClip();
@@ -268,43 +365,50 @@ class UIComponent {
         fill(...this.backgroundColour);
         rect(this.x, this.y, this.width - 2, this.height - 2);
       } else {
-        drawImg(
-          "ui.background",
+        ImageCTX.draw(
+          this.bgimg ?? "ui.background",
           this.x,
           this.y,
           this.width - 2,
           this.height - 2,
           0,
           0,
+          0,
           this.width - 2,
-          this.height - 2
+          this.height - 2,
         );
       }
       pop();
     }
     //Draw optional text
+    translate(0, 0, 2);
     noStroke();
     textFont(this.ocr ? fonts.ocr : fonts.darktech);
+    fill(this.textColour);
+    textAlign(CENTER, CENTER);
     if (this.ocr) {
       stroke(0);
       strokeWeight(this.textSize / 15);
     }
-    fill(this.textColour);
-    textAlign(CENTER, CENTER);
     textSize(this.textSize);
-    text(this.text, this.x, this.y);
+    text(ui.revaluate(this.text), this.x, this.y);
     pop();
   }
-  checkMouse() {
+  /**@param {Vector} point */
+  touching(point) {
+    return (
+      point.x < this.x + this.width / 2 &&
+      point.x > this.x - this.width / 2 &&
+      point.y < this.y + this.height / 2 &&
+      point.y > this.y - this.height / 2
+    );
+  }
+  /**@param {typeof UserInterfaceController.prototype.mouse} mouse  */
+  checkMouse(mouse) {
     // If the mouse is colliding with the button
-    if (
-      ui.mouse.x < this.x + this.width / 2 &&
-      ui.mouse.x > this.x - this.width / 2 &&
-      ui.mouse.y < this.y + this.height / 2 &&
-      ui.mouse.y > this.y - this.height / 2
-    ) {
+    if (this.touching(mouse)) {
       //And mouse is down
-      if (mouseIsPressed) {
+      if (mouse.down) {
         this.outlineColour = [0, 255, 255];
         //And the UI isn't waiting
         if (!ui.waitingForMouseUp) {
@@ -317,13 +421,30 @@ class UIComponent {
         this.outlineColour = [0, 128, 128];
       }
     } else {
-      this.outlineColour = [50, 50, 50];
+      this.outlineColour = this.baseOutlineColour;
     }
+  }
+}
+
+function getKeyDesc(naem) {
+  return ui.keybinds.describe(naem) ?? game.keybinds.describe(naem) ?? "None";
+}
+
+class CustomDrawerComponent extends UIComponent {
+  drawer;
+  constructor(x = 0, y = 0, width = 1, height = 1, draw = (x, y) => {}, onpress = () => {}) {
+    //Initialise component
+    super(x, y, width, height, "none", onpress);
+    this.drawer = draw;
+  }
+  draw() {
+    this.drawer(this.x, this.y);
   }
 }
 
 class ImageUIComponent extends UIComponent {
   angle = 0;
+  opacity = 1;
   constructor(
     x = 0,
     y = 0,
@@ -331,7 +452,7 @@ class ImageUIComponent extends UIComponent {
     height = 1,
     shownImage = null,
     onpress = () => {},
-    outline = true
+    outline = true,
   ) {
     //Initialise component
     super(x, y, width, height, "none", onpress, "", false, 0);
@@ -344,8 +465,41 @@ class ImageUIComponent extends UIComponent {
     if (this.emphasised) fill(...this.emphasisColour);
     //Draw outline behind background
     if (this.outline) rect(this.x, this.y, this.width + 18, this.height + 18);
+    if (this.opacity !== 1) tint(255, 255 * this.opacity);
     //Draw image
-    rotatedImg(this.image, this.x, this.y, this.width - 2, this.height - 2, this.angle);
+    ImageCTX.draw(this.image, this.x, this.y, this.width - 2, this.height - 2, this.angle);
+    pop();
+  }
+}
+class ShapeUIComponent extends UIComponent {
+  angle = 0;
+  shape = "rect";
+  backgroundColour = [100, 100, 100];
+  outlineWidth = 10;
+  constructor(
+    x = 0,
+    y = 0,
+    width = 1,
+    height = 1,
+    drawnShape = null,
+    onpress = () => {},
+    outline = true,
+  ) {
+    //Initialise component
+    super(x, y, width, height, "none", onpress, "", false, 0);
+    this.shape = drawnShape;
+    this.outline = outline;
+  }
+  draw() {
+    push();
+    if (this.outline) {
+      if (this.emphasised) stroke(...this.emphasisColour);
+      else stroke(...this.outlineColour);
+      strokeWeight(this.outlineWidth);
+    } else noStroke();
+    fill(...this.backgroundColour);
+    //Draw image
+    rotatedShape(this.shape, this.x, this.y, this.width - 2, this.height - 2, this.angle);
     pop();
   }
 }
@@ -354,6 +508,7 @@ class HealthbarComponent extends UIComponent {
   /**@type {Entity?} */
   source = null;
   healthbarColour = [255, 255, 255];
+  isHigher = () => false;
   backgroundColour = [0, 0, 0];
   healthbarReversed = false;
   fracReversed = false;
@@ -363,6 +518,21 @@ class HealthbarComponent extends UIComponent {
   #max = "maxHealth";
   #frac = 0;
   #painColour = null;
+  setIsHigher(f = () => false) {
+    this.isHigher = f;
+    return this;
+  }
+  // setGradient(...colours) {
+  //   let x = this.x - (this.healthbarReversed ? -this.width / 2 : this.width / 2);
+  //   this.gradient = {
+  //     from: [x, this.y],
+  //     to: [x + this.width / 1.25, this.y + this.height / 2],
+  //     steps: colours,
+  //   };
+  // }
+  // clearGradient() {
+  //   this.gradient = null;
+  // }
   setGetters(current = "health", max = "maxHealth") {
     this.#current = current;
     this.#max = max;
@@ -393,7 +563,7 @@ class HealthbarComponent extends UIComponent {
     useOCR = false,
     shownTextSize = 20,
     source = null,
-    healthcol = [255, 255, 0]
+    healthcol = [255, 255, 0],
   ) {
     //Initialise component
     super(x, y, width, height, bevel, onpress, shownText, useOCR, shownTextSize);
@@ -414,15 +584,15 @@ class HealthbarComponent extends UIComponent {
     let target = src ? this.width * (this.fracReversed ? 1 - fr : fr) : 0;
     this.#frac += (target - this.#frac) * 0.075;
 
-    let bgc = (typeof this.backgroundColour === "function"
-      ? this.backgroundColour()
-      : this.backgroundColour) ?? [95, 100, 100, 160];
+    let bgc = (typeof this.backgroundColour === "function" ?
+      this.backgroundColour()
+    : this.backgroundColour) ?? [95, 100, 100, 160];
     let pc = typeof this.#painColour === "function" ? this.#painColour() : this.#painColour;
     let hbc =
       typeof this.healthbarColour === "function" ? this.healthbarColour() : this.healthbarColour;
 
     push();
-    translate(this.x, this.y);
+    translate(this.x, this.y, 9);
     rotate(this.rotation);
     translate(-this.x, -this.y);
     noStroke();
@@ -443,7 +613,7 @@ class HealthbarComponent extends UIComponent {
           this.height,
           true,
           false,
-          this.healthbarReversed
+          this.healthbarReversed,
         );
       }
       //bar
@@ -456,7 +626,7 @@ class HealthbarComponent extends UIComponent {
         this.height,
         true,
         false,
-        this.healthbarReversed
+        this.healthbarReversed,
       );
       //indicator
       fill(pc);
@@ -467,10 +637,18 @@ class HealthbarComponent extends UIComponent {
         this.height,
         true,
         false,
-        this.healthbarReversed
+        this.healthbarReversed,
+        true,
       );
       //health
-      fill(hbc);
+
+      if (this.isHigher()) {
+        fillGradient("linear", {
+          from: [this.x - this.width / 2, this.y - this.height / 2],
+          to: [this.x + this.width / 2, this.y + this.height / 2],
+          steps: [[color(...hbc.map((x) => x + 200)), 0.3], color(...hbc), [color(0), 0.8]],
+        });
+      } else fill(hbc);
       this.#shape(
         this.x - (this.healthbarReversed ? -this.width / 2 : this.width / 2),
         this.y,
@@ -478,65 +656,87 @@ class HealthbarComponent extends UIComponent {
         this.height,
         true,
         false,
-        this.healthbarReversed
+        this.healthbarReversed,
+        true,
       );
     }
     pop();
     //Draw optional text
-    noStroke();
-    textFont(this.ocr ? fonts.ocr : fonts.darktech);
-    if (this.ocr) {
-      stroke(...this.textColour);
-      strokeWeight(this.textSize / 15);
+    if (this.text) {
+      noStroke();
+      textFont(this.ocr ? fonts.ocr : fonts.darktech);
+      if (this.ocr) {
+        stroke(...this.textColour);
+        strokeWeight(this.textSize / 15);
+      }
+      fill(...this.textColour);
+      textAlign(LEFT, CENTER);
+      textSize(this.textSize);
+      text(
+        " " + (src ? this.text : "No source"),
+        (this.x - this.width / 2) * (this.invertedX ? -1 : 1),
+        this.y * (this.inverted ? -1 : 1),
+      );
     }
-    fill(...this.textColour);
-    textAlign(LEFT, CENTER);
-    textSize(this.textSize);
-    text(
-      " " + (src ? this.text : "No source"),
-      (this.x - this.width / 2) * (this.invertedX ? -1 : 1),
-      this.y * (this.inverted ? -1 : 1)
-    );
     pop();
   }
-  #shape(x, y, width, height, realign = false, realignV = false, reverseX = false) {
+  #shape(
+    x,
+    y,
+    width,
+    height,
+    realign = false,
+    realignV = false,
+    reverseX = false,
+    constrain = false,
+  ) {
     if (realign) x += (width / 2) * (reverseX ? -1 : 1);
     if (realignV) y += height / 2;
-
-    beginShape();
+    beginShape(QUADS);
     if (this.bevel === "none") {
-      vertex(x - width / 2, y + height / 2);
-      vertex(x + width / 2, y + height / 2);
-      vertex(x + width / 2, y - height / 2);
-      vertex(x - width / 2, y - height / 2);
+      v(x - width / 2, y + height / 2);
+      v(x + width / 2, y + height / 2);
+      v(x + width / 2, y - height / 2);
+      v(x - width / 2, y - height / 2);
     } else if (this.bevel === "both") {
-      vertex(x - width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2 + height / 2, y - height / 2);
-      vertex(x - width / 2 + height / 2, y - height / 2);
+      v(x - width / 2 - height / 2, y + height / 2);
+      v(x + width / 2 - height / 2, y + height / 2);
+      v(x + width / 2 + height / 2, y - height / 2);
+      v(x - width / 2 + height / 2, y - height / 2);
     } else if (this.bevel === "trapezium") {
-      vertex(x - width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2 + height / 2, y + height / 2);
-      vertex(x + width / 2 - height / 2, y - height / 2);
-      vertex(x - width / 2 + height / 2, y - height / 2);
+      v(x - width / 2 - height / 2, y + height / 2);
+      v(x + width / 2 + height / 2, y + height / 2);
+      v(x + width / 2 - height / 2, y - height / 2);
+      v(x - width / 2 + height / 2, y - height / 2);
     } else if (this.bevel === "right") {
-      vertex(x - width / 2, y + height / 2);
-      vertex(x + width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2 + height / 2, y - height / 2);
-      vertex(x - width / 2, y - height / 2);
+      v(x - width / 2, y + height / 2);
+      v(x + width / 2, y + height / 2);
+      v(x + width / 2 + height, y - height / 2);
+      v(x - width / 2, y - height / 2);
     } else if (this.bevel === "left") {
-      vertex(x - width / 2 - height / 2, y + height / 2);
-      vertex(x + width / 2, y + height / 2);
-      vertex(x + width / 2, y - height / 2);
-      vertex(x - width / 2 + height / 2, y - height / 2);
+      v(x - width / 2 - height, y + height / 2);
+      v(x + width / 2, y + height / 2);
+      v(x + width / 2, y - height / 2);
+      v(x - width / 2, y - height / 2);
     } else if (this.bevel === "reverse") {
-      vertex(x - width / 2 + height / 2, y + height / 2);
-      vertex(x + width / 2 + height / 2, y + height / 2);
-      vertex(x + width / 2 - height / 2, y - height / 2);
-      vertex(x - width / 2 - height / 2, y - height / 2);
+      v(x - width / 2 + height / 2, y + height / 2);
+      v(x + width / 2 + height / 2, y + height / 2);
+      v(x + width / 2 - height / 2, y - height / 2);
+      v(x - width / 2 - height / 2, y - height / 2);
     }
     endShape(CLOSE);
   }
+}
+function v(x, y) {
+  // if (max && x > max) {
+  //   y -= max - x;
+  //   x = max;
+  // }
+  // if (min && x < min) {
+  //   y += x - min;
+  //   x = min;
+  // }
+  vertex(x, y);
 }
 function createHealthbarComponent(
   screens = [],
@@ -551,7 +751,7 @@ function createHealthbarComponent(
   useOCR = false,
   shownTextSize = 20,
   source = null,
-  healthcol = [255, 255, 0]
+  healthcol = [255, 255, 0],
 ) {
   //Make component
   const component = new HealthbarComponent(
@@ -565,7 +765,7 @@ function createHealthbarComponent(
     useOCR,
     shownTextSize,
     source,
-    healthcol
+    healthcol,
   );
   component.conditions = conditions;
   //Set conditional things
@@ -573,41 +773,6 @@ function createHealthbarComponent(
   //Add to game
   ui.addTo(component, ...screens);
   return component;
-}
-
-function drawImg(
-  img = "error",
-  x,
-  y,
-  width,
-  height,
-  ...otherParameters //IDK what else p5 image takes
-) {
-  noSmooth();
-  //Get from registry if it exists
-  img = Registry.images.has(img) ? Registry.images.get(img) : img;
-  if (img instanceof ImageContainer) {
-    if (!img.image) return; //Cancel if no image loaded yet
-    image(img.image, x, y, width, height, ...otherParameters);
-  } else {
-    //Try to draw it directly if not
-    try {
-      image(img, x, y, width, height, ...otherParameters);
-    } catch (error) {
-      //Say the problem
-      console.error("Could not draw image: ", img);
-      //Replace with a working image
-      drawImg("error", x, y, width, height, ...otherParameters);
-    }
-  }
-}
-
-function rotatedImg(img = "error", x, y, width, height, angle) {
-  push(); //Save current position, rotation, etc
-  translate(x, y); //Move middle to 0,0
-  rotate(angle);
-  drawImg(img, 0, 0, width, height);
-  pop(); //Return to old state
 }
 
 function rotatedShape(shape = "circle", x, y, width, height, angle) {
@@ -664,7 +829,7 @@ class SliderUIComponent extends UIComponent {
     onchange = (value) => {},
     min = 0,
     max = 100,
-    current = null
+    current = null,
   ) {
     super(x, y, width, height, bevel, undefined, shownText, useOCR, shownTextSize);
     //Change callback
@@ -682,7 +847,7 @@ class SliderUIComponent extends UIComponent {
       this.x + (this.width + this.length) / 2 - this.height / 2,
       this.y,
       this.length + this.height + 18,
-      this.height / 2 + 18
+      this.height / 2 + 18,
     );
     //Empty bit
     fill(0);
@@ -690,7 +855,7 @@ class SliderUIComponent extends UIComponent {
       this.x + (this.width + this.length) / 2 - this.height / 2,
       this.y,
       this.length + this.height - 2,
-      this.height / 2 - 2
+      this.height / 2 - 2,
     );
     //Full bit
     fill(255, 255, 0);
@@ -701,27 +866,29 @@ class SliderUIComponent extends UIComponent {
     //Draw full bit
     rect(minX + w / 2 - this.height / 2, this.y, w, this.height / 2);
     //Draw the title bit
+    this.x += 25;
     super.draw();
+    this.x -= 25;
     pop();
   }
-  checkMouse() {
+  checkMouse(mouse) {
     //Set min/max x positions
     let minX = this.x + this.width / 2,
       maxX = this.x + this.width / 2 + this.length;
     // If the mouse is colliding with the button
     if (
-      ui.mouse.x < maxX &&
-      ui.mouse.x > minX &&
-      ui.mouse.y < this.y + this.height / 2 &&
-      ui.mouse.y > this.y - this.height / 2
+      mouse.x < maxX &&
+      mouse.x > minX &&
+      mouse.y < this.y + this.height / 2 &&
+      mouse.y > this.y - this.height / 2
     ) {
       //And mouse is down
-      if (mouseIsPressed) {
+      if (mouse.down) {
         // - But don't wait, so smooth movement
 
         this.outlineColour = [0, 255, 255];
         //Click and change values
-        this._current = ((ui.mouse.x - minX) / this.length) * this.max;
+        this._current = ((mouse.x - minX) / this.length) * this.max;
         this.change(this._current);
         //And make the UI wait
         ui.waitingForMouseUp = true;
@@ -745,7 +912,7 @@ function createUIComponent(
   onpress = null,
   shownText = "",
   useOCR = false,
-  shownTextSize = 20
+  shownTextSize = 20,
 ) {
   //Make component
   const component = new UIComponent(
@@ -757,7 +924,34 @@ function createUIComponent(
     onpress ?? (() => {}),
     shownText,
     useOCR,
-    shownTextSize
+    shownTextSize,
+  );
+  component.conditions = conditions;
+  //Set conditional things
+  component.isInteractive = !!onpress;
+  //Add to game
+  ui.addTo(component, ...screens);
+  return component;
+}
+
+function createCustomUIComponent(
+  screens = [],
+  conditions = [],
+  x = 0,
+  y = 0,
+  width = 1,
+  height = 1,
+  draw = null,
+  onpress = null,
+) {
+  //Make component
+  const component = new CustomDrawerComponent(
+    x,
+    y,
+    width,
+    height,
+    draw ?? (() => {}),
+    onpress ?? (() => {}),
   );
   component.conditions = conditions;
   //Set conditional things
@@ -776,7 +970,7 @@ function createUIImageComponent(
   height = 1,
   onpress = null,
   shownImage = null,
-  outline = true
+  outline = true,
 ) {
   //Make component
   const component = new ImageUIComponent(
@@ -786,7 +980,35 @@ function createUIImageComponent(
     height,
     shownImage,
     onpress ?? (() => {}),
-    outline
+    outline,
+  );
+  component.conditions = conditions;
+  //Set conditional things
+  component.isInteractive = !!onpress;
+  //Add to game
+  ui.addTo(component, ...screens);
+  return component;
+}
+function createUIShapeComponent(
+  screens = [],
+  conditions = [],
+  x = 0,
+  y = 0,
+  width = 1,
+  height = 1,
+  onpress = null,
+  drawnShape = null,
+  outline = true,
+) {
+  //Make component
+  const component = new ShapeUIComponent(
+    x,
+    y,
+    width,
+    height,
+    drawnShape,
+    onpress ?? (() => {}),
+    outline,
   );
   component.conditions = conditions;
   //Set conditional things
@@ -806,28 +1028,33 @@ function createGamePropertySelector(
   height = 1,
   property = "",
   options = [""],
+  /**@deprecated */
   defaultOption = null,
   shownTexts = [""],
   shownTextSize = 50,
   onchange = (value) => {},
-  selectionColour = [255, 255, 0]
+  selectionColour = [255, 255, 0],
+  canPress = (property) => true,
+  whenBad = (property) => {},
 ) {
+  let parts = [];
+  let display = property.split(/(?=[A-Z]+)/).join(" ");
   //Create display name
   createUIComponent(
     screens,
     conditions,
-    x + property.length * shownTextSize * 0.375 + 50,
+    x + display.length * shownTextSize * 0.375 + 50,
     y - 65,
     0,
     0,
     "none",
     undefined,
-    property,
+    display,
     false,
-    shownTextSize * 0.8
+    shownTextSize * 0.8,
   );
   //Create indicator
-  let diffindicator = createUIComponent(
+  createUIComponent(
     screens,
     conditions,
     x + bufferWidth / 2,
@@ -838,9 +1065,8 @@ function createGamePropertySelector(
     undefined,
     "> ",
     false,
-    shownTextSize
+    shownTextSize,
   );
-  diffindicator.chosen = defaultOption in options ? options[defaultOption] : null;
   let len = Math.min(options.length, shownTexts.length); //Get smallest array, don't use blanks
   for (let i = 0; i < len; i++) {
     //For each option or text
@@ -854,21 +1080,25 @@ function createGamePropertySelector(
       height,
       "both",
       () => {
-        game[property] = options[i]; //Set the property
-        diffindicator.chosen = options[i];
-        onchange(options[i]);
+        if (canPress(options[i])) {
+          game[property] = options[i]; //Set the property
+          onchange(options[i]);
+        } else whenBad(options[i]);
       },
       shownTexts[i],
       true,
-      shownTextSize
+      shownTextSize,
     );
     //colour thing
     component.emphasisColour = selectionColour;
+    
     //Highlight if the game has this option
     Object.defineProperty(component, "emphasised", {
       get: () => game[property] === options[i],
     });
+    parts.push(component)
   }
+  return parts;
 }
 
 function createSliderComponent(
@@ -886,7 +1116,7 @@ function createSliderComponent(
   onchange = null,
   min = 0,
   max = 100,
-  current = null
+  current = null,
 ) {
   //Make component
   const component = new SliderUIComponent(
@@ -902,7 +1132,7 @@ function createSliderComponent(
     onchange ?? (() => {}),
     min,
     max,
-    current
+    current,
   );
   component.conditions = conditions;
   //Set conditional things
@@ -946,26 +1176,6 @@ function blendColours(col1, col2, col1Factor) {
   return newCol;
 }
 
-class ImageContainer {
-  #image;
-  #path;
-  constructor(path) {
-    this.#path = path;
-    this.#image = null;
-  }
-  update(image) {
-    this.#image = image;
-  }
-  async load() {
-    this.#image = await loadImage(this.#path);
-    console.log("Loaded image from " + this.#path);
-    return true;
-  }
-  get image() {
-    return this.#image;
-  }
-}
-
 class UIParticleEmitter extends UIComponent {
   interval = 60;
   scale = 1;
@@ -976,10 +1186,11 @@ class UIParticleEmitter extends UIComponent {
   draw() {
     if (this.#countdown <= 0) {
       this.#countdown = this.interval;
-      createEffect(this.effect, null, this.x, this.y, this.direction, this.scale);
+      if (this.effect !== "none")
+        createEffect(this.effect, null, this.x, this.y, this.direction, this.scale);
     } else this.#countdown--;
   }
-  checkMouse() {}
+  checkMouse(mouse) {}
   constructor(x, y, direction, scale, effect, interval) {
     super(x, y, 0, 0, "none", () => null, "", false, 0);
     this.effect = effect;
@@ -997,7 +1208,7 @@ function createParticleEmitter(
   direction = 0,
   scale = 1,
   effect = "none",
-  interval = 1
+  interval = 1,
 ) {
   //Make component
   const component = new UIParticleEmitter(x, y, direction, scale, effect, interval);
@@ -1008,6 +1219,7 @@ function createParticleEmitter(
 }
 
 function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 600) {
+  if(!game.flashing) return;
   ui.particles.push(
     //Obscure screen
     new ShapeParticle(
@@ -1024,7 +1236,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       1920 * 3,
       0,
       1080 * 3,
-      0
+      0,
     ),
     new ShapeParticle(
       x,
@@ -1040,7 +1252,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       1920 * 5,
       0,
       1080 * 5,
-      0
+      0,
     ),
     new ShapeParticle(
       x,
@@ -1056,7 +1268,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       1920 * 8,
       0,
       1080 * 8,
-      0
+      0,
     ),
     new ShapeParticle(
       960,
@@ -1073,7 +1285,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       1080,
       1080,
       0,
-      false
+      false,
     ),
     //Glare effect
     new ShapeParticle(
@@ -1090,7 +1302,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       glareSize * 2,
       glareSize / 5,
       0,
-      0
+      0,
     ),
     new ShapeParticle(
       x,
@@ -1106,7 +1318,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       glareSize * 1.5,
       (glareSize / 5) * 0.6,
       0,
-      0
+      0,
     ),
     new ShapeParticle(
       x,
@@ -1122,7 +1334,7 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       glareSize,
       (glareSize / 5) * 0.3,
       0,
-      0
-    )
+      0,
+    ),
   );
 }

@@ -48,6 +48,7 @@ class Entity {
 
   //Sounds
   hitSound = null;
+  deflectSound = null;
   deathSound = null;
 
   blimp = null;
@@ -74,6 +75,16 @@ class Entity {
   }
 
   constructor() {} //Because universal
+  immuneTo(type) {
+    let calcAmount = 1;
+    for (let resistance of this.resistances) {
+      if (resistance.type === type) {
+        calcAmount -= resistance.amount; //Negative resistance would actually make it do more damage
+      }
+    }
+    // console.log(this.name, calcAmount === 0 ? "immune" : "not immune", "to", type)
+    return calcAmount === 0;
+  }
   shield(strength = 200, spawnTime = 15, options = {}) {
     if (this._shield) {
       // make transparent deflection from old shield
@@ -148,7 +159,7 @@ class Entity {
     direction = -this.direction,
     kineticKnockback = false,
     resolution = 1,
-    collided = []
+    collided = [],
   ) {
     if (resolution < 0) resolution *= -1; //Fix possibility of infinite loop
     if (resolution == 0) resolution = 1;
@@ -179,12 +190,13 @@ class Entity {
             this.y -= resolution * ymove;
 
             //Propagate knockback
+
             entity.knock(
               amount * 0.75 /* exponential decay */,
               direction,
               true,
               resolution,
-              collided
+              collided,
             ); //Pass on collided entities to prevent infinite loop
           }
         }
@@ -197,6 +209,24 @@ class Entity {
         }
       }
     }
+    //visual effect because cool
+    this.world.particles.push(
+      new AfterImageParticle(
+        this.x,
+        this.y,
+        radians(direction),
+        10,
+        0,
+        0,
+        "ui.dash-spike",
+        300,
+        100,
+        133,
+        400,
+        0,
+        true,
+      ),
+    );
   }
   takeDamage(amount = 0, source = null) {
     this.damageTaken += Math.min(amount, this.health) * this.effectiveHealthMult;
@@ -212,7 +242,7 @@ class Entity {
     slot.entity = this;
   }
   tick() {
-    this.ai();
+    if(this.aiActive) this.ai()
     for (let slot of this.weaponSlots) {
       slot.tick();
     }
@@ -230,13 +260,13 @@ class Entity {
   }
   draw() {
     if (this.drawer.image) {
-      rotatedImg(
+      ImageCTX.draw(
         this.drawer.image,
         this.x,
         this.y,
         this.drawer.width,
         this.drawer.height,
-        this.directionRad
+        this.directionRad,
       );
     } else {
       //If no image, draw shape instead
@@ -246,7 +276,7 @@ class Entity {
         this.y,
         this.drawer.width,
         this.drawer.height,
-        this.directionRad
+        this.directionRad,
       );
     }
     for (let slot of this.weaponSlots) {
@@ -344,12 +374,16 @@ class Entity {
       this.effectiveDamageMult *= effect.damageMult ?? 1;
       this.effectiveHealthMult *= effect.healthMult ?? 1;
       this.effectiveResistanceMult *= effect.resistanceMult ?? 1;
-      if (status.timeLeft > 0) status.timeLeft--; //Tick timer
+      if (status.timeLeft > 0)
+        status.timeLeft--; //Tick timer
       else this.statuses.splice(this.statuses.indexOf(status), 1); //Delete status
     }
   }
   applyStatus(effect, time) {
     this.statuses.push({ effect: effect, time: time, timeLeft: time });
+  }
+  clearStatus(effect) {
+    this.statuses = this.statuses.filter((x) => x.effect !== effect);
   }
   scaleToDifficulty() {
     //Do nothing, as it doesn't matter for normal entities
@@ -381,7 +415,7 @@ class Entity {
         this.moveTowards(
           x,
           y,
-          this.turnWhileMoving && !(x === this.target.x || y === this.target.y)
+          this.turnWhileMoving && !(x === this.target.x || y === this.target.y),
         )
       )
         if (this.turnWhileMoving)

@@ -10,6 +10,8 @@
   <link href="./style.css" rel="stylesheet" type="text/css" />
   <!-- Import p5, but not sound -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+  <!-- <script src="https://unpkg.com/p5.js-svg@1.6.0"></script> -->
+  <script src="https://unpkg.com/p5.fillgradient"></script>
 </head>
 
 <body>
@@ -17,22 +19,26 @@
     //Disable p5's errors, they don't really help
     p5.disableFriendlyErrors = true;
     //Game info
-    const gameVersion = "0.0.112.2-ex";
+    const gameVersion = "0.0.123.2-ex";
     const isPreview = true;
+    const CURRENT_SAVE_FORMAT_VERSION = 1;
     let versionReplacementText = "";
   </script>
   <!-- Core -->
-  <script src="./assets/src/core/hotkey.js"></script>
+  <script src="./assets/src/classes/timer.js"></script>
+  <script src="./assets/src/core/shortcut.js"></script>
   <script src="./assets/src/core/ui.js"></script>
   <script src="./assets/src/core/constructor.js"></script>
   <script src="./assets/src/core/text.js"></script>
   <script src="./assets/src/core/number.js"></script>
   <script src="./assets/src/core/sound.js"></script>
+  <script src="./assets/src/core/images.js"></script>
   <script src="./assets/src/core/registry.js"></script>
   <script src="./assets/src/core/serialiser.js"></script>
+  <script src="./assets/src/core/save-converter.js"></script>
   <!-- Classes -->
+  <script src="./assets/src/classes/toast.js"></script>
   <script src="./assets/src/classes/animation.js"></script>
-  <script src="./assets/src/classes/timer.js"></script>
   <script src="./assets/src/classes/particle.js"></script>
   <script src="./assets/src/classes/shape-particle.js"></script>
   <script src="./assets/src/classes/text-particle.js"></script>
@@ -65,19 +71,22 @@
   <script src="./assets/src/classes/boss-action.js"></script>
   <script src="./assets/src/classes/action-trigger.js"></script>
   <script src="./assets/src/classes/boss.js"></script>
+  <script src="./assets/src/classes/entity-model.js"></script>
   <script src="./assets/src/classes/final-boss.js"></script>
   <script src="./assets/src/classes/box.js"></script>
   <!-- Special Effects -->
   <script src="./assets/src/effects.js"></script>
   <script src="./assets/src/line-effects.js"></script>
   <script src="./assets/src/core/vfx.js"></script>
-  <!-- Registries -->
+  <!-- Dynamic Registries -->
   <script src="./assets/src/registries/images.js"></script>
   <script src="./assets/src/registries/sounds.js"></script>
+  <!-- Static Registries -->
   <script src="./assets/src/registries/generic-type.js"></script>
   <script src="./assets/src/registries/weapon-type.js"></script>
   <script src="./assets/src/registries/bullet-type.js"></script>
   <script src="./assets/src/registries/weapon.js"></script>
+  <script src="./assets/src/registries/slots.js"></script>
   <script src="./assets/src/registries/boss-weapon.js"></script>
   <script src="./assets/src/registries/special-weapon.js"></script>
   <script src="./assets/src/registries/player-boss-weapon.js"></script>
@@ -90,24 +99,32 @@
   <script src="./assets/src/registries/difficulty.js"></script>
   <!-- User interface -->
   <script src="./assets/src/ui/title.js"></script>
+  <script src="./assets/src/ui/options.js"></script>
+  <script src="./assets/src/ui/options-ui.js"></script>
+  <script src="./assets/src/ui/options-sound.js"></script>
   <script src="./assets/src/ui/start.js"></script>
   <script src="./assets/src/ui/new-game.js"></script>
   <script src="./assets/src/ui/load-game.js"></script>
-  <script src="./assets/src/ui/options.js"></script>
   <script src="./assets/src/ui/weapon-slots.js"></script>
   <script src="./assets/src/ui/in-game.js"></script>
   <script src="./assets/src/ui/you-died.js"></script>
   <script src="./assets/src/ui/you-win.js"></script>
   <script src="./assets/src/ui/crash.js"></script>
   <script src="./assets/src/ui/how-to-play.js"></script>
+  <script src="./assets/src/ui/how-to-support.js"></script>
+  <script src="./assets/src/ui/how-to-attack.js"></script>
   <!-- Slot setup -->
   <script src="./assets/src/slots.js"></script>
   <!-- Actual gameplay -->
   <script src="./assets/src/game.js"></script>
   <!-- Controls -->
+  <script src="./assets/src/controls/ui-controls.js"></script>
   <script src="./assets/src/controls/ui-hotkeys.js"></script>
   <script src="./assets/src/controls/game-controls.js"></script>
   <script src="./assets/src/controls/game-hotkeys.js"></script>
+  <script>
+    reloadCachedOptions();
+  </script>
 </body>
 
 </html>

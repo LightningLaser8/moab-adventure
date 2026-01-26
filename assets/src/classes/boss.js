@@ -1,5 +1,5 @@
 class Boss extends ScalingEntity {
-  reward = { shards: 0, bloonstones: 0 };
+  reward = 0;
   /** @type {Object<string, BossAction>} */
   actions = {}; // Essentially a registry, holds actions that this boss can perform
   /**@type {ActionTrigger[]} */
@@ -9,8 +9,9 @@ class Boss extends ScalingEntity {
   imposSequence = null; //Array to be used in Impossible difficulty. Optional.
   #action = 0; //Current action being executed
 
-  imposDrawer = null;
-  overrideDrawer = null;
+  model = null;
+  imposModel = null;
+  overrideModel = null;
 
   data = new Map();
 
@@ -21,13 +22,19 @@ class Boss extends ScalingEntity {
 
   isMinion = false; //Stops this counting for boss kills
   dv = 250;
+
+  healthColour = null;
+  higher = false;
+
+  bossmusic = null;
+
   init() {
     super.init();
     //Construct boss actions
     for (let name in this.actions) {
       this.actions[name] = construct(this.actions[name], BossAction);
     }
-    this.triggers = this.triggers.map((x) => construct(x, ActionTrigger));
+    this.triggers.forEach((v, i, a) => (a[i] = construct(v, ActionTrigger)));
 
     let expanded = [];
     if (this.sequence)
@@ -55,13 +62,33 @@ class Boss extends ScalingEntity {
       });
     this.imposSequence = expanded;
 
-    //Instantly use first action
+    //modeling
+
+    //legacy override
+    if (this.drawer && !this.model) {
+      this.model = {
+        displayWidth: this.drawer.width,
+        displayHeight: this.drawer.height,
+        parts: {
+          main: this.drawer,
+        },
+      };
+    }
+
+    // new system
+    if (this.overrideModel) this.overrideModel = construct(this.overrideModel, Model);
+    else {
+      this.model = construct(this.model, Model);
+      this.imposModel = construct(this.imposModel, Model);
+    }
+
+    //Instantly use first action, no animation
     let currentAction = this.getAction();
     if (currentAction) currentAction.execute(this);
     this.previousRot = this.direction;
   }
   seq() {
-    return game.difficulty === "impossible" ? this.imposSequence ?? this.sequence : this.sequence;
+    return game.difficulty === "impossible" ? (this.imposSequence ?? this.sequence) : this.sequence;
   }
   getAction() {
     return this.actions[this.seq()[this.#action]];
@@ -69,13 +96,13 @@ class Boss extends ScalingEntity {
   #eval(condition, seppos, evaluator) {
     let lvalue = this.#valueof(condition.substring(0, seppos - 1));
     let rvalue = this.#valueof(condition.substring(seppos));
-    console.log(`check ${lvalue} and ${rvalue}`);
+    // console.log(`check ${lvalue} and ${rvalue}`);
     let res = evaluator(lvalue, rvalue);
-    console.log(res ? "passed" : "failed");
+    // console.log(res ? "passed" : "failed");
     return !!res;
   }
   #valueof(valueString) {
-    console.log(`value ${valueString}`);
+    // console.log(`value ${valueString}`);
     if (valueString.startsWith("#")) {
       valueString = valueString.substring(1);
       let dg = this.data.get(valueString);
@@ -89,8 +116,16 @@ class Boss extends ScalingEntity {
     }
     return valueString;
   }
-  #satisfies(condition) {
-    console.log(`only if ${condition}`);
+  lobotomise(){
+    this.data.clear();
+    this.#action = 0;
+    for (let name in this.actions) {
+      this.actions[name] = construct(this.actions[name], BossAction);
+    }
+    this.triggers.forEach((v, i, a) => (a[i] = construct(v, ActionTrigger)));
+  }
+  satisfies(condition) {
+    // console.log(`only if ${condition}`);
     let ltpos = condition.indexOf("<") + 1;
     let rtpos = condition.indexOf(">") + 1;
     let eqpos = condition.indexOf("=") + 1;
@@ -115,10 +150,10 @@ class Boss extends ScalingEntity {
         let ifAction = actName.substring(0, epos - 1);
         let elseAction = actName.substring(epos);
         // console.log(`if ${condition} then ${ifAction} else ${elseAction}`);
-        if (this.#satisfies(condition)) actName = ifAction;
+        if (this.satisfies(condition)) actName = ifAction;
         else actName = elseAction;
         // console.log(`-> doing ${actName}`);
-      } else if (!this.#satisfies(condition)) return actIndex + 1;
+      } else if (!this.satisfies(condition)) return actIndex + 1;
     }
 
     /**@type {BossAction} */
@@ -139,12 +174,19 @@ class Boss extends ScalingEntity {
     }
     let next = this.actions[seq[actIndex]];
     if (!next) return actIndex; //Stop if the only action has been done
+    next.animate(this);
     next.execute(this);
+    this.triggerStart(seq[actIndex]);
     next.tick(this); // correction for ticking actions
     if (next.duration === 1 && actIndex !== 0) {
       this.tickSeq(seq, actIndex); //skip through, unless all actions are 0 duration to avoid freezing
     }
     return actIndex;
+  }
+  triggerStart(action) {
+    this.triggers.forEach((t) => {
+      if (t instanceof ActionStartedTrigger && t.actionStarting == action) t.go();
+    });
   }
   triggerEnd(action) {
     this.triggers.forEach((t) => {
@@ -154,10 +196,10 @@ class Boss extends ScalingEntity {
   tick() {
     //Tick as normal
     super.tick();
-    //Corrective rotating
-    this.direction = degrees(p5.Vector.fromAngle(this.directionRad).heading());
+    this.model.tick();
   }
   ai(){
+    if(this.world.transitioning) return;
     if (!this.#action) this.#action = 0;
     
     if (this.aiActive) {
@@ -177,8 +219,9 @@ class Boss extends ScalingEntity {
   }
   onDeath(source) {
     //Give destroy reward
-    game.shards += this.reward.shards ??= 0;
-    game.bloonstones += this.reward.bloonstones ??= 0;
+    game.bloonstones += this.reward ??= 0;
+    if (game.mode === "boss-rush")
+      game.shards += this.reward * 15 * Math.floor(Math.sqrt(game.level));
     if (!source) return;
     //Stats
     if (!this.isMinion) source.destroyed.bosses++;
@@ -194,22 +237,42 @@ class Boss extends ScalingEntity {
       saveGame();
     }
   }
-  getDraw() {
+  /**@returns {Model} */
+  getModel() {
     return (
-      this.overrideDrawer ??
-      (game.difficulty === "impossible" ? this.imposDrawer ?? this.drawer : this.drawer)
+      this.overrideModel ??
+      (game.difficulty === "impossible" ? (this.imposModel ?? this.model) : this.model)
     );
   }
   draw() {
-    let d = this.getDraw();
-    if (d.image) {
-      rotatedImg(d.image, this.x, this.y, d.width, d.height, this.directionRad);
-    } else {
-      //If no image, draw shape instead
-      rotatedShape(d.shape, this.x, this.y, d.width, d.height, this.directionRad);
-    }
+    let d = this.getModel();
+    d.draw(this.x, this.y, this.direction);
+    // if (d.image) {
+    //   ImageCTX.draw(d.image, this.x, this.y, d.width, d.height, this.directionRad);
+    // } else {
+    //   //If no image, draw shape instead
+    //   rotatedShape(d.shape, this.x, this.y, d.width, d.height, this.directionRad);
+    // }
     for (let slot of this.weaponSlots) {
       slot.draw();
     }
+  }
+  drawIcon(x, y, scl) {
+    let d = this.getModel();
+    push();
+    translate(x, y);
+    scale(scl);
+    d.draw(0, 0, this.direction);
+    pop();
+  }
+  modelHitTest(hx, hy, hsize) {
+    return this.model.hitTest(this.x, this.y, this.direction, hx, hy, hsize);
+  }
+  debugModelHit(x, y, size, sensitivity = 1.2, time = 1) {
+    let dist = -0.1;
+    for (let r = 11; r >= 1; r--) {
+      if (this.modelHitTest(x, y, (size * r) / sensitivity)) dist += 0.1;
+    }
+    if (dist >= 0) this.world.particles.push(new IndicatorParticle(x, y, time, size, dist));
   }
 }

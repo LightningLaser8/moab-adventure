@@ -11,7 +11,7 @@ createUIComponent(
   75,
   "none",
   undefined,
-  "         Select Option",
+  "*         Select Option",
   false,
   50
 );
@@ -27,7 +27,7 @@ createUIComponent(
   () => {
     ui.menuState = "title";
   },
-  "< Back",
+  "*< Back",
   false,
   30
 ).isBackButton = true;
@@ -81,25 +81,12 @@ createUIComponent(
 
 //    Start sub-menus
 createUIComponent(
-  ["options", "new-game", "weapon-slots"],
+  ["new-game", "weapon-slots"],
   [],
   960,
   540,
   1500,
   900
-);
-createUIComponent(
-  ["options"],
-  [],
-  960,
-  120,
-  1500,
-  75,
-  "none",
-  undefined,
-  "Game Options",
-  false,
-  50
 );
 createUIComponent(
   ["new-game"],
@@ -115,7 +102,7 @@ createUIComponent(
   50
 );
 createUIComponent(
-  ["options", "new-game"],
+  ["new-game"],
   [],
   320,
   122,
@@ -125,7 +112,7 @@ createUIComponent(
   () => {
     ui.menuState = "start-menu";
   },
-  "< Back",
+  "*< Back",
   false,
   30
 ).isBackButton = true;

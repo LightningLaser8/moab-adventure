@@ -1,1 +1,145 @@
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="31.48769" height="32.67999" viewBox="0,0,31.48769,32.67999"><defs><linearGradient x1="239.37835" y1="169.10456" x2="239.37835" y2="184.04948" gradientUnits="userSpaceOnUse" id="color-1"><stop offset="0" stop-color="#bfedff"/><stop offset="1" stop-color="#43caff"/></linearGradient></defs><g transform="translate(-220.08421,-163.03928)"><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" style="mix-blend-mode: normal"><path d="M239.5521,172.0451l3.97801,4.63681l5.5418,7.07906l-4.9428,9.45831l-12.56141,-1.81251l-8.98348,-11.22808l4.68924,-14.6394l10.84245,3.71469z" fill="none" fill-rule="nonzero" stroke="#000000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M231.66807,191.49094l-9.01644,-11.20697l0.10269,-0.30324l6.59308,-1.01554l0.11118,-0.01182l4.15697,5.47217l0.08089,0.12632c-0.69914,2.30798 -1.37526,4.621 -2.02835,6.93908" fill="#35c6fd" fill-rule="evenodd" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M227.58411,165.54818l2.85098,3.33982l-1.0574,9.93903l-0.03029,0.13814l-6.59308,1.01554l4.82979,-14.43254" fill="#baebfe" fill-rule="evenodd" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M244.53831,193.04632l-0.09936,0.12299l-12.77089,-1.67838c0.65309,-2.31807 1.32921,-4.6311 2.02835,-6.93908l0.03029,-0.13814l7.7606,-0.39757l3.051,9.03017" fill="#0184b6" fill-rule="evenodd" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M227.35002,165.54964l-0.00001,-0.05937l9.44889,3.50862l1.42898,2.23171l-8.17448,-2.13796l-0.03424,-0.08675l-2.66915,-3.45625" fill="#ffffff" fill-rule="evenodd" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M238.24789,171.20039l-5.19848,1.85082l-2.91403,-3.94664l5.39228,1.03486M242.27205,176.3594l6.34928,7.69008l-7.14162,-0.11151l-4.92238,-5.73022" fill="url(#color-1)" fill-rule="evenodd" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M248.7561,183.96318l-4.2852,8.97787l-3.11639,-8.98829l-0.48014,-0.13785l7.88173,0.14827" fill="#0fbbfd" fill-rule="evenodd" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M238.15456,171.14623l4.65078,5.9161l-6.2952,1.24588l-3.8077,-5.25807" fill="#8fe0fe" fill-rule="evenodd" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M241.48731,184.01615l-7.7606,0.39757l-0.03029,0.13814l-0.08089,-0.12632l-4.15697,-5.47217l-0.11118,0.01182l0.03029,-0.13814l0.71098,-9.8032" fill="#eafaff" fill-rule="evenodd" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/></g></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="163"
+   height="163.39949"
+   viewBox="0 0 32.6 32.679898"
+   id="svg11"
+   sodipodi:docname="shard.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview11"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.2342426"
+     inkscape:cx="72.267943"
+     inkscape:cy="81.596648"
+     inkscape:window-width="2560"
+     inkscape:window-height="1346"
+     inkscape:window-x="2869"
+     inkscape:window-y="273"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg11" />
+  <defs
+     id="defs2">
+    <linearGradient
+       x1="239.37836"
+       y1="169.10455"
+       x2="239.37836"
+       y2="184.04948"
+       gradientUnits="userSpaceOnUse"
+       id="color-1">
+      <stop
+         offset="0"
+         stop-color="#bfedff"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#43caff"
+         id="stop2" />
+    </linearGradient>
+  </defs>
+  <g
+     transform="translate(-219.32851,-163.03936)"
+     id="g11">
+    <g
+       data-paper-data="{&quot;isPaintingLayer&quot;:true}"
+       stroke-miterlimit="10"
+       stroke-dasharray="none"
+       stroke-dashoffset="0"
+       style="mix-blend-mode:normal"
+       id="g10">
+      <path
+         d="m 239.5521,172.0451 3.97801,4.63681 5.5418,7.07906 -4.9428,9.45831 -12.56141,-1.81251 -8.98348,-11.22808 4.68924,-14.6394 10.84245,3.71469 z"
+         fill="none"
+         fill-rule="nonzero"
+         stroke="#000000"
+         stroke-width="5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path2" />
+      <path
+         d="m 231.66807,191.49094 -9.01644,-11.20697 0.10269,-0.30324 6.59308,-1.01554 0.11118,-0.0118 4.15697,5.47217 0.0809,0.12632 c -0.69914,2.30798 -1.37526,4.621 -2.02835,6.93908"
+         fill="#35c6fd"
+         fill-rule="evenodd"
+         stroke="none"
+         stroke-width="1"
+         stroke-linecap="butt"
+         stroke-linejoin="miter"
+         id="path3" />
+      <path
+         d="m 227.58411,165.54818 2.85098,3.33982 -1.0574,9.93903 -0.0303,0.13814 -6.59308,1.01554 4.82979,-14.43254"
+         fill="#baebfe"
+         fill-rule="evenodd"
+         stroke="none"
+         stroke-width="1"
+         stroke-linecap="butt"
+         stroke-linejoin="miter"
+         id="path4" />
+      <path
+         d="m 244.53831,193.04632 -0.0994,0.12299 -12.77089,-1.67838 c 0.65309,-2.31807 1.32921,-4.6311 2.02835,-6.93908 l 0.0303,-0.13814 7.7606,-0.39757 3.051,9.03017"
+         fill="#0184b6"
+         fill-rule="evenodd"
+         stroke="none"
+         stroke-width="1"
+         stroke-linecap="butt"
+         stroke-linejoin="miter"
+         id="path5" />
+      <path
+         d="m 227.35002,165.54964 -1e-5,-0.0594 9.44889,3.50862 1.42898,2.23171 -8.17448,-2.13796 -0.0342,-0.0867 -2.66915,-3.45625"
+         fill="#ffffff"
+         fill-rule="evenodd"
+         stroke="none"
+         stroke-width="1"
+         stroke-linecap="butt"
+         stroke-linejoin="miter"
+         id="path6" />
+      <path
+         d="m 238.24789,171.20039 -5.19848,1.85082 -2.91403,-3.94664 5.39228,1.03486 m 6.74439,6.21997 6.34928,7.69008 -7.14162,-0.11151 -4.92238,-5.73022"
+         fill="url(#color-1)"
+         fill-rule="evenodd"
+         stroke="none"
+         stroke-width="1"
+         stroke-linecap="butt"
+         stroke-linejoin="miter"
+         id="path7"
+         style="fill:url(#color-1)" />
+      <path
+         d="m 248.7561,183.96318 -4.2852,8.97787 -3.11639,-8.98829 -0.48014,-0.13785 7.88173,0.14827"
+         fill="#0fbbfd"
+         fill-rule="evenodd"
+         stroke="none"
+         stroke-width="1"
+         stroke-linecap="butt"
+         stroke-linejoin="miter"
+         id="path8" />
+      <path
+         d="m 238.15456,171.14623 4.65078,5.9161 -6.2952,1.24588 -3.8077,-5.25807"
+         fill="#8fe0fe"
+         fill-rule="evenodd"
+         stroke="none"
+         stroke-width="1"
+         stroke-linecap="butt"
+         stroke-linejoin="miter"
+         id="path9" />
+      <path
+         d="m 241.48731,184.01615 -7.7606,0.39757 -0.0303,0.13814 -0.0809,-0.12632 -4.15697,-5.47217 -0.11118,0.0118 0.0303,-0.13814 0.71098,-9.8032"
+         fill="#eafaff"
+         fill-rule="evenodd"
+         stroke="none"
+         stroke-width="1"
+         stroke-linecap="butt"
+         stroke-linejoin="miter"
+         id="path10" />
+    </g>
+  </g>
+</svg>

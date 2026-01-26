@@ -5,6 +5,7 @@ const sizes = ["", "k", "m", "b", "t", "q", "Q", "s", "S", "o", "n", "d"];
  * Does not round, but truncates instead, e.g. 12850 -> 1.28k
  */
 function shortenedNumber(num = 0, digits = 3) {
+  if(typeof num !== "number") num = 0;
   let exponential = num.toExponential();
   //Split the first bit and the power of 10
   let parts = exponential.split("e");
@@ -286,14 +287,21 @@ class DirectionVector extends Vector {
     this.magnitude = magnitude;
     delete this.toDirectional;
   }
-  add(vct) {
-    return super.add(vct).toDirectional();
-  }
-  sub(vct) {
-    return super.sub(vct).toDirectional();
+  addXY(x, y) {
+    return new Vector(x + this.x, y + this.y);
   }
   scale(amt) {
     return new DirectionVector(this.angleRad, this.magnitude * amt, true);
+  }
+  /**
+   * Scales this vector by an amount, using different amounts for the x- and y-direction.
+   * @param {float} amtX Amount to scale the X-coordinate by. For example, 2 would make the vector twice as wide.
+   * @param {float} amtY Amount to scale the Y-coordinate by. For example, 3 would make the vector three times as tall.
+   * @param {boolean} mutate Whether or not to change this vector's values.
+   * @returns The result of the scaling. Either this vector, or the new one.
+   */
+  scaleAsymmetrical(amtX, amtY) {
+    return new Vector(this.x * amtX, this.y * amtY);
   }
   rotate(angle) {
     return new DirectionVector(this.angle + angle, this.magnitude);
@@ -310,6 +318,44 @@ class DirectionVector extends Vector {
   /**Returns this vector's equivalent positional vector. */
   toPositional() {
     return new Vector(this.x, this.y);
+  }
+  toP5() {
+    return new p5.Vector(this.x, this.y);
+  }
+}
+
+class Orientation {
+  static ZERO = new Orientation(0, 0, 0, 0);
+  x;
+  y;
+  rotation;
+  slide;
+  get pos() {
+    return new Vector(this.x, this.y);
+  }
+  set pos(_) {
+    this.x = _.x;
+    this.y = _.y;
+  }
+  constructor(x = 0, y = 0, rot = 0, slide = 0) {
+    this.x = x;
+    this.y = y;
+    this.rotation = rot;
+    this.slide = slide;
+  }
+  addParts(x = 0, y = 0, rot = 0, slide = 0) {
+    return new Orientation(this.x + x, this.y + y, this.rotation + rot, this.slide + slide);
+  }
+  clone() {
+    return new Orientation(this.x, this.y, this.rotation, this.slide);
+  }
+  /**@param {Orientation} orientation  */
+  add(orientation) {
+    return this.addParts(orientation.x, orientation.y, orientation.rotation, orientation.slide);
+  }
+  rotate(angle) {
+    let p = this.pos.rotate(angle);
+    return new Orientation(p.x, p.y, this.rotation + angle, this.slide);
   }
 }
 

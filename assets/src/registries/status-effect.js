@@ -12,10 +12,10 @@ Registry.statuses.add(
   "ignited",
   construct({
     type: "status-effect",
-    damage: 0.03,
+    damage: 0.01,
     damageType: "fire",
     vfx: "fire",
-    vfxChance: 0.1,
+    vfxChance: 0.025,
   })
 );
 Registry.statuses.add(
@@ -39,6 +39,7 @@ Registry.statuses.add(
     damageMult: 0.985,
     resistanceMult: 0.92,
     vfx: "ice",
+    vfxChance: 0.05,
   })
 );
 Registry.statuses.add(

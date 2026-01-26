@@ -14,8 +14,8 @@ class SoundContainer {
     this.#path = path;
     this.#category = category;
   }
-  async load() {
-    this.#sound = await SoundCTX.load(this.#path);
+  async load(ctx) {
+    this.#sound = await ctx.load(this.#path);
     return this.#sound != null;
   }
   get sound() {
@@ -34,7 +34,14 @@ class MASoundEngine {
     entities: this.context.createGain(),
     music: this.context.createGain(),
     other: this.context.createGain(),
+    bypass: this.context.createGain(),
   };
+  muffler = this.context.createBiquadFilter();
+  // parallel channels
+  unprocessed = this.context.createGain();
+  processed = this.context.createGain();
+  /**@type {Registry?} */
+  sounds = null;
   /** @type {Map<SoundContainer,AudioBufferSourceNode>} */
   #activeSounds = new Map();
   constructor() {
@@ -42,7 +49,27 @@ class MASoundEngine {
     this.piecewiseVolume.entities.connect(this.volume);
     this.piecewiseVolume.music.connect(this.volume);
     this.piecewiseVolume.other.connect(this.volume);
-    this.volume.connect(this.context.destination);
+    this.piecewiseVolume.bypass.connect(this.context.destination);
+    this.volume.connect(this.unprocessed);
+    this.volume.connect(this.processed);
+
+    this.processed.connect(this.muffler);
+    this.unprocessed.connect(this.context.destination);
+
+    this.processed.gain.setValueAtTime(0, this.context.currentTime)
+
+    this.muffler.connect(this.context.destination);
+    this.muffler.type = 'lowpass';
+    this.muffler.frequency.value = 800; // Reduce high frequencies (e.g., set to 800 Hz for a muffled sound)
+    this.muffler.Q.value = 1; // Sharpness of the filter (1 is standard)
+  }
+  muffle(){
+    this.unprocessed.gain.setValueAtTime(0, this.context.currentTime)
+    this.processed.gain.setValueAtTime(1, this.context.currentTime)
+  }
+  unmuffle(){
+    this.unprocessed.gain.setValueAtTime(1, this.context.currentTime)
+    this.processed.gain.setValueAtTime(0, this.context.currentTime)
   }
   async load(path) {
     try {
@@ -52,7 +79,7 @@ class MASoundEngine {
       console.log(`Loaded sound from ${path}`);
       return sound;
     } catch (e) {
-      return false;
+      return null;
     }
   }
   /**
@@ -61,7 +88,7 @@ class MASoundEngine {
    */
   play(sound, waitForEnd) {
     if (!sound) return;
-    if (typeof sound === "string") sound = Registry.sounds.get(sound);
+    if (typeof sound === "string") sound = this.sounds.get(sound);
     // Now that it's a sound container, play it
 
     if (this.#activeSounds.has(sound)) {
@@ -71,9 +98,7 @@ class MASoundEngine {
 
     const bufnode = this.context.createBufferSource();
     bufnode.buffer = sound.sound;
-    bufnode.connect(
-      this.piecewiseVolume[sound.category] ?? this.piecewiseVolume.other
-    );
+    bufnode.connect(this.piecewiseVolume[sound.category] ?? this.piecewiseVolume.other);
     bufnode.onended = () => {
       bufnode.disconnect();
       this.#activeSounds.delete(sound);
@@ -85,31 +110,67 @@ class MASoundEngine {
   }
   /**
    * @param {SoundContainer | string} sound
-   * @param {boolean} waitForEnd
    */
-  stop(sound, waitForEnd) {
+  swap(sound, newsound, waitForEnd) {
+    if (sound) {
+      if (typeof sound === "string") sound = this.sounds.get(sound);
+      if (this.#activeSounds.has(sound)) {
+        this.dc(this.#activeSounds.get(sound));
+        this.#activeSounds.delete(sound);
+      }
+    }
+    if (newsound) {
+      if (typeof newsound === "string") newsound = this.sounds.get(newsound);
+      this.play(newsound, waitForEnd);
+    }
+  }
+  /**
+   * @param {SoundContainer | string} sound
+   */
+  playing(sound) {
+    if (!sound) return false;
+    if (typeof sound === "string") sound = this.sounds.get(sound);
+    return this.#activeSounds.has(sound);
+  }
+  /**
+   * @param {SoundContainer | string} sound
+   */
+  stop(sound) {
     if (!sound) return;
     //stop all
     if (sound === "*") {
-      this.#activeSounds.forEach((b) => {
-        b.stop();
-        b.disconnect();
-        this.#activeSounds.delete(sound);
-      });
+      this.#activeSounds.forEach((b) => this.dc(b));
+      this.#activeSounds.clear();
       return;
     }
-    if (typeof sound === "string") sound = Registry.sounds.get(sound);
+    if (typeof sound === "string") sound = this.sounds.get(sound);
 
     const bufnode = this.#activeSounds.get(sound);
     if (bufnode) {
-      try {
-        bufnode.stop();
-        bufnode.disconnect();
-        this.#activeSounds.delete(sound);
-      } catch (e) {
-        console.warn("Failed to stop sound "+sound+":", e);
-      }
+      this.dc(bufnode);
+      this.#activeSounds.delete(sound);
     }
+  }
+  dc(bufnode) {
+    try {
+      bufnode.stop();
+      bufnode.disconnect();
+    } catch (e) {
+      console.warn("Failed to stop sound " + sound + ":", e);
+    }
+  }
+  commit() {
+    this.sounds = new Registry();
+    Registry.sounds.forEach((i, n) =>
+      this.sounds.add(n, new SoundContainer(i.path, i.category ?? "other"))
+    );
+  }
+  async loadAll() {
+    let i = setTimeout(() => console.error("Timeout!"), 3000);
+    await this.sounds.forEachAsync(async (name, item) => {
+      if (!(await item.load(this))) console.error("Failed to load " + name);
+    });
+    clearTimeout(i);
   }
 }
 

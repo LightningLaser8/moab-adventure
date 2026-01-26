@@ -19,6 +19,8 @@ class Registry {
   static vfx = new this();
   static achievements = new this();
   static difficulties = new this();
+  static slots = new this();
+  static currency = new this();
   /** Adds an item to registry.
    * @param {string} name Registry name of item. This is not case sensitive.
    * @param {*} item Item to add to registry.
@@ -111,13 +113,13 @@ class Registry {
   }
   /**
    * Executes a function for each element in the registry.
-   * @param {(item, name: string) => void} func Callback for each element.
+   * @param {(item, name: string) => void} callback Callback for each element.
    */
-  forEach(func) {
+  forEach(callback) {
     //Use built-in Map iterator
     this.#content.forEach((element, name) => {
       //Discard return value
-      void func(element, name);
+      void callback(element, name);
     });
   }
   /**

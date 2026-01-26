@@ -19,6 +19,7 @@ class Bullet {
   trailLifeFactor = 0.75;
   trailShape = "rhombus";
   trailWidth = -1;
+  trailDev = 3;
   /** @type {"dotted"|"linear"|"lightning"} */
   trailType = "dotted";
   remove = false;
@@ -34,6 +35,7 @@ class Bullet {
     height: 10,
   };
   updates = 1;
+  movements = 1;
   /** @type {World?} */
   world = null;
   /** @type {Entity?} */
@@ -55,6 +57,7 @@ class Bullet {
   fragDirection = 0;
   fragSpread = 0;
   fragSpacing = 0;
+  fragOffset = 0;
   //Intervals
   intervalBullet = {};
   intervalNumber = 0;
@@ -62,6 +65,7 @@ class Bullet {
   intervalSpread = 0;
   intervalSpacing = 0;
   intervalTime = 0;
+  intervalOffset = 0;
   #intervalCounter = 0;
   //Following
   source = null;
@@ -87,6 +91,9 @@ class Bullet {
   despawnSound = null;
   spawnSound = null;
   #sounded = false;
+
+  createEffect = "none";
+  inited = false;
 
   prev = null;
   bounceable = true;
@@ -116,36 +123,43 @@ class Bullet {
     this.prev = this.pos.clone();
     this.sound();
     //Not if dead
-    if (!this.remove) {
-      if (this.followsSource && this.source) {
-        this.pos = new Vector(this.source.x, this.source.y);
-        this.direction = this.source.rotation;
-      }
+    if (!this.remove)
+      repeat(this.movements, () => {
+        if (this.followsSource && this.source) {
+          this.pos = new Vector(this.source.x, this.source.y);
+          this.direction = this.source.rotation;
+        }
+        if (!this.inited) {
+          this.inited = true;
+          createEffect(this.createEffect, this.world, this.x, this.y, this.directionRad);
+        }
 
-      this.intervalTick();
-      //Which way to move
-      let moveVector = new DirectionVector(this.direction);
-      //Scale to speed
-      moveVector = moveVector.scale(this.speed * dt);
-      //Move
-      this.pos = this.pos.add(moveVector);
-      this.direction += this.rotateSpeed;
-      //Tick lifetime
-      if (this.lifetime <= 0) {
-        this.remove = true;
-      } else {
-        this.lifetime -= dt;
-      }
-      //Follow
-      if (this.followsScreen)
-        this.pos = this.pos.subXY(game.player?.speed ?? 0, 0);
-      this.checkEntities();
-    }
+        this.intervalTick();
+        //Which way to move
+        let moveVector = new DirectionVector(this.direction);
+        //Scale to speed
+        moveVector = moveVector.scale(this.speed * dt);
+        //Move
+        this.pos = this.pos.add(moveVector);
+        this.direction += this.rotateSpeed;
+        //Tick lifetime
+        if (this.lifetime <= 0) {
+          this.remove = true;
+        } else {
+          this.lifetime -= dt;
+        }
+        //Follow
+        if (this.followsScreen) this.pos = this.pos.subXY(game.player?.speed ?? 0, 0);
+        this.checkEntities();
+      });
   }
   spawnTrail(dt) {
+    if(!game.effects) return;
+    let reduced = game.effects < 1
     if (this.trailType === "dotted") {
-      //This got too long
-      for (let e = 0; e < this.speed * dt; e++) {
+    //This got too long
+    for (let e = 0; e < this.speed * dt; e++) {
+    if(reduced && !tru(game.effects)) continue;
         if (this._trailCounter <= 0) {
           if (this.world?.particles != null && this.trail) {
             let v = new DirectionVector(this.direction, e);
@@ -165,8 +179,8 @@ class Bullet {
                 this.hitSize * this.trailInterval * 0.25,
                 this.hitSize * this.trailInterval * 0.25,
                 0,
-                this.followsScreen
-              )
+                this.followsScreen,
+              ),
             );
           }
           this._trailCounter = this.trailInterval;
@@ -175,6 +189,7 @@ class Bullet {
         }
       }
     } else if (this.trailType === "linear") {
+      if(!reduced || tru(game.effects))
       this.world.particles.push(
         new LinearParticle(
           [this.prev, this.pos],
@@ -182,20 +197,23 @@ class Bullet {
           [this.trailColour, this.trailColourTo],
           0,
           this.trailWidth * 1.9,
-          0
-        )
+          0,
+        ),
       );
     } else if (this.trailType === "lightning") {
+      if(!reduced || tru(game.effects))
       this.world.particles.push(
         new LightningParticle(
-          this.pos.multiLerp(this.prev, Math.ceil(this.speed / this.trailInterval * 5)),
+          this.pos.multiLerp(this.prev, Math.ceil((this.speed / this.trailInterval) * 5)),
           this.getTrailLife(),
           [this.trailColour, this.trailColourTo],
           0,
           this.trailWidth,
           0,
-          this.trailWidth
-        )
+          this.trailDev,
+          2,
+          2,
+        ),
       );
     }
   }
@@ -205,13 +223,13 @@ class Bullet {
   draw() {
     if (this.drawer.hidden) return;
     if (this.drawer.image) {
-      rotatedImg(
+      ImageCTX.draw(
         this.drawer.image,
         this.x,
         this.y,
         this.drawer.width,
         this.drawer.height,
-        this.directionRad
+        this.directionRad,
       );
     } else {
       //If no image, draw shape instead
@@ -222,7 +240,7 @@ class Bullet {
         this.y,
         this.drawer.width,
         this.drawer.height,
-        this.directionRad
+        this.directionRad,
       );
     }
   }
@@ -233,9 +251,10 @@ class Bullet {
     return this.distanceTo(obj.x, obj.y) <= this.hitSize + obj.hitSize;
   }
   frag() {
+    let v = new Vector(this.x, this.y).add(Vector.fromAngle(this.direction).scale(this.fragOffset));
     patternedBulletExpulsion(
-      this.x,
-      this.y,
+      v.x,
+      v.y,
       this.fragBullet,
       this.fragNumber,
       this.direction + this.fragDirection,
@@ -243,13 +262,16 @@ class Bullet {
       this.fragSpacing,
       this.world,
       this.entity,
-      this.source
+      this.source,
     );
   }
   interval() {
+    let v = new Vector(this.x, this.y).add(
+      Vector.fromAngle(this.direction).scale(this.intervalOffset),
+    );
     patternedBulletExpulsion(
-      this.x,
-      this.y,
+      v.x,
+      v.y,
       this.intervalBullet,
       this.intervalNumber,
       this.direction + this.intervalDirection,
@@ -257,7 +279,7 @@ class Bullet {
       this.intervalSpacing,
       this.world,
       this.entity,
-      this.source
+      this.source,
     );
   }
   intervalTick() {
@@ -281,7 +303,7 @@ class Bullet {
       this.hitSpacing,
       this.world,
       this.entity,
-      this.source
+      this.source,
     );
     //If dead, spawn destroy bullets
     if (entity.dead) {
@@ -295,17 +317,17 @@ class Bullet {
         this.destroySpacing,
         this.world,
         this.entity,
-        this.source
+        this.source,
       );
     }
   }
-  
+
   checkEntities() {
     for (let entity of this.world.entities) {
       //If colliding with a this on different team, that it hasn't already been hit by and that still exists
       if (
         this.collides &&
-        entity.collides && 
+        entity.collides &&
         !this.remove &&
         entity.team !== this.entity.team &&
         !this.damaged.includes(entity) &&
@@ -320,22 +342,17 @@ class Bullet {
                 (this.source ? this.source.getDVScale() : 0) +
                 (instance.levelScaling ?? 0) * game.level) *
                 //If boss, multiply damage by boss damage multiplier, if present, or else 1. If not boss, multiply by 1.
-                (entity instanceof Boss ? instance.bossDamageMultiplier ?? 1 : 1),
-              this.entity
+                (entity instanceof Boss ? (instance.bossDamageMultiplier ?? 1) : 1),
+              this.entity,
             ); //Wait if kaboom
           entity.maxHealth -= instance.amount * this.maxHPReductionFactor;
         }
         if (this.controlledKnockback) {
           //Get direction to the target
-          let direction = 
-          this.pos.sub(this.entity.target).angleRad
+          let direction = this.pos.sub(this.entity.target).angleRad;
           entity.knock(this.knockback, direction, this.kineticKnockback); //Knock with default resolution
-        } else {
-          entity.knock(
-            this.knockback,
-            this.direction,
-            this.kineticKnockback
-          ); //Knock with default resolution
+        } else if (this.knockback) {
+          entity.knock(this.knockback, this.direction, this.kineticKnockback); //Knock with default resolution
         }
         if (this.status !== "none") {
           entity.applyStatus(this.status, this.statusDuration);
@@ -344,7 +361,11 @@ class Bullet {
         this.damaged.push(entity);
         this.onHit(entity);
         if (!this.silent) {
-          SoundCTX.play(entity.hitSound);
+          SoundCTX.play(
+            this.damage.some((d) => entity.immuneTo(d.type)) ?
+              (entity.deflectSound ?? entity.hitSound)
+            : entity.hitSound,
+          );
           SoundCTX.play(this.hitSound);
         }
         //Reduce pierce
@@ -355,16 +376,30 @@ class Bullet {
           else this.remove = true; //Delete
         }
       } else {
-        if (
-          !this.remove &&
-          entity.team !== this.entity.team &&
-          this.damaged.includes(entity)
-        ) {
+        if (!this.remove && entity.team !== this.entity.team && this.damaged.includes(entity)) {
           if (this.multiHit && !this.collidesWith(entity)) {
             //Unpierce it
             this.damaged.splice(this.damaged.indexOf(entity), 1);
           }
         }
+      }
+    }
+    for (let bullet of this.world.bullets) {
+      //If colliding with a this on different team, that it hasn't already been hit by and that still exists
+      if (
+        this.collides &&
+        !this.remove &&
+        bullet instanceof Deflection &&
+        this.bounceable && // don't deflect deflections
+        bullet.entity.team !== this.entity.team &&
+        this.collidesWith(bullet) //check collisions last for performance reasons
+      ) {
+        bullet.bulbonk(this);
+        if (!bullet.silent) {
+          if (!bullet.damaged.includes(this)) SoundCTX.play(this.hitSound);
+          SoundCTX.play(bullet.hitSound);
+        }
+        bullet.damaged.push(bullet);
       }
     }
   }
@@ -381,5 +416,6 @@ function telegraph(bullet, opts = { time: 20, width: 2 }) {
     followsSource: bullet.followsSource,
     followsScreen: bullet.followsScreen,
     fragBullet: ob,
+    createEffect: opts.createEffect ?? "none",
   };
 }

@@ -6,7 +6,7 @@ class SupportWeapon extends Weapon {
       this._cooldown = this.getAcceleratedReloadRate();
       this.accelerate(); //Apply acceleration effects
 
-      this.slot.entity.knock(this.recoil, this.rotation + 180);
+      if(this.recoil) this.slot.entity.knock(this.recoil, this.rotation + 180);
 
       patternedBulletExpulsion(
         this.slot.entity.target.x,
@@ -20,7 +20,7 @@ class SupportWeapon extends Weapon {
         this.slot.entity.target,
         this
       );
-      this.parts.forEach((x) => x.fire()); //Tick all parts
+      this.parts.forEach((x) => x.fire && x.fire()); //Tick all parts
     }
   }
 }
@@ -29,15 +29,15 @@ class ShieldProjector extends SupportWeapon {
   spawnTime = 15;
   reshield = false;
   fire() {
-    if ((this._cooldown <= 0 && this.reshield) || !this.slot.entity.target._shield) {
+    if (this._cooldown <= 0 && (this.reshield || !this.slot.entity.target._shield)) {
       SoundCTX.play(this.fireSound);
       this._cooldown = this.getAcceleratedReloadRate();
       this.accelerate(); //Apply acceleration effects
 
-      this.slot.entity.knock(this.recoil, this.rotation + 180);
+      if(this.recoil) this.slot.entity.knock(this.recoil, this.rotation + 180);
 
       this.slot.entity.target.shield(this.strength, this.spawnTime, this.shoot.bullet ?? {});
-      this.parts.forEach((x) => x.fire()); //Tick all parts
+      this.parts.forEach((x) => x.fire && x.fire()); //Tick all parts
     }
   }
 }

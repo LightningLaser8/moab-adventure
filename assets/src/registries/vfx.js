@@ -16,8 +16,8 @@ Registry.vfx.add("fire", {
     heightTo: 30,
     colourFrom: [255, 255, 150, 100],
     colourTo: [255, 80, 20, 0],
-  }
-})
+  },
+});
 Registry.vfx.add("ice", {
   type: "vfx.particle",
   cone: 360,
@@ -36,8 +36,8 @@ Registry.vfx.add("ice", {
     heightTo: 20,
     colourFrom: [255, 255, 255, 100],
     colourTo: [0, 100, 100, 0],
-  }
-})
+  },
+});
 Registry.vfx.add("radiation", {
   type: "vfx.particle",
   cone: 360,
@@ -56,8 +56,8 @@ Registry.vfx.add("radiation", {
     heightTo: 50,
     colourFrom: [0, 100, 0, 10],
     colourTo: [0, 80, 0, 0],
-  }
-})
+  },
+});
 Registry.vfx.add("red-polarity", {
   type: "vfx.particle",
   cone: 360,
@@ -76,8 +76,8 @@ Registry.vfx.add("red-polarity", {
     heightTo: 20,
     colourFrom: [255, 100, 100, 100],
     colourTo: [100, 10, 10, 0],
-  }
-})
+  },
+});
 Registry.vfx.add("blue-polarity", {
   type: "vfx.particle",
   cone: 360,
@@ -96,5 +96,95 @@ Registry.vfx.add("blue-polarity", {
     heightTo: 20,
     colourFrom: [100, 100, 255, 100],
     colourTo: [10, 10, 100, 0],
-  }
-})
+  },
+});
+
+Registry.vfx.add("laser-charge", {
+  type: "vfx.multi",
+  effects: [
+    {
+      type: "vfx.particle",
+      cone: 360,
+      emissions: 30,
+      interval: 2,
+      particle: {
+        //All
+        lifetime: 20,
+        speed: 6,
+        decel: -0.027,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rhombus",
+        widthFrom: 20,
+        widthTo: 10,
+        heightFrom: 50,
+        heightTo: 25,
+        colourFrom: [255, 0, 0, 100],
+        colourTo: [255, 255, 255, 255],
+        reverse: true,
+      },
+    },
+    {
+      type: "vfx.particle",
+      cone: 30,
+      emissions: 15,
+      interval: 4,
+      particle: {
+        //All
+        lifetime: 25,
+        speed: 9,
+        decel: -0.027,
+        rotateSpeed: 0,
+        direction: 180,
+        moveWithBackground: false,
+        shape: "rhombus",
+        widthFrom: 20,
+        widthTo: 10,
+        heightFrom: 40,
+        heightTo: 20,
+        colourFrom: [255, 0, 0, 100],
+        colourTo: [255, 255, 255, 255],
+        reverse: true,
+      },
+    },
+    {
+      type: "vfx.wave",
+      emissions: 3,
+      interval: 30,
+      particle: {
+        //All
+        lifetime: 20,
+        moveWithBackground: false,
+        radiusFrom: 150,
+        radiusTo: 20,
+        strokeFrom: 30,
+        strokeTo: 10,
+        colourFrom: [255, 0, 0, 100],
+        colourTo: [255, 255, 255, 255],
+      },
+    },
+  ],
+});
+Registry.vfx.add("laser-charge-mini", {
+  type: "vfx.particle",
+  parentise: true,
+  cone: 360,
+  emissions: 30,
+  interval: 1,
+  particle: {
+    //All
+    lifetime: 15,
+    speed: 9,
+    decel: -0.027,
+    rotateSpeed: 0,
+    moveWithBackground: false,
+    shape: "rhombus",
+    widthFrom: 20,
+    widthTo: 10,
+    heightFrom: 50,
+    heightTo: 25,
+    colourFrom: [255, 100, 100, 100],
+    colourTo: [255, 255, 255, 255],
+    reverse: true,
+  },
+});

@@ -2,12 +2,17 @@
 Registry.genericType.add("bullet", Bullet);
 Registry.genericType.add("weapon", Weapon);
 Registry.genericType.add("part", Part);
+Registry.genericType.add("weapon-part", WeaponPart);
 Registry.genericType.add("entity", Entity);
 Registry.genericType.add("box", Box);
 Registry.genericType.add("shooting-box", AngryBox);
 Registry.genericType.add("boss", Boss);
 Registry.genericType.add("final-boss", FinalBoss);
 Registry.genericType.add("world", World);
+//Models
+Registry.genericType.add("model", Model);
+Registry.genericType.add("model-part", ModelPart);
+Registry.genericType.add("model-animation", ModelAnimation);
 //Animations
 Registry.genericType.add("animation", PartAnimation); //Who cares that the class is named something else?
 Registry.genericType.add("infinite-animation", InfiniteAnimation);
@@ -31,11 +36,13 @@ Registry.genericType.add("action.generic", BossAction);
 Registry.genericType.add("action.move", MovementAction);
 Registry.genericType.add("action.fire-weapon", FireWeaponAction);
 Registry.genericType.add("action.self-destruct", SelfDestructAction);
+Registry.genericType.add("action.spare", SpareAction);
 Registry.genericType.add("action.exit", ExitAction);
 Registry.genericType.add("action.entry", EntryAction);
 Registry.genericType.add("action.regen", RegenAction);
 Registry.genericType.add("action.summon", SummonMinionAction);
 Registry.genericType.add("action.spawn-bullet", SpawnBulletAction);
+Registry.genericType.add("action.fire-bullet", FireBulletAction);
 Registry.genericType.add("action.change-speed", ChangeSpeedAction);
 Registry.genericType.add("action.enable-ai", EnableAIAction);
 Registry.genericType.add("action.disable-ai", DisableAIAction);
@@ -44,11 +51,16 @@ Registry.genericType.add("action.multi", MultiAction);
 Registry.genericType.add("action.data", SetDataAction);
 Registry.genericType.add("action.change-visual", ChangeVisualAction);
 Registry.genericType.add("action.reset-visual", ResetVisualAction);
+Registry.genericType.add("action.status", StatusEffectAction);
+Registry.genericType.add("action.vfx", VFXAction);
+Registry.genericType.add("action.lobotomise", LobotomiseAction);
 //Boss Triggers
 Registry.genericType.add("trigger.tick", ActionTrigger);
+Registry.genericType.add("trigger.time", TimeTrigger);
 Registry.genericType.add("trigger.single-hp", SingleHPPointTrigger);
 Registry.genericType.add("trigger.multi-hp", MultiHPPointTrigger);
 Registry.genericType.add("trigger.action-ended", ActionEndedTrigger);
+Registry.genericType.add("trigger.action-started", ActionStartedTrigger);
 Registry.genericType.add("trigger.data", DataValueTrigger);
 Registry.genericType.add("trigger.h-pos", HorizontalPositionTrigger);
 Registry.genericType.add("trigger.v-pos", VerticalPositionTrigger);

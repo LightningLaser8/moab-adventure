@@ -1,20 +1,32 @@
 class World {
   particles = [];
-  /** @type {Array<Entity>} */
+  /** @type {Entity[]} */
   entities = [];
-  /** @type {Array<Bullet>} */
+  /** @type {Bullet[]} */
   bullets = [];
   spawning = [];
   background = "background.sea";
   name = "World";
-  boss = null;
+
   reducedSpawns = false;
+  transitioning = false;
+
   bosses = [];
+  boss = null;
+  bossInterval = 400;
+
+  endless = false;
+  muffleSound = false;
+
   #bossList = [];
   #currentBossIndex = 0;
+  get cbi() {
+    return this.#currentBossIndex;
+  }
 
   //Sounds!
   bgm = null; //Background Music
+  bossmusic = null; // override for boss music
   ambientSound = null; //Played randomly
   ambienceChance = 0.001; //Chance per frame to play ambientSound
 
@@ -45,14 +57,24 @@ class World {
       });
     }
   }
+  tickSound() {
+    if (this.ambientSound && Math.random() < this.ambienceChance) {
+      SoundCTX.play(this.ambientSound);
+    }
+    if (game.music) {
+      if (this.bossmusic) {
+        if (!this.boss) {
+          SoundCTX.swap(this.bossmusic, this.bgm, true);
+        } else {
+          SoundCTX.swap(this.bgm, this.bossmusic, true);
+        }
+      } else SoundCTX.play(this.bgm, true);
+    }
+  }
   tickAll() {
     this.#actualTick();
     this.#removeDead();
     this.tickSpawns(game.player.speed);
-    if (this.ambientSound && Math.random() < this.ambienceChance) {
-      SoundCTX.play(this.ambientSound);
-    }
-    SoundCTX.play(this.bgm, true);
   }
   #actualTick() {
     //Tick *everything*
@@ -127,8 +149,7 @@ class World {
           if (entity.lastHurtSource) entity.lastHurtSource.dv += entity.dv;
           entity.onDeath(entity.lastHurtSource);
           SoundCTX.play(entity.deathSound);
-        }
-        else {
+        } else {
           entity.onDespawn();
         }
         game.maxDV += entity.dv;
@@ -153,12 +174,11 @@ class World {
     }
   }
   tickSpawns(dt) {
+    if(this.transitioning) return;
     for (let spawnGroup of this.spawning) {
       if (
-        (spawnGroup.imposMode === "when-on" &&
-          game.difficulty !== "impossible") ||
-        (spawnGroup.imposMode === "when-off" &&
-          game.difficulty === "impossible")
+        (spawnGroup.imposMode === "when-on" && game.difficulty !== "impossible") ||
+        (spawnGroup.imposMode === "when-off" && game.difficulty === "impossible")
       )
         continue;
       if (spawnGroup.$currentCooldown <= 0) {
@@ -204,11 +224,19 @@ class World {
     ent.isBoss = true; //boss is made of boss
     UIComponent.setCondition("boss:yes"); //There is, in fact, a boss.
     ent.addToWorld(this); //Add entity
+    this.boss = ent;
+    SoundCTX.stop(this.bossmusic);
+    SoundCTX.stop(this.bgm);
+    this.bossmusic = ent.bossmusic;
     return ent;
   }
   getFirstBoss() {
+    if (this.boss && !this.boss.dead) return this.boss;
     for (let entity of this.entities) {
-      if (entity.isBoss && !entity.hidden) return entity;
+      if (entity.isBoss && !entity.hidden) {
+        this.boss = entity;
+        return entity;
+      }
     }
     return null;
   }
@@ -219,12 +247,10 @@ class World {
     this.#bossList = bosses;
   }
   nextBoss() {
-    this.spawnBoss(
-      Registry.entities.get(this.#bossList[this.#currentBossIndex])
-    );
+    if(this.transitioning) return;
+    this.spawnBoss(Registry.entities.get(this.#bossList[this.#currentBossIndex]));
     this.#currentBossIndex++;
-    if (this.#currentBossIndex >= this.#bossList.length)
-      this.#currentBossIndex = 0;
+    if (this.#currentBossIndex >= this.#bossList.length) this.#currentBossIndex = 0;
   }
   getBossIndex() {
     return this.#currentBossIndex;

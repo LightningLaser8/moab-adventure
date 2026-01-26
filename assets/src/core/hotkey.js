@@ -162,27 +162,23 @@ class KeybindHandler {
   }
   /** Returns the key associated with the specified binding. */
   key(name) {
-    let b = this.#scuts.get(name)?.shortcut;
-    return b.key;
+    let b = this.#scuts.get(name)?.shortcut?.key;
+    return b ? b.toUpperCase() : undefined;
   }
   /** Returns whether or not the specified binding requires the `ctrl` key to be held. */
   ctrl(name) {
-    let b = this.#scuts.get(name)?.shortcut;
-    return b.ctrl;
+    return this.#scuts.get(name)?.shortcut?.ctrl;
   }
   /** Returns whether or not the specified binding requires the `shift` key to be held. */
   shift(name) {
-    let b = this.#scuts.get(name)?.shortcut;
-    return b.shift;
+    return this.#scuts.get(name)?.shortcut?.shift;
   }
   /** Returns whether or not the specified binding requires the `alt` key to be held. */
   alt(name) {
-    let b = this.#scuts.get(name)?.shortcut;
-    return b.alt;
+    return this.#scuts.get(name)?.shortcut?.alt;
   }
   /** Returns the key and modifiers associated with the specified binding, as a `ModifiedKey` object. */
   descriptor(name) {
-    let b = this.#scuts.get(name)?.shortcut;
-    return b;
+    return this.#scuts.get(name)?.shortcut;
   }
 }

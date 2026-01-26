@@ -23,14 +23,54 @@ const background = {
 
 //###################################################################
 //
+// in-game UI > sandbox UI > INDICATOR
+//
+//###################################################################
+//#region indicator
+
+createUIImageComponent(
+  ["in-game"],
+  ["mode:sandbox"],
+  960,
+  1070,
+  1920,
+  20,
+  null,
+  "ui.warn-tape",
+  false
+);
+createUIImageComponent(
+  ["in-game"],
+  ["mode:sandbox"],
+  960,
+  10,
+  1920,
+  20,
+  null,
+  "ui.warn-tape",
+  false
+);
+//#endregion
+//###################################################################
+//
 // in-game UI > informative UI > CURRENCY COUNTERS
 //
 //###################################################################
+//#region currency counter
 
 createUIComponent(["in-game"], [], 350, 55, 700, 125, "right");
 //Shards
-createUIImageComponent(["in-game"], [], 40, 60, 65, 75, null, "ui.shard", false);
+createUIImageComponent(["in-game"], [], 40, 60, 75, 75, null, "ui.shard", false);
 //Overwrite text
+UIComponent.alignLeft(
+  Object.defineProperty(
+    createUIComponent(["in-game"], ["debug:true"], 80, 30, 0, 0, "none", null, "shards", true, 20),
+    "text",
+    {
+      get: () => "" + game.shards,
+    }
+  )
+);
 UIComponent.alignLeft(
   Object.defineProperty(
     createUIComponent(["in-game"], [], 80, 60, 0, 0, "none", null, "shards", true, 60),
@@ -41,8 +81,29 @@ UIComponent.alignLeft(
   )
 );
 //Bloonstones
-createUIImageComponent(["in-game"], [], 330, 60, 60, 75, null, "ui.bloonstone", false);
+createUIImageComponent(["in-game"], [], 330, 60, 75, 75, null, "ui.bloonstone", false);
 //Overwrite text
+UIComponent.alignLeft(
+  Object.defineProperty(
+    createUIComponent(
+      ["in-game"],
+      ["debug:true"],
+      370,
+      30,
+      0,
+      0,
+      "none",
+      null,
+      "bloonstones",
+      true,
+      20
+    ),
+    "text",
+    {
+      get: () => "" + game.bloonstones,
+    }
+  )
+);
 UIComponent.alignLeft(
   Object.defineProperty(
     createUIComponent(["in-game"], [], 370, 60, 0, 0, "none", null, "bloonstones", true, 60),
@@ -53,27 +114,38 @@ UIComponent.alignLeft(
   )
 );
 
+//#endregion
 //###################################################################
 //
 // in-game UI > informative UI > HEALTHBAR
 //
 //###################################################################
+//#region healthbar
 
 UIComponent.invert(
   //Healthbar container
-  createUIComponent(["in-game"], [], 400, 1020, 800, 125, "right")
+  createUIComponent(["in-game"], [], 375, 995 + 25, 900, 175, "right")
 );
+UIComponent.setBackgroundOf(
+  UIComponent.setOutlineColour(
+    createUIShapeComponent(["in-game"], [], 35, 975, 40, 40, null, "circle", true),
+    [0, 255, 255]
+  ),
+  [0, 255, 255, 100]
+);
+
+createUIImageComponent(["in-game"], [], 70, 1035, 80, 80, null, "ui.moab", false);
 
 // Normal HP
 UIComponent.invert(
   createHealthbarComponent(
     ["in-game"],
     [],
-    365,
+    420,
     1020,
-    680,
+    550,
     64,
-    "right",
+    "both",
     undefined,
     undefined,
     undefined,
@@ -83,111 +155,118 @@ UIComponent.invert(
   )
 );
 
+// UIComponent.removeOutline(
+// Shield CD
+UIComponent.invert(
+  createHealthbarComponent(
+    ["in-game"],
+    [],
+    420 - 48,
+    1020 - 48,
+    550,
+    16,
+    "both",
+    undefined,
+    undefined,
+    undefined,
+    20,
+
+    () => (game.support ? game.support?.weaponSlots[0]?.weapon : null) ?? {}
+  )
+    .setGetters("_cooldown", "reload")
+    .setColours(
+      () => (game.support.weaponSlots[0].tier > 1 ? [0, 0, 0] : [100, 0, 0]),
+      [255, 178, 100],
+      [0, 0, 0, 0]
+    )
+    .reverseBarFraction()
+);
+
+//)
+createParticleEmitter(["in-game"], [], 640, 970, -90, 1, "fire", 1).getActivity = function () {
+  return ui.menuState === "in-game" && game.player?.weaponSlots[5]?.weapon?._cooldown === 0;
+};
 // Shield
 UIComponent.removeOutline(
   UIComponent.invert(
     createHealthbarComponent(
       ["in-game"],
       [],
-      365 - 12,
-      1020 - 24,
-      680 - 24,
-      16,
-      "right",
+      420 - 48,
+      1020 - 48,
+      550 - 4,
+      16 - 4,
+      "both",
       undefined,
       undefined,
       undefined,
       20,
-      () => game.player._shield
+      () => game.player._shield ?? {}
     )
       .setGetters("strength", "maxStrength")
       .setColours(
-        [0, 0, 0, 75],
-        () => game.player._shield.trailColourTo,
-        () => game.player._shield.colourTo
+        () => (game.support.weaponSlots[0].tier > 1 ? [0, 60, 60, 125] : [100, 0, 0]),
+        () => game.player._shield?.trailColourTo ?? [0, 0, 0],
+        () => game.player._shield?.colourTo ?? [0, 0, 0]
       )
   )
-).getActivity = function () {
-  return ui.menuState === "in-game" && game.player?._shield;
-};
-// Shield CD
-UIComponent.removeOutline(
-  UIComponent.invert(
-    createHealthbarComponent(
-      ["in-game"],
-      [],
-      365 + 12,
-      1020 + 24,
-      680 + 24,
-      16,
-      "right",
-      undefined,
-      undefined,
-      undefined,
-      20,
-      () => (game.support ? game.support?.weaponSlots[0]?.weapon : null)
-    )
-      .setGetters("_cooldown", "reload")
-      .setColours([0, 0, 0, 75], [255, 178, 100], [0, 0, 0, 0])
-      .reverseBarFraction()
-  )
-).getActivity = function () {
-  return (
-    ui.menuState === "in-game" && game.support?.weaponSlots && game.support?.weaponSlots[0]?.weapon
-  );
-};
+);
 
-//Name display
-let nameBG;
-UIComponent.setBackgroundOf(
-  UIComponent.invert(
-    //Upside-down on top of healthbar
-    (nameBG = Object.defineProperties(
-      createUIComponent(["in-game"], [], 200, 905, 400, 100, "right"),
-      {
-        width: {
-          get: () => {
-            push();
-            textSize(60);
-            let width = textWidth(game.player.name) + nameBG.height + 40;
-            pop();
-            return width;
-          },
-        },
-        x: {
-          get: () => nameBG.width / 2,
-        },
-      }
-    ))
-  ),
-  [50, 50, 50]
-);
+// ).getActivity = function () {
+//   return (
+//     ui.menuState === "in-game" && game.support?.weaponSlots && game.support?.weaponSlots[0]?.weapon
+//   );
+// };
+
+// //Name display
+// let nameBG;
+// UIComponent.setBackgroundOf(
+//   UIComponent.invert(
+//     //Upside-down on top of healthbar
+//     (nameBG = Object.defineProperties(createUIComponent(["in-game"], [], 195, 905, 400, 100), {
+//       width: {
+//         get: () => {
+//           push();
+//           textFont(fonts.darktech);
+//           textSize(60);
+//           let width = textWidth(game.player.name) + nameBG.height + 40;
+//           pop();
+//           return width;
+//         },
+//       },
+//       x: {
+//         get: () => nameBG.width / 2 - 4,
+//       },
+//     }))
+//   ),
+//   [50, 50, 50]
+// );
 //Backup background
-UIComponent.removeOutline(
-  UIComponent.invert(
-    //Upside-down on top of healthbar
-    Object.defineProperties(createUIComponent(["in-game"], [], 200, 905, 400, 80, "right"), {
-      width: {
-        get: () => nameBG.width - 20,
-      },
-      x: {
-        get: () => nameBG.x - 20,
-      },
-    })
-  )
-);
-UIComponent.alignLeft(
-  Object.defineProperties(
-    createUIComponent(["in-game"], [], 20, 905, 0, 0, "none", null, "e", false, 60),
-    {
-      text: {
-        get: () =>
-          //Make text dependent on player name
-          game.player ? game.player.name : "mobe",
-      },
-    }
-  )
-);
+// UIComponent.removeOutline(
+//   UIComponent.invert(
+//     //Upside-down on top of healthbar
+//     Object.defineProperties(createUIComponent(["in-game"], [], 200, 905, 400, 80, "right"), {
+//       width: {
+//         get: () => nameBG.width - 20,
+//       },
+//       x: {
+//         get: () => nameBG.x - 20,
+//       },
+//     })
+//   )
+// );
+// UIComponent.alignLeft(
+//   Object.defineProperties(
+//     createUIComponent(["in-game"], [], 20, 905, 0, 0, "both", null, "e", false, 60),
+//     {
+//       text: {
+//         get: () =>
+//           //Make text dependent on player name
+//           game.player ? game.player.name : "mobe",
+//       },
+//     }
+//   )
+// );
 //###################################################################
 //
 // in-game UI > informative UI > LEVEL COUNTER
@@ -222,52 +301,16 @@ UIComponent.alignLeft(
     }
   )
 );
+//#endregion
 //###################################################################
 //
 // in-game UI > informative UI > BOSSBAR
 //
 //###################################################################
+//#region bossbar
 
 UIComponent.setCondition("boss:no"); //No boss by default
 
-//    When boss inactive
-//Like healthbar, but not
-UIComponent.invert(
-  //boss timer bar container
-  createUIComponent(
-    ["in-game"],
-    ["boss:no"], //Only show if no boss, if boss then show boss' healthbar instead
-    1520,
-    50,
-    800,
-    100,
-    "left"
-  )
-);
-
-//Timer
-UIComponent.invert(
-  createHealthbarComponent(
-    ["in-game"],
-    ["boss:no"],
-    1605,
-    50,
-    580,
-    50,
-    "left",
-    undefined,
-    undefined,
-    undefined,
-    20,
-    () => game,
-    [255, 0, 0]
-  )
-    .setGetters("bosstimer", "bossinterval")
-    .reverseBarDirection()
-    .setColours(null, null, [255, 0, 0])
-);
-
-createUIImageComponent(["in-game"], ["boss:no"], 1240, 50, 80, 80, null, "ui.clock", false);
 //  When boss active
 //Boss healthbar
 createUIComponent(
@@ -293,26 +336,29 @@ UIComponent.alignRight(
     ),
     "text",
     {
-      get: () => world.getFirstBoss()?.name ?? "Boss", //Text is name
+      get: () => world.boss?.name ?? "Boss", //Text is name
     }
   )
 );
-UIComponent.invert(
+let bhb = UIComponent.invert(
   createHealthbarComponent(
     ["in-game"],
     ["boss:yes"],
-    1425,
+    1480,
     200,
-    500,
+    460,
     50,
-    "left",
+    "both",
     undefined,
     undefined,
     undefined,
     20,
-    () => world.getFirstBoss(),
+    () => world.boss,
     [255, 0, 0]
-  ).reverseBarDirection()
+  )
+    .reverseBarDirection()
+    .setColours(null, () => world.boss?.healthColour ?? [255, 0, 0], null)
+    .setIsHigher(() => world.boss?.higher ?? false)
 );
 UIComponent.invert(
   createUIComponent(
@@ -343,7 +389,7 @@ UIComponent.alignRight(
     "text",
     {
       get: () => {
-        let boss = world.getFirstBoss();
+        let boss = world.boss;
         if (!boss) return "unknown";
         return (
           shortenedNumber(boss.health ?? 1) +
@@ -374,15 +420,106 @@ Object.defineProperty(
   ),
   "text",
   {
-    get: () => world.getFirstBoss()?.class ?? "o", //Show boss class if it exists, otherwise show "o"
+    get: () => world.boss?.class ?? "o", //Show boss class if it exists, otherwise show "o"
   }
 );
 
+//#endregion
+//###################################################################
+//
+// in-game UI > informative UI > BOSS TIMER
+//
+//###################################################################
+//#region boss timer
+
+UIComponent.invert(
+  //boss timer bar container
+  createUIComponent(
+    ["in-game"],
+    ["boss:no", "mode:adventure"], //Only show if no boss, if boss then show boss' healthbar instead
+    1520,
+    50,
+    800,
+    100,
+    "left"
+  )
+);
+
+UIComponent.invert(
+  createHealthbarComponent(
+    ["in-game"],
+    ["boss:no", "mode:adventure"],
+    1505,
+    50,
+    580,
+    50,
+    "both",
+    undefined,
+    undefined,
+    undefined,
+    20,
+    () => game,
+    [255, 0, 0]
+  )
+    .setGetters("bosstimer", "bossinterval")
+    .reverseBarDirection()
+    .setColours(null, null, [255, 0, 0])
+);
+
+createUIImageComponent(
+  ["in-game"],
+  ["boss:no", "mode:adventure"],
+  1870,
+  50,
+  80,
+  80,
+  null,
+  "ui.clock",
+  false
+);
+
+//#endregion
+//###################################################################
+//
+// in-game UI > informative UI > BOSS RUSH PLATE
+//
+//###################################################################
+//#region br plate
+
+UIComponent.invert(
+  createUIComponent(["in-game"], ["boss:no", "mode:boss-rush"], 1670, 50, 500, 100, "left")
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["boss:no", "mode:boss-rush"],
+    1720,
+    50,
+    0,
+    0,
+    "none",
+    null,
+    "*Next:    ",
+    true,
+    40
+  ),
+  "text",
+  {
+    get: () => {
+      let b = world.bosses[world.cbi];
+      if (b) return "Next:\n" + Registry.entities.get(b).name;
+      return "Transferring...";
+    },
+  }
+);
+
+//#endregion
 //###################################################################
 //
 // in-game UI > interactable UI > UPGRADE MENU
 //
 //###################################################################
+//#region upgrade menu
 
 //Translucent blue background
 UIComponent.removeOutline(
@@ -604,11 +741,13 @@ createUIComponent(
   60
 ).isBackButton = true;
 
+//#endregion
 //###################################################################
 //
 // in-game UI > interactable UI > upgrade menu > WEAPON UPGRADE MENU
 //
 //###################################################################
+//#region w. upgrade
 
 //Title
 Object.defineProperty(
@@ -898,11 +1037,13 @@ createUIComponent(
   20
 );
 
+//#endregion
 //###################################################################
 //
 // in-game UI > interactable UI > upgrade menu > BLIMP UPGRADE MENU
 //
 //###################################################################
+//#region b. upgrade
 
 //Entry Button
 createUIComponent(
@@ -1308,11 +1449,13 @@ createUIComponent(
   20
 );
 
+//#endregion
 //###################################################################
 //
 // in-game UI > interactable UI > upgrade menu > SUPPORT UPGRADE MENU
 //
 //###################################################################
+//#region s. upgrade
 
 //Title
 Object.defineProperty(
@@ -1601,13 +1744,31 @@ createUIComponent(
   20
 );
 
+//#endregion
 //###################################################################
 //
 // in-game UI > indicative UI > PAUSE INDICATOR
 //
 //###################################################################
+//#region pause
+
 UIComponent.setCondition("paused:false");
-createUIComponent(["in-game"], ["paused:true", "upgrade-menu-open:false"], 960, 275, 1920, 20);
+createUIComponent(
+  ["in-game"],
+  ["paused:true", "upgrade-menu-open:false", "mode:adventure|boss-rush"],
+  960,
+  275,
+  1920,
+  20
+);
+createUIComponent(
+  ["in-game"],
+  ["paused:true", "upgrade-menu-open:false", "mode:sandbox"],
+  960,
+  275,
+  1920,
+  20
+).bgimg = "ui.warn-tape";
 UIComponent.setBackgroundOf(
   createUIComponent(
     ["in-game"],
@@ -1645,6 +1806,430 @@ createUIComponent(
   true,
   55
 );
+//#endregion
+//###################################################################
+//
+// in-game UI > utility UI > SANDBOX TOOLS
+//
+//###################################################################
+//#region sand tools
+UIComponent.setCondition("tool:none");
+UIComponent.setCondition("min:true");
+UIComponent.setCondition("c:shards");
+UIComponent.setCondition("d:add");
+let tocreate = 0;
+
+createUIComponent(["in-game"], ["mode:sandbox", "min:false"], 1500, 1000, 800, 80).bgimg =
+  "ui.warn-tape-wide";
+createUIComponent(["in-game"], ["mode:sandbox", "min:true"], 1860, 1000, 80, 80).bgimg =
+  "ui.warn-tape-wide";
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1860,
+  1000,
+  55,
+  55,
+  "none",
+  () => UIComponent.setCondition("min:true"),
+  "-"
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:true"],
+  1860,
+  1000,
+  55,
+  55,
+  "none",
+  () => UIComponent.setCondition("min:false"),
+  "+"
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher|diff|currency"],
+  1860,
+  1000,
+  55,
+  55,
+  "none",
+  () => UIComponent.setCondition("tool:none"),
+  "X"
+);
+
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1250,
+  930,
+  0,
+  0,
+  "none",
+  null,
+  "Sandbox Tools",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1170,
+  1000,
+  120,
+  55,
+  "none",
+  () => UIComponent.setCondition("tool:switcher"),
+  "Mode\nSwitch",
+  true,
+  20
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1320,
+  1000,
+  120,
+  55,
+  "none",
+  () => UIComponent.setCondition("tool:diff"),
+  "Difficulty\nSwitch",
+  true,
+  20
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:none", "min:false"],
+  1470,
+  1000,
+  120,
+  55,
+  "none",
+  () => UIComponent.setCondition("tool:currency"),
+  "Currency\nSpawner",
+  true,
+  20
+);
+
+// mode switcher
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher", "min:false"],
+  1250,
+  930,
+  0,
+  0,
+  "none",
+  null,
+  "Mode Switcher",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher", "min:false"],
+  1750,
+  930,
+  300,
+  40,
+  "none",
+  null,
+  "Not reversible!",
+  true,
+  30
+).textColour = [255, 197, 0];
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher", "min:false"],
+  1200,
+  1000,
+  180,
+  55,
+  "none",
+  () => {
+    game.mode = "adventure";
+  },
+  "Adventure",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:switcher", "min:false"],
+  1400,
+  1000,
+  180,
+  55,
+  "none",
+  () => {
+    game.mode = "boss-rush";
+  },
+  "*Boss Rush",
+  true,
+  30
+);
+
+// diff switcher
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:diff", "min:false"],
+  1300,
+  930,
+  0,
+  0,
+  "none",
+  null,
+  "Difficulty Switcher",
+  true,
+  30
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:diff", "min:false"],
+    1190,
+    1000,
+    150,
+    55,
+    "none",
+    () => {
+      game.difficulty = "easy";
+    },
+    "Easy",
+    true,
+    30
+  ),
+  "emphasised",
+  { get: () => game.difficulty === "easy" }
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:diff", "min:false"],
+    1360,
+    1000,
+    150,
+    55,
+    "none",
+    () => {
+      game.difficulty = "normal";
+    },
+    "Normal",
+    true,
+    30
+  ),
+  "emphasised",
+  { get: () => game.difficulty === "normal" }
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:diff", "min:false"],
+    1530,
+    1000,
+    150,
+    55,
+    "none",
+    () => {
+      game.difficulty = "hard";
+    },
+    "Hard",
+    true,
+    30
+  ),
+  "emphasised",
+  { get: () => game.difficulty === "hard" }
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:diff", "min:false"],
+    1700,
+    1000,
+    150,
+    55,
+    "none",
+    () => {
+      game.difficulty = "impossible";
+    },
+    "Impos",
+    true,
+    30
+  ),
+  "emphasised",
+  { get: () => game.difficulty === "impossible" }
+);
+
+// currency adder
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1300,
+  930,
+  0,
+  0,
+  "none",
+  null,
+  "Currency Spawner",
+  true,
+  30
+);
+Object.defineProperty(
+  createUIComponent(
+    ["in-game"],
+    ["mode:sandbox", "tool:currency", "min:false"],
+    1470,
+    1000,
+    240,
+    55,
+    "none",
+    () => {
+      if (UIComponent.evaluateCondition("c:shards")) game.shards += tocreate;
+      if (UIComponent.evaluateCondition("c:bloonstones")) game.bloonstones += tocreate;
+      tocreate = 0;
+    },
+    "",
+    true,
+    30
+  ),
+  "text",
+  { get: () => "" + tocreate }
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1305,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    if (UIComponent.evaluateCondition("c:shards")) UIComponent.setCondition("c:bloonstones");
+    else if (UIComponent.evaluateCondition("c:bloonstones")) UIComponent.setCondition("c:shards");
+  }
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1223,
+  1000,
+  70,
+  55,
+  "none",
+  () => {
+    tocreate = 0;
+  },
+  "Reset",
+  true,
+  20
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false", "d:add"],
+  1140,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    UIComponent.setCondition("d:sub");
+  },
+  "+",
+  true,
+  40
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false", "d:sub"],
+  1140,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    UIComponent.setCondition("d:add");
+  },
+  "-",
+  true,
+  40
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1635,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    if (UIComponent.evaluateCondition("d:add")) tocreate += 10000;
+    if (UIComponent.evaluateCondition("d:sub")) tocreate -= 10000;
+  },
+  "10k",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1710,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    if (UIComponent.evaluateCondition("d:add")) tocreate += 1000;
+    if (UIComponent.evaluateCondition("d:sub")) tocreate -= 1000;
+  },
+  "1k",
+  true,
+  30
+);
+createUIComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false"],
+  1785,
+  1000,
+  55,
+  55,
+  "none",
+  () => {
+    if (UIComponent.evaluateCondition("d:add")) tocreate += 100;
+    if (UIComponent.evaluateCondition("d:sub")) tocreate -= 100;
+  },
+  "100",
+  true,
+  30
+);
+createUIImageComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false", "c:shards"],
+  1305,
+  1000,
+  55,
+  55,
+  null,
+  "ui.shard",
+  false
+);
+createUIImageComponent(
+  ["in-game"],
+  ["mode:sandbox", "tool:currency", "min:false", "c:bloonstones"],
+  1305,
+  1000,
+  55,
+  55,
+  null,
+  "ui.bloonstone",
+  false
+);
+
+//#endregion
+//###################################################################
+//
+// in-game UI > universal UI > CLOSE BUTTON
+//
+//###################################################################
+//#region close
 
 // menu close button
 createUIComponent(
@@ -1662,3 +2247,4 @@ createUIComponent(
   },
   "Close"
 ).isBackButton = true;
+//#endregion

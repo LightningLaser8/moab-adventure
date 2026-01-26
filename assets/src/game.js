@@ -6,13 +6,27 @@ const game = {
   },
   set difficulty(_) {
     this._diff = _;
-    world.updateDifficulty();
     UIComponent.setCondition("difficulty:" + _);
+    world.updateDifficulty();
   },
-  mode: "none",
+  _m: "none",
+  /**@type {"none"|"adventure"|"boss-rush"|"sandbox"|"endless"} */
+  get mode() {
+    return this._m;
+  },
+  set mode(_) {
+    this._m = _;
+    UIComponent.setCondition("mode:" + _);
+  },
+  /**@type {-1|0|1|2|3|4|5} */
   saveslot: -1,
-  //Control type
+  music: true,
+  /**@type {"keyboard"|"gamepad"} */
   control: "keyboard",
+  /**@type {"radial"|"horizontal"} */
+  reloadBarStyle: "radial",
+  /**@type {"mono"|"rainbow"|"thematic"} */
+  reloadBarTheme: "rainbow",
   /** @type {Entity | null} Player entity */
   player: null,
   /** @type {Entity | null} Support blimp entity */
@@ -25,14 +39,21 @@ const game = {
   level: 1,
   bosstimer: 400,
   bossdelay: 400,
-  bossinterval: 400,
+  get bossinterval() {
+    return world.bossInterval;
+  },
   paused: false,
   //progression
   world: "",
   achievements: [],
+  bossweapons: new Set(),
   won: false,
   //keys
   keybinds: new KeybindHandler(),
+
+  gl: false,
+  flashing: true,
+  effects: 1
 };
 /** @type {World} */
 let world;
@@ -61,23 +82,28 @@ function getCanvasDimensions(baseWidth, baseHeight) {
 let fonts = {};
 let backgrounds = {
   grad_normal: null,
+  grad_boss_rush: null,
+  grad_sandbox: null,
   grad_impossible: null,
+  grad_endless: null,
 };
 
 async function preload() {
-  await Registry.images.forEachAsync(async (name, item) => {
-    await item.load();
-  });
-  await Registry.sounds.forEachAsync(async (name, item) => {
-    if (!(await item.load())) console.error("Failed to load " + name);
-  });
-  fonts.ocr = await loadFont("assets/font/ocr_a_extended.ttf");
+  console.log("preloading game...");
+  ImageCTX.commit();
+  await ImageCTX.load();
+  SoundCTX.commit();
+  await SoundCTX.loadAll();
+  fonts.ocr = await loadFont(
+    game.gl ? "assets/font/ocr_a_extended_bold.ttf" : "assets/font/ocr_a_extended.ttf",
+  );
   fonts.darktech = await loadFont("assets/font/darktech_ldr.ttf");
 }
 //Set up the canvas, using the previous function
-function setup() {
+async function setup() {
+  createCanvas(...getCanvasDimensions(baseWidth, baseHeight), game.gl ? WEBGL : undefined);
+  console.log("starting game...");
   try {
-    createCanvas(...getCanvasDimensions(baseWidth, baseHeight));
     //Creates background stuff
     backgrounds.grad_normal = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
@@ -87,11 +113,42 @@ function setup() {
           [0, 0, 0],
           [0, 200, 255],
         ],
-        y / 100
+        y / 100,
       ); //Get colour interpolation
       backgrounds.grad_normal.noStroke(); //Remove outline
       backgrounds.grad_normal.fill(col); //Set fill colour to use
       backgrounds.grad_normal.rect(0, y, 2, 1); //Draw the rectangle
+    }
+    backgrounds.grad_boss_rush = createGraphics(1, 100);
+    for (let y = 0; y < 100; y++) {
+      //For each vertical unit
+      let col = colinterp(
+        [
+          [0, 0, 0],
+          [50, 0, 100],
+          [200, 0, 255],
+        ],
+        y / 100,
+      ); //you get it by now
+      backgrounds.grad_boss_rush.noStroke();
+      backgrounds.grad_boss_rush.fill(col);
+      backgrounds.grad_boss_rush.rect(0, y, 2, 1);
+    }
+    backgrounds.grad_sandbox = createGraphics(1, 100);
+    for (let y = 0; y < 100; y++) {
+      //For each vertical unit
+      let col = colinterp(
+        [
+          [0, 0, 0],
+          [50, 35, 0],
+          [150, 100, 0],
+          [255, 200, 0],
+        ],
+        y / 100,
+      ); //you get it by now
+      backgrounds.grad_sandbox.noStroke();
+      backgrounds.grad_sandbox.fill(col);
+      backgrounds.grad_sandbox.rect(0, y, 2, 1);
     }
     backgrounds.grad_impossible = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
@@ -107,7 +164,7 @@ function setup() {
           [255, 255, 0],
           [255, 255, 255],
         ],
-        y / 100
+        y / 100,
       ); //you get it by now
       backgrounds.grad_impossible.noStroke();
       backgrounds.grad_impossible.fill(col);
@@ -117,6 +174,7 @@ function setup() {
     rectMode(CENTER);
     imageMode(CENTER);
     textFont(fonts.darktech);
+    textAlign(LEFT, BASELINE);
   } catch (e) {
     crash(e);
   }
@@ -130,14 +188,19 @@ function windowResized() {
 function draw() {
   try {
     clear();
+    if (game.gl) translate(-width / 2, -height / 2);
     scale(contentScale);
     image(
-      game.difficulty === "impossible" ? backgrounds.grad_impossible : backgrounds.grad_normal,
+      game.difficulty === "impossible" ? backgrounds.grad_impossible
+      : game.mode === "boss-rush" ? backgrounds.grad_boss_rush
+      : game.mode === "sandbox" ? backgrounds.grad_sandbox
+      : backgrounds.grad_normal,
       960,
       540,
       1920,
-      1080
+      1080,
     );
+    translate(0, 0, 2);
     if (world) {
       if (ui.menuState === "in-game") {
         background.draw();
@@ -150,19 +213,92 @@ function draw() {
       Timer.main.tick();
       effectTimer.tick();
     }
+    customDrawCode();
   } catch (e) {
     console.error(e);
     crash(e);
   }
 }
 
+/** To be replaced with other code in devtools console :) */
+function customDrawCode() {}
+
 function uiFrame() {
   //Tick, then draw the UI
   tickUI();
+  translate(0, 0, 1);
   drawUI();
   //Reset mouse held status
-  if (ui.waitingForMouseUp && !mouseIsPressed) ui.waitingForMouseUp = false;
-  if (UIComponent.evaluateCondition("debug:true")) showMousePos();
+  if (ui.waitingForMouseUp && !ui.mouse.down) ui.waitingForMouseUp = false;
+  if (UIComponent.evaluateCondition("debug:true")) debugUI();
+  else drawCursor(ui.target.x, ui.target.y);
+}
+
+function drawCursor(x, y) {
+  translate(0, 0, 10);
+  if (game.player)
+    drawReloadBars(
+      x,
+      y,
+      game.reloadBarTheme === "rainbow" ? rainbowCols
+      : game.reloadBarTheme === "mono" ? monoCols
+      : game.reloadBarTheme === "thematic" ?
+        game.player.weaponSlots.map((slot, i) =>
+          slot.weapon && i < 5 ? slot.weapon.themeColour : null,
+        )
+      : null,
+      game.player.weaponSlots.map((slot, i) =>
+        slot.weapon && i < 5 ? slot.weapon._cooldown / slot.weapon.reload : 0,
+      ),
+    );
+  ImageCTX.draw(ui.waitingForMouseUp ? "ui.cursor-wait" : "ui.cursor", x, y, 64, 64);
+}
+
+function fakeCursor(x, y) {
+  drawReloadBars(
+    x,
+    y,
+    game.reloadBarTheme === "rainbow" ? rainbowCols
+    : game.reloadBarTheme === "mono" ? monoCols
+    : game.reloadBarTheme === "thematic" ?
+      [
+        [255, 0, 0],
+        [0, 255, 255],
+        [0, 255, 0],
+        [200, 0, 255],
+        [0, 0, 255],
+        [255, 128, 0],
+      ]
+    : null,
+    [0, 1, 2, 3, 4].map((i) => 1 - ((frameCount + i * 10) % 60) / 60),
+  );
+
+  ImageCTX.draw("ui.cursor", x, y, 64, 64);
+}
+
+function drawReloadBars(x, y, cols = null, progresses = []) {
+  let size = 30;
+  push();
+  progresses.forEach((prog, index) => {
+    if (prog) {
+      if (game.reloadBarStyle === "radial") {
+        noFill();
+        stroke(cols[index] ?? [0, 0, 0]);
+        strokeWeight(3);
+        arc(x, y, size * 2, size * 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * prog);
+        size += 4;
+      } else if (game.reloadBarStyle === "horizontal") {
+        rectMode(CORNER);
+        noStroke();
+        fill(64);
+        rect(x + 30, y + size - 48, 60, 5);
+        fill(cols[index] ?? [255, 255, 255]);
+        rect(x + 30, y + size - 48, 60 * prog, 5);
+        size += 8;
+      }
+    }
+  });
+  pop();
 }
 
 function gameFrame() {
@@ -174,6 +310,8 @@ function gameFrame() {
     tickBossEvent();
     checkBoxCollisions();
   }
+  world.tickSound();
+  translate(0, 0, 2);
   world.drawAll();
 }
 
@@ -185,13 +323,25 @@ function tickBossEvent() {
     // If there's no boss active
     else if (game.bosstimer <= 0) {
       //If timer has run out
-      game.bosstimer = game.bossinterval; //Reset timer
+      if (game.mode === "boss-rush") {
+        game.bossdelay = 360;
+      } else game.bosstimer = world.bossInterval; //Reset timer
       world.nextBoss();
       world.reducedSpawns = true;
     } else {
       game.bosstimer -= game.player.speed * 0.0167;
-      if (world.reducedSpawns) world.reducedSpawns = false;
+      if (world.reducedSpawns && game.mode !== "boss-rush") world.reducedSpawns = false;
     }
+  }
+}
+
+function startGame() {
+  createPlayer();
+  createSupport();
+  if (game.mode === "boss-rush") {
+    game.bossdelay = 360;
+    game.bosstimer = 0;
+    world.reducedSpawns = true;
   }
 }
 
@@ -226,18 +376,73 @@ function drawUI() {
   for (let component of ui.components) {
     if (component.active) {
       component.draw();
+      translate(0, 0, 2);
     }
   }
   uiEffectTimer.tick();
+  toasts.draw();
   ui.particles.forEach((p) => p && (p.draw() || p.step(1)));
 }
 
 function tickUI() {
   if (!game.paused) background.tick(game.player?.speed ?? 0);
   ui.tick();
+  toasts.tick();
 }
 
-function showMousePos() {
+function colour(...params) {
+  fill(...params);
+  stroke(...params);
+}
+function labeledLine(x1, y1, x2, y2, label, align = "end") {
+  let d = Math.atan2(y2 - y1, x2 - x1);
+  let len = Math.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2);
+  let invert = Math.abs(d) > Math.PI / 2;
+  push();
+  if (align === "start") translate(x1, y1);
+  else if (align === "end") translate(x2, y2);
+  if (invert) rotate(d + Math.PI);
+  else rotate(d);
+  textAlign(LEFT);
+  textFont(fonts.ocr);
+  textSize(20);
+  let w = textWidth(label);
+  let xoffset =
+    align === "start" ?
+      invert ? -w
+      : 0
+    : invert ? 0
+    : w;
+  noStroke();
+  if (align === "end" && !invert) xoffset = -xoffset;
+  text(label, xoffset, 10);
+  pop();
+  line(x1, y1, x2, y2);
+}
+function labeledCircle(x, y, radius, label, align = "top") {
+  push();
+  textAlign(CENTER);
+  textFont(fonts.ocr);
+  textSize(20);
+  let w = textWidth(label);
+  let xoffset =
+    align === "left" ? -5 - w / 2 - radius
+    : align === "right" ? 5 + w / 2 + radius
+    : 0;
+  let yoffset =
+    align === "top" ? -15 - radius
+    : align === "bottom" ? 15 + radius
+    : 0;
+  noStroke();
+  text(label, x + xoffset, y + yoffset);
+  pop();
+  push();
+  noFill();
+  circle(x, y, radius * 2);
+  pop();
+}
+
+function debugUI() {
   push();
   textAlign(CENTER, CENTER);
   textFont(fonts.ocr);
@@ -245,31 +450,81 @@ function showMousePos() {
   stroke(0);
   strokeWeight(2);
   textSize(40);
-  let mpos = nearestOnScreenPosition(ui.mouse, 60);
   text("X:" + Math.round(ui.mouse.x) + " Y:" + Math.round(ui.mouse.y), ui.mouse.x, ui.mouse.y - 50);
   stroke(255);
-  strokeWeight(2);
+  strokeWeight(3);
   line(ui.mouse.x - 20, ui.mouse.y, ui.mouse.x + 20, ui.mouse.y);
   line(ui.mouse.x, ui.mouse.y - 20, ui.mouse.x, ui.mouse.y + 20);
+  noFill();
+  circle(ui.mouse.x, ui.mouse.y, 40);
 
-  line(ui.mouse.x, ui.mouse.y, mpos.x, mpos.y);
-  circle(mpos.x, mpos.y, 10);
+  colour(255, 0, 0);
+  if (world.entities) {
+    let dist = Infinity,
+      min = null;
+    world.entities.forEach((ent) => {
+      if (!ent || ent.dead || ent.team === game.player?.team) return;
+      let d = ent.lastPos.distanceTo(ui.mouse);
+      if (d < dist) {
+        dist = d;
+        min = ent;
+      }
+    });
+
+    if (min) labeledLine(ui.mouse.x, ui.mouse.y, min.x, min.y, "hovered   ");
+  }
+  push();
+  stroke(255, 0, 255);
+  noFill();
+  if (world.entities) world.entities.forEach((ent) => ent && circle(ent.x, ent.y, ent.hitSize * 2));
+  stroke(128, 0, 255);
+  if (world.bullets) world.bullets.forEach((blt) => blt && circle(blt.x, blt.y, blt.hitSize * 2));
+  stroke(0, 128, 255);
+  if (world.bullets)
+    world.bullets.forEach(
+      (blt) =>
+        blt &&
+        line(blt.x, blt.y, blt.x + Math.cos(blt.directionRad) * 60 * blt.updates, blt.y) |
+          line(blt.x, blt.y, blt.x, blt.y + Math.sin(blt.directionRad) * 60 * blt.updates) |
+          line(
+            blt.x,
+            blt.y,
+            blt.x + Math.cos(blt.directionRad) * 60 * blt.updates,
+            blt.y + Math.sin(blt.directionRad) * 60 * blt.updates,
+          ),
+    );
+  pop();
+  colour(200, 200, 255);
+  ui.touches.forEach((t, i) => {
+    labeledCircle(t.x / contentScale, t.y / contentScale, 75, "touch " + i);
+  });
+  if (game.player) {
+    colour(0, 255, 255);
+    labeledCircle(game.player.x, game.player.y, game.player.hitSize * 1.75, "base shield size");
+
+    colour(0, 255, 0);
+    labeledLine(game.player.x, game.player.y, ui.mouse.x, ui.mouse.y, "direct aim  ");
+    colour(255, 255, 0);
+    labeledLine(
+      ui.mouse.x,
+      ui.mouse.y,
+      (ui.mouse.x - game.player.x) * 2000 + game.player.x,
+      (ui.mouse.y - game.player.y) * 2000 + game.player.y,
+      "  extrapolated aim",
+      "start",
+    );
+  }
   pop();
 }
 
 function isOffscreen(entity) {
-  return (
-    entity.x < -entity.hitSize ||
-    entity.x > 1920 + entity.hitSize ||
-    entity.y < -entity.hitSize ||
-    entity.y > 1080 + entity.hitSize
-  );
+  return entity.x < 0 || entity.x > 1920 || entity.y < 0 || entity.y > 1080;
 }
 
 function distanceOffscreen(entity) {
   return new Vector(
     entity.x < -entity.hitSize ? entity.x + entity.hitSize : entity.x + entity.hitSize - 1920,
-    entity.y < -entity.hitSize ? entity.y + entity.hitSize : entity.y + entity.hitSize - 1080
+    entity.y < -entity.hitSize ? entity.y + entity.hitSize : entity.y + entity.hitSize - 1080,
   ).magnitude;
 }
 
@@ -309,19 +564,11 @@ function showOffscreenBosses() {
       circle(circlepos.x, circlepos.y, 120);
       strokeWeight(5);
       circle(circlepos.x, circlepos.y, 90);
-      let size = new Vector(boss.drawer.width, boss.drawer.height);
-      let scaled =
-        size.x > size.y
-          ? new Vector(110, (size.y * 110) / size.x)
-          : new Vector((size.x * 110) / size.y, 110);
-      rotatedImg(
-        boss.drawer.image,
-        circlepos.x,
-        circlepos.y,
-        scaled.x,
-        scaled.y,
-        boss.directionRad
-      );
+      let m = boss.getModel();
+      let size = new Vector(m.displayWidth, m.displayHeight);
+      let scale = size.x > size.y ? 110 / size.x : 110 / size.y;
+      // console.log(scale);
+      boss.drawIcon(circlepos.x, circlepos.y, scale);
       textFont(fonts.ocr);
       fill(150, 150, 150);
       textSize(30);
@@ -335,12 +582,12 @@ function showOffscreenBosses() {
 function createPlayer() {
   let player = construct(Registry.entities.get("player"));
   //Add all slots: not all of them will be accessible
-  player.addWeaponSlot(selector.getAP(1));
-  player.addWeaponSlot(selector.getAP(2));
-  player.addWeaponSlot(selector.getAP(3));
-  player.addWeaponSlot(selector.getAP(4));
-  player.addWeaponSlot(selector.getAP(5));
-  player.addWeaponSlot(aps.booster);
+  player.addWeaponSlot(selector2.ap(1));
+  player.addWeaponSlot(selector2.ap(2));
+  player.addWeaponSlot(selector2.ap(3));
+  player.addWeaponSlot(selector2.ap(4));
+  player.addWeaponSlot(selector2.ap(5));
+  player.addWeaponSlot(selector2.booster());
   player.addToWorld(world);
   game.player = player;
   //is moab
@@ -348,19 +595,19 @@ function createPlayer() {
   //Change to an accessor property
   Object.defineProperty(player, "target", {
     get: () => {
-      return ui.mouse;
+      return ui.target;
     }, //This way, I only have to set it once, and it's responsive.
   });
 
   world.particles.push(
-    new WaveParticle(player.x, player.y, 120, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0)
+    new WaveParticle(player.x, player.y, 120, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0),
   );
 }
 
 function createSupport() {
   let suppor = construct(Registry.entities.get("support"));
   //Add all slots: not all of them will be accessible
-  suppor.addWeaponSlot(selector.sp1());
+  suppor.addWeaponSlot(selector2.sp1());
   suppor.addToWorld(world);
   game.support = suppor;
 
@@ -368,13 +615,13 @@ function createSupport() {
   suppor.target = game.player;
 
   world.particles.push(
-    new WaveParticle(suppor.x, suppor.y, 60, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0)
+    new WaveParticle(suppor.x, suppor.y, 60, 0, 1920, [255, 0, 0], [255, 0, 0, 0], 100, 0),
   );
-  console.log("spawned support blimp", game.support)
+  // console.log("spawned support blimp", game.support);
 }
 
 function fireIfPossible() {
-  if (ui.menuState === "in-game" && mouseIsPressed) {
+  if (ui.menuState === "in-game" && ui.firing) {
     for (let slotidx = 0; slotidx < 5; slotidx++) {
       let weapon = game.player?.weaponSlots[slotidx]?.weapon;
       if (weapon) weapon.fire();
@@ -400,12 +647,16 @@ function checkBoxCollisions() {
     }
   }
   if (game.player.dead) {
-    playerDies();
+    if (game.mode === "sandbox") game.player.dead = false;
+    else playerDies();
   }
 }
 
 function playerDies() {
-  SoundCTX.play("player-death");
+  setTimeout(() => {
+    SoundCTX.stop("*");
+    SoundCTX.play("player-death");
+  }, 0);
   deathStats.shardCounter.text = "Shards: " + shortenedNumber(game.shards);
   deathStats.bloonstoneCounter.text = "Bloonstones: " + shortenedNumber(game.bloonstones);
   deathStats.progress.text = "Zone: " + world.name + " | Level " + game.level;
@@ -421,6 +672,9 @@ function playerDies() {
 }
 
 function playerWins() {
+  setTimeout(() => {
+    SoundCTX.stop("*");
+  }, 0);
   winStats.shardCounter.text = "Shards: " + shortenedNumber(game.shards);
   winStats.bloonstoneCounter.text = "Bloonstones: " + shortenedNumber(game.bloonstones);
   winStats.damageDealt.text = "Damage Dealt: " + shortenedNumber(game.player.damageDealt);
@@ -434,6 +688,7 @@ function playerWins() {
 }
 
 function reset() {
+  SoundCTX.unmuffle();
   world.entities.splice(0);
   world.particles.splice(0);
   world.bullets.splice(0);
@@ -446,25 +701,27 @@ function reset() {
   game.maxDV = 0;
   game.totalBosses = 0;
 
-  for (let slot of game.player.weaponSlots) {
-    slot.clear(); //Remove any weapons
-  }
+  // for (let slot of game.player.weaponSlots) {
+  //   slot.clear(); //Remove any weapons
+  // }
   //back to start
   moveToWorld("ocean-skies");
 
   // Reset some UI
   UIComponent.setCondition("boss:no");
 
-  //garbage collect player
+  //garbage collect player and support
+  game.support = null;
   game.player = null;
 }
 
 //Triggers on any key press
-function keyPressed() {
+function keyPressed(ev) {
+  if (ui.keybinds.event(ev)) return false;
+  if (ui.menuState === "in-game" && game.keybinds.event(ev)) return false;
+
   //ignore caps lock
   let k = key.toLowerCase();
-  if (ui.keybinds.down(k)) return false;
-  if (ui.menuState === "in-game" && game.keybinds.down(k)) return false;
 
   if (k === "f3") {
     //Toggle debug mode
@@ -481,10 +738,9 @@ function keyPressed() {
   }
   return false; //Prevent any default behaviour
 }
-function keyReleased() {
-  let k = key.toLowerCase();
-  ui.keybinds.up(k);
-  game.keybinds.up(k);
+function keyReleased(ev) {
+  ui.keybinds.event(ev, true);
+  game.keybinds.event(ev, true);
 }
 
 function keyTyped() {
@@ -496,19 +752,19 @@ function keyTyped() {
 function pause() {
   game.paused = true;
   UIComponent.setCondition("paused:true");
-  SoundCTX.stop(world.bgm);
 }
 
 function unpause() {
   game.paused = false;
   UIComponent.setCondition("paused:false");
-  SoundCTX.play(world.bgm, true);
 }
 
 function moveToWorld(worldName = "ocean-skies") {
   if (world?.bgm) SoundCTX.stop(world.bgm);
   //Construct registry item as a new World.
   let newWorld = construct(Registry.worlds.get(worldName), World);
+  if (newWorld.muffleSound) SoundCTX.muffle();
+  else SoundCTX.unmuffle();
   //If the player exists
   if (game.player) {
     //Put them in it
@@ -540,7 +796,7 @@ function reload() {
 
 function saveGame() {
   let save = {
-    achs: game.achievements,
+    saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
     level: game.level,
     zone: game.world,
     znlvl: world.getBossIndex(),
@@ -552,7 +808,7 @@ function saveGame() {
 
     levels: game.player.weaponSlots.map((x) => x.tier),
     support: game.support.weaponSlots.map((x) => x.tier),
-    choices: [1, 2, "3/4", 5].map((s) => +UIComponent.getCondition("ap" + s + "-slot")),
+    choices: [1, 2, 3, 4, 5].map((s) => +UIComponent.getCondition("ap" + s + "-slot")),
     blimp: game.player.blimpName,
 
     health: game.player.health,
@@ -569,8 +825,10 @@ function saveGame() {
     },
 
     won: game.won,
+    bossweapons: [...game.bossweapons]
   };
   Serialiser.set("save." + game.saveslot, save);
+  Serialiser.set("achievements", game.achievements);
   notifyEffect("Game saved in slot " + game.saveslot);
   regenSaveDescrs();
 }
@@ -583,11 +841,10 @@ function deleteGame(slot) {
 function loadGame(slot) {
   let save = Serialiser.get("save." + slot);
   //settings
-  game.difficulty = save.difficulty ?? "easy";
+  game.difficulty = save.difficulty ?? "normal";
   game.mode = save.mode ?? "adventure";
   //Progress
   game.bossdelay = 0;
-  game.achievements = save.achs ?? [];
   moveToWorld(save.zone ?? "ocean-skies");
   world.setBossIndex(save.znlvl ?? 1);
   game.level = save.level ?? 1;
@@ -596,18 +853,19 @@ function loadGame(slot) {
   game.maxDV = save.maxDV ?? 0;
   game.player.dv = save.dv ?? 0;
   //Choices
+  [1, 2, 3, 4, 5].forEach((sl, i) => {
+    selector2.chooseAP(sl, (save.choices ?? [1, 1, 1, 1, 1])[i] ?? 1);
+  });
   game.player.weaponSlots = [];
-  [1, 2, "3/4", 5].forEach((sl, i) => selector.setAP(sl, (save.choices ?? [1, 1, 1, 1])[i] ?? 1));
-  game.player.weaponSlots = [];
-  game.player.addWeaponSlot(selector.getAP(1));
-  game.player.addWeaponSlot(selector.getAP(2));
-  game.player.addWeaponSlot(selector.getAP(3));
-  game.player.addWeaponSlot(selector.getAP(4));
-  game.player.addWeaponSlot(selector.getAP(5));
-  game.player.addWeaponSlot(selector.booster());
+  game.player.addWeaponSlot(selector2.ap(1));
+  game.player.addWeaponSlot(selector2.ap(2));
+  game.player.addWeaponSlot(selector2.ap(3));
+  game.player.addWeaponSlot(selector2.ap(4));
+  game.player.addWeaponSlot(selector2.ap(5));
+  game.player.addWeaponSlot(selector2.booster());
   for (let sl = 0; sl < 6; sl++) game.player.weaponSlots[sl].setTier((save.levels ?? [])[sl] ?? 0);
 
-  game.support.addWeaponSlot(selector.sp1());
+  game.support.addWeaponSlot(selector2.sp1());
   for (let sl = 0; sl < 1; sl++)
     game.support.weaponSlots[sl].setTier((save.support ?? [])[sl] ?? 0);
   //blomp
@@ -617,4 +875,5 @@ function loadGame(slot) {
   game.player.destroyed = save.destroyed ?? { bosses: 0, boxes: 0 };
   game.player.damageDealt = save.damage?.dealt ?? 0;
   game.player.damageTaken = save.damage?.taken ?? 0;
+  game.bossweapons = new Set(save.bossweapons ?? []);
 }

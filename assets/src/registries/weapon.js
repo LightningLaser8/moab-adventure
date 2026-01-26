@@ -1,6 +1,7 @@
 //Name max line width = 40 chars
 //Description max line width = 51 chars, prefer 50
 //Description max line number = 4 lines, prefer 3
+//Auto-wrapped, max char count 204, prefer ~150 (without line breaks)
 
 //Tier 1 - 2
 Registry.weapons.add("tiny-shooter", {
@@ -187,8 +188,9 @@ Registry.weapons.add("double-shooter", {
 Registry.weapons.add("bomb-shooter", {
   name: "Bomb Shooter",
   description: "Shoots an explosive, dealing damage in an area.",
-  reload: 60,
+  reload: 45,
   fireSound: "bomb-shoot",
+  themeColour: [0,0,0],
   cost: {
     shards: 540,
     bloonstones: 0,
@@ -198,7 +200,7 @@ Registry.weapons.add("bomb-shooter", {
       type: "Bullet",
       lifetime: 40,
       speed: 30,
-      hitSize: 15,
+      hitSize: 75,
       trail: false,
       despawnSound: "explosion",
       damage: [
@@ -478,6 +480,7 @@ Registry.weapons.add("laser-blaster", {
   description: "Shoots pulses of high-damage plasma.",
   reload: 20,
   fireSound: "laser-bolt",
+  themeColour: [255,0,0],
   cost: {
     shards: 350,
     bloonstones: 0,
@@ -493,17 +496,17 @@ Registry.weapons.add("laser-blaster", {
       damage: [
         {
           type: "laser",
-          amount: 3,
+          amount: 4.5,
         },
       ],
       drawer: {
-        shape: "ellipse",
-        fill: "red",
-        width: 30,
-        height: 10,
+        hidden: true
       },
       trail: true,
-      trailColour: [255, 0, 0, 50],
+      trailColour: [255, 255, 255],
+      trailColourTo: [255, -500, -500],
+      trailLifeFactor: 0.3,
+      trailType: "linear"
     },
     pattern: {}, //Blank pattern
   },
@@ -878,6 +881,7 @@ Registry.weapons.add("napalm-bombs", {
   description: "Explosions set targets on fire.",
   reload: 60,
   fireSound: "bomb-shoot",
+  themeColour: [255,128,0],
   recoil: 2,
   cost: {
     shards: 1350,
@@ -888,10 +892,11 @@ Registry.weapons.add("napalm-bombs", {
       type: "Bullet",
       lifetime: 40,
       speed: 30,
-      hitSize: 15,
+      hitSize: 75,
       trail: false,
       status: "burning",
       statusDuration: 180, //3 second fire
+      despawnSound: "explosion",
       damage: [
         {
           type: "ballistic",
@@ -1129,8 +1134,9 @@ Registry.weapons.add("missile-launcher", {
   description: "Shoots faster moving slightly homing missiles",
   reload: 45,
   fireSound: "bomb-shoot",
+  themeColour: [255,64,0],
   cost: {
-    shards: 800,
+    shards: 900,
     bloonstones: 0,
   },
   shoot: {
@@ -1138,7 +1144,7 @@ Registry.weapons.add("missile-launcher", {
       type: "Missile",
       lifetime: 40,
       speed: 40,
-      hitSize: 18,
+      hitSize: 48,
       trail: true,
       targetType: "hovered",
       turnSpeed: 1,
@@ -1151,7 +1157,7 @@ Registry.weapons.add("missile-launcher", {
         {
           type: "explosion",
           area: 125,
-          amount: 7.5,
+          amount: 10,
         },
       ],
       drawer: {
@@ -1408,6 +1414,7 @@ Registry.weapons.add("kinetic-impactor", {
   description: "Hit entities collide with others!",
   reload: 45,
   fireSound: "shoot",
+  themeColour: [100,128,128],
   cost: {
     shards: 850,
     bloonstones: 0,
@@ -1698,6 +1705,7 @@ Registry.weapons.add("cryo-cannon", {
   description: "Shoots freezing ice bombs that slow down targets' weapons",
   reload: 45,
   fireSound: "bomb-shoot",
+  themeColour: [100,255,255],
   cost: {
     shards: 850,
     bloonstones: 0,
@@ -2002,6 +2010,7 @@ Registry.weapons.add("accelerator", {
   accel: 0.15, //15% more each shot
   accelDecay: 0.03,
   fireSound: "laser-bolt",
+  themeColour: [255,0,0],
   cost: {
     shards: 1250,
     bloonstones: 0,
@@ -2017,17 +2026,17 @@ Registry.weapons.add("accelerator", {
       damage: [
         {
           type: "laser",
-          amount: 3,
+          amount: 4.5,
         },
       ],
       drawer: {
-        shape: "ellipse",
-        fill: "red",
-        width: 30,
-        height: 10,
+        hidden: true
       },
       trail: true,
-      trailColour: [255, 0, 0, 50],
+      trailColour: [255, 255, 255],
+      trailColourTo: [255, -500, -500],
+      trailLifeFactor: 0.3,
+      trailType: "linear"
     },
     pattern: {}, //Blank pattern
   },
@@ -2315,6 +2324,7 @@ Registry.weapons.add("lancer", {
   description: "Shoots high-damage piercing beams at a slower rate.",
   reload: 75,
   fireSound: "laser",
+  themeColour: [0,255,255],
   cost: {
     shards: 1050,
     bloonstones: 0,
@@ -2638,6 +2648,7 @@ Registry.weapons.add("sniper", {
     "Shots travel to the mouse pointer instantly, dealing high damage to a single target.",
   reload: 60,
   fireSound: "sniper-shoot",
+  themeColour: [255,255,0],
   recoil: 5,
   cost: {
     shards: 1000,
@@ -3023,6 +3034,7 @@ Registry.weapons.add("nuke-launcher", {
     "Shoots nuclear explosives, dealing great damage in a much larger area, leaving radioactive fallout.",
   reload: 90,
   fireSound: "bomb-shoot",
+  themeColour: [0,255,0],
   recoil: 5,
   cost: {
     shards: 5200,
@@ -3033,7 +3045,7 @@ Registry.weapons.add("nuke-launcher", {
       type: "Bullet",
       lifetime: 60,
       speed: 30,
-      hitSize: 15,
+      hitSize: 75,
       trail: false,
       status: "burning",
       despawnSound: "big-boom",
@@ -3344,6 +3356,7 @@ Registry.weapons.add("missile-battery", {
   description: "Launches 6 smaller missiles, following the mouse cursor.",
   reload: 90,
   fireSound: "bomb-shoot",
+  themeColour: [255,0,0],
   cost: {
     shards: 3200,
     bloonstones: 0,
@@ -3353,7 +3366,7 @@ Registry.weapons.add("missile-battery", {
       type: "Missile",
       lifetime: 120,
       speed: 40,
-      hitSize: 9,
+      hitSize: 24,
       trail: true,
       targetType: "mouse",
       turnSpeed: 4,
@@ -3677,6 +3690,7 @@ Registry.weapons.add("controlled-collision-device", {
     "Finer control over directional displacement. (Knockback acts towards mouse)",
   reload: 45,
   fireSound: "shoot",
+  themeColour: [100,192,192],
   cost: {
     shards: 650, //The only T5 to actually cost *less* than the T4
     bloonstones: 0,
@@ -3978,6 +3992,7 @@ Registry.weapons.add("shattering-shells", {
     "Ice bombs release many low damage shards, with a lesser effect",
   reload: 45,
   fireSound: "bomb-shoot",
+  themeColour: [0,255,255],
   cost: {
     shards: 2400,
     bloonstones: 0,
@@ -4495,6 +4510,7 @@ Registry.weapons.add("greenbeam", {
   accelDecay: 0.03,
   maxAccel: 4, //More max acceleration
   fireSound: "laser-bolt",
+  themeColour: [0,255,0],
   cost: {
     shards: 3750,
     bloonstones: 0,
@@ -4510,17 +4526,17 @@ Registry.weapons.add("greenbeam", {
       damage: [
         {
           type: "laser",
-          amount: 6,
+          amount: 9,
         },
       ],
       drawer: {
-        shape: "ellipse",
-        fill: [0, 255, 0],
-        width: 30,
-        height: 10,
+        hidden: true
       },
       trail: true,
-      trailColour: [0, 255, 0, 50],
+      trailColour: [255, 255, 255],
+      trailColourTo: [-500, 255, -500],
+      trailLifeFactor: 0.3,
+      trailType: "linear"
     },
     pattern: {}, //Blank pattern
   },
@@ -4887,6 +4903,7 @@ Registry.weapons.add("spike", {
   reload: 90,
   fireSound: "laser",
   recoil: 15,
+  themeColour: [0,200,255],
   cost: {
     shards: 2900,
     bloonstones: 0,
@@ -5339,6 +5356,7 @@ Registry.weapons.add("sharp-shooter", {
     "30% chance to fire a powerful critical shot, dealing triple damage.",
   reload: 60,
   fireSound: "sniper-shoot",
+  themeColour: [255,200,0],
   cost: {
     shards: 3600,
     bloonstones: 0,
@@ -5633,6 +5651,7 @@ Registry.weapons.add("du-rounds", {
     "Depleted uranium rounds pierce enemies of any type, and irradiate them!",
   reload: 50,
   fireSound: "shoot",
+  themeColour: [100,192,100],
   recoil: 20,
   cost: {
     shards: 2795,
@@ -5884,6 +5903,7 @@ Registry.weapons.add("meltdown", {
   description: "Explosions have more fallout, and fire radioactive lasers.",
   reload: 220,
   fireSound: "bomb-shoot",
+  themeColour: [255,0,0],
   recoil: 15,
   cost: {
     shards: 40000,
@@ -5894,7 +5914,7 @@ Registry.weapons.add("meltdown", {
       type: "Bullet",
       lifetime: 60,
       speed: 30,
-      hitSize: 15,
+      hitSize: 75,
       trail: false,
       drawer: {
         image: "bullet.nuke",
@@ -6370,6 +6390,7 @@ Registry.weapons.add("swarmer", {
   description: "Even more missiles, and missiles home in on boxes.",
   reload: 25,
   fireSound: "bomb-shoot",
+  themeColour: [255,0,0],
   cost: {
     shards: 12500,
     bloonstones: 200,
@@ -6941,6 +6962,7 @@ Registry.weapons.add("telekinetic-transporter", {
     "Main attack replaced with a telekinetic grab ability, capable of smashing boxes into each other. Multiple boxes can be held at once.",
   reload: 60,
   fireSound: "laser-bolt",
+  themeColour: [0,255,255],
   cost: {
     shards: 20500, //expensive bc powerful box delete
     bloonstones: 200,
@@ -7337,6 +7359,7 @@ Registry.weapons.add("ray-of-frost", {
     shards: 32500,
     bloonstones: 200,
   },
+  themeColour: [0,255,255],
   weapons: [
     {
       //Main weapon
@@ -8462,6 +8485,7 @@ Registry.weapons.add("purple-destroyer", {
   description: "Periodic purple beam deals extreme damage.",
   reload: 270,
   fireSound: "laser-beam",
+  themeColour: [192,0,255],
   cost: {
     shards: 27500,
     bloonstones: 200,
@@ -9295,6 +9319,7 @@ Registry.weapons.add("impale", {
   reload: 80,
   fireSound: "laser",
   recoil: 30,
+  themeColour: [89,0,255],
   cost: {
     shards: 26500,
     bloonstones: 200,
@@ -10322,6 +10347,7 @@ Registry.weapons.add("hunter", {
     shards: 35600,
     bloonstones: 200,
   },
+  themeColour: [0,0,255],
   dvRatio: 3 / 100,
   shoot: {
     bullet: {
@@ -10337,7 +10363,7 @@ Registry.weapons.add("hunter", {
             amount: 600, //Triple damage (oof 300 damage)
           },
         ],
-        //Red, fades back to yellow
+        //Red, fades back to blue
         hitColour: [255, 0, 0],
         hitColourTo: [0, 0, 255, 0],
       },
@@ -10850,6 +10876,7 @@ Registry.weapons.add("super-shotgun", {
   reload: 25,
   fireSound: "shoot",
   recoil: 30,
+  themeColour: [0,0,200],
   cost: {
     shards: 15000,
     bloonstones: 200,
@@ -11318,12 +11345,13 @@ Registry.weapons.add("solar-flare", {
     shards: 160000,
     bloonstones: 1000,
   },
+  themeColour: [255,255,0],
   shoot: {
     bullet: {
       type: "Bullet",
       lifetime: 60,
       speed: 30,
-      hitSize: 15,
+      hitSize: 105,
       trail: true,
       trailColour: [255, 255, 0, 50],
       drawer: {
@@ -12066,6 +12094,7 @@ Registry.weapons.add("hive", {
     shards: 83500,
     bloonstones: 1000,
   },
+  themeColour: [255,0,0],
   weapons: [
     {
       //Main missile attack
@@ -12076,7 +12105,7 @@ Registry.weapons.add("hive", {
           type: "Missile",
           lifetime: 100,
           speed: 45,
-          hitSize: 18,
+          hitSize: 50,
           trail: true,
           targetType: "hovered",
           trailColour: [187, 255, 0],
@@ -13013,7 +13042,7 @@ Registry.weapons.add("hive", {
           type: "Missile",
           lifetime: 100,
           speed: 18,
-          hitSize: 13,
+          hitSize: 33,
           trail: true,
           trailColour: [187, 255, 0],
           trailColourTo: [255, 255, 0, 0],
@@ -13058,6 +13087,7 @@ Registry.weapons.add("subzero", {
     shards: 95000,
     bloonstones: 1000,
   },
+  themeColour: [150,255,255],
   weapons: [
     {
       //Main weapon
@@ -15518,6 +15548,7 @@ Registry.weapons.add("kinetic-inversion", {
     shards: 75000, //back to cheap t6+ stuff?
     bloonstones: 1000,
   },
+  themeColour: [0,255,110],
   fireSound: "laser-bolt",
   shoot: {
     bullet: {
@@ -16295,6 +16326,7 @@ Registry.weapons.add("ultraviolet-obliterator", {
     shards: 120000,
     bloonstones: 1000,
   },
+  themeColour: [100,0,255],
   shoot: {
     bullet: {
       type: "continuous-laser",
@@ -17584,6 +17616,7 @@ Registry.weapons.add("crucify", {
     shards: 80000,
     bloonstones: 1000,
   },
+  themeColour: [253, 255, 138],
   shoot: {
     bullet: {
       type: "Laser",
@@ -19048,6 +19081,7 @@ Registry.weapons.add("foreshadow", {
   reload: 120,
   fireSound: "sniper-shoot",
   recoil: 60,
+  themeColour: [255,255,0],
   cost: {
     shards: 75000,
     bloonstones: 1000,
@@ -19963,6 +19997,7 @@ Registry.weapons.add("diffuse", {
     shards: 95000,
     bloonstones: 1000,
   },
+  themeColour: [251, 157, 81],
   shoot: {
     bullet: {
       type: "Bullet",

@@ -32,6 +32,11 @@ class LineTelegraph extends LaserBullet {
       this.sound();
       this.moveToSrc();
       this.intervalTick();
+      
+      if (!this.inited) {
+        this.inited = true;
+        createEffect(this.createEffect, this.world, this.x, this.y, this.directionRad);
+      }
       // Don't move
       //Tick lifetime
       if (this.lifetime <= 0) {

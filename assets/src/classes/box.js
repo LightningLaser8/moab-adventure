@@ -8,15 +8,14 @@ class Box extends ScalingEntity {
     return Registry.entities.get("metal-box");
   }
   //Rewards
-  reward = { bloonstones: 0, shards: 0 };
-  destroyReward = structuredClone(this.reward);
+  reward = 0;
+  destroyReward = 0;
   //No moving unless explicitly stated
   speed = 0;
   square = true; //Can't rotate
   onDeath(source) {
     //Give destroy reward
-    game.shards += this.destroyReward.shards ??= 0;
-    game.bloonstones += this.destroyReward.bloonstones ??= 0;
+    game.shards += this.destroyReward ?? 0;
     if (!source) return;
     source.destroyed.boxes++;
   }
@@ -29,8 +28,7 @@ class Box extends ScalingEntity {
         this.dead = true;
         this.left = true;
         //Give basic reward
-        game.shards += this.reward.shards ??= 0;
-        game.bloonstones += this.reward.bloonstones ??= 0;
+        game.shards += this.reward ??= 0;
       }
       if (this.square) this.direction = 0;
     }

@@ -73,7 +73,7 @@ class ImageParticle {
   }
   draw() {
     //Draw the particle
-    rotatedImg(
+    ImageCTX.draw(
       this.image,
       this.x,
       this.y,

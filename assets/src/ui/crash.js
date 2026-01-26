@@ -1,17 +1,5 @@
 createUIComponent(["crash"], [], 960, 540, 1000, 900);
-createUIComponent(
-  ["crash"],
-  [],
-  960,
-  150,
-  1000,
-  180,
-  "none",
-  null,
-  "Oh No",
-  false,
-  100
-);
+createUIComponent(["crash"], [], 960, 150, 1000, 180, "none", null, "Oh No", false, 100);
 createUIComponent(
   ["crash"],
   [],
@@ -37,19 +25,7 @@ function crash(error) {
   crashStats.stack.text = error.stack ?? "";
 }
 const crashStats = {
-  type: createUIComponent(
-    ["crash"],
-    [],
-    960,
-    460,
-    0,
-    0,
-    "none",
-    null,
-    "Error",
-    true,
-    50
-  ),
+  type: createUIComponent(["crash"], [], 960, 460, 0, 0, "none", null, "Error", true, 50),
   message: createUIComponent(
     ["crash"],
     [],
@@ -63,19 +39,7 @@ const crashStats = {
     true,
     40
   ),
-  stack: createUIComponent(
-    ["crash"],
-    [],
-    960,
-    700,
-    0,
-    0,
-    "none",
-    null,
-    "",
-    true,
-    20
-  ),
+  stack: createUIComponent(["crash"], [], 960, 700, 0, 0, "none", null, "", true, 20),
 };
 createUIComponent(
   ["crash"],
