@@ -30,3 +30,7 @@ Registry.sounds.add("whirr", { path: "assets/sound/whirr.wav", category: "entiti
 Registry.sounds.add("error.beam", { path: "assets/sound/err-laser.wav", category: "bypass"});
 Registry.sounds.add("error.tone.long", { path: "assets/sound/err-tone-long.wav", category: "bypass"});
 Registry.sounds.add("error.tone", { path: "assets/sound/err-tone.wav", category: "bypass"});
+Registry.sounds.add("splat", { path: "assets/sound/splat.wav", category: "bypass"});
+Registry.sounds.add("charge", { path: "assets/sound/charge.wav", category: "bypass"});
+Registry.sounds.add("charge.long", { path: "assets/sound/charge-really-long.wav", category: "bypass"});
+Registry.sounds.add("eye.spawn", { path: "assets/sound/eye-spawn.wav", category: "bypass"});

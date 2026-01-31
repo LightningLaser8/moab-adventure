@@ -188,6 +188,173 @@ Registry.vfx.add("laser-charge-mini", {
     reverse: true,
   },
 });
+Registry.vfx.add("eye-spawn", {
+  type: "vfx.multi",
+  effects: [
+    {
+      type: "vfx.particle",
+      cone: 0,
+      emissions: 1,
+      interval: 1,
+      isBG: true,
+      particle: {
+        //All
+        lifetime: 600,
+        speed: 0,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rect",
+        widthFrom: 5000,
+        widthTo: 5000,
+        heightFrom: 5000,
+        heightTo: 5000,
+        colourFrom: [0, 0, 0, 255],
+        colourTo: [0, 0, 0, 255],
+        reverse: false,
+      },
+    },
+    {
+      type: "vfx.particle",
+      cone: 360,
+      emissions: 500,
+      interval: 1,
+      particle: {
+        //All
+        lifetime: 60,
+        speed: 9,
+        decel: -0.05,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rhombus",
+        widthFrom: 20,
+        widthTo: 10,
+        heightFrom: 50,
+        heightTo: 25,
+        colourFrom: [255, 255, 255, 255],
+        colourTo: [255, 0, 0, 0],
+        reverse: true,
+      },
+    },
+    {
+      type: "vfx.particle",
+      cone: 0,
+      emissions: 8,
+      interval: 75,
+      particle: {
+        //All
+        lifetime: 40,
+        speed: 0,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rect",
+        widthFrom: 5000,
+        widthTo: 5000,
+        heightFrom: 5000,
+        heightTo: 5000,
+        colourFrom: [255, 0, 0, 255],
+        colourTo: [255, 0, 0, 0],
+        reverse: false,
+      },
+    },
+    {
+      type: "vfx.wave",
+      emissions: 25,
+      interval: 20,
+      particle: {
+        //All
+        lifetime: 20,
+        moveWithBackground: false,
+        radiusFrom: 500,
+        radiusTo: 20,
+        strokeFrom: 0,
+        strokeTo: 20,
+        colourFrom: [255, 255, 255, 255],
+        colourTo: [255, 0, 0, 0],
+      },
+    },
+  ],
+});
+Registry.vfx.add("eye-spawned", {
+  type: "vfx.multi",
+  effects: [
+    {
+      type: "vfx.particle",
+      cone: 0,
+      emissions: 1,
+      interval: 1,
+      isBG: true,
+      particle: {
+        //All
+        lifetime: 360,
+        speed: 0,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rect",
+        widthFrom: 5000,
+        widthTo: 5000,
+        heightFrom: 5000,
+        heightTo: 5000,
+        colourFrom: [255,255,255, 2000],
+        colourTo: [255,255,255, 0],
+        reverse: false,
+      },
+    },
+    {
+      type: "vfx.particle",
+      cone: 360,
+      emissions: 300,
+      interval: 1,
+      particle: {
+        //All
+        lifetime: 60,
+        speed: 14,
+        decel: -0.05,
+        rotateSpeed: 0,
+        moveWithBackground: false,
+        shape: "rhombus",
+        widthFrom: 20,
+        widthTo: 10,
+        heightFrom: 100,
+        heightTo: 50,
+        colourFrom: [255, 0, 0, 255],
+        colourTo: [255, 0, 0, 0],
+        reverse: false,
+      },
+    },
+    {
+      type: "vfx.wave",
+      emissions: 10,
+      interval: 30,
+      particle: {
+        //All
+        lifetime: 30,
+        moveWithBackground: false,
+        radiusFrom: 20,
+        radiusTo: 1100,
+        strokeFrom: 50,
+        strokeTo: 10,
+        colourFrom: [255, 0, 0, 255],
+        colourTo: [255, 0, 0, 0],
+      },
+    },
+    {
+      type: "vfx.wave",
+      emissions: 15,
+      interval: 20,
+      particle: {
+        //All
+        lifetime: 20,
+        moveWithBackground: false,
+        radiusFrom: 20,
+        radiusTo: 900,
+        strokeFrom: 50,
+        strokeTo: 10,
+        colourFrom: [255, 0, 0, 255],
+        colourTo: [255, 0, 0, 0],
+      },
+    },
+  ],
+});
 Registry.vfx.add("eye-charge-1", {
   type: "vfx.multi",
   effects: [
@@ -237,7 +404,7 @@ Registry.vfx.add("eye-release-1", {
     {
       type: "vfx.particle",
       cone: 360,
-      emissions: 100,
+      emissions: 200,
       interval: 1,
       particle: {
         //All
@@ -259,7 +426,7 @@ Registry.vfx.add("eye-release-1", {
     {
       type: "vfx.particle",
       cone: 360,
-      emissions: 100,
+      emissions: 200,
       interval: 1,
       particle: {
         //All
@@ -279,7 +446,7 @@ Registry.vfx.add("eye-release-1", {
     },
     {
       type: "vfx.wave",
-      emissions: 5,
+      emissions: 10,
       interval: 20,
       particle: {
         //All
