@@ -19,15 +19,15 @@ class Toast {
     this.text = wrapWords(text, 25);
     this.totalTime = this.timeLeft = time;
     this.style = styling;
-    this.titleLines = this.title.split("\n").length;
-    this.textLines = this.text.split("\n").length;
     push();
     noStroke();
     textFont(fonts.ocr);
     textSize(40);
     this.titleWidth = textWidth(this.title);
+    this.titleHeight = textHeight(this.title);
     textSize(30);
     this.textWidth = textWidth(this.text) + 20;
+    this.textHeight = textHeight(this.text);
     pop();
   }
 }
@@ -35,11 +35,12 @@ class Toast {
 class ToastStyle {
   backgroundColour = [100];
   outlineColour = [50];
+  outlineWidth = 8;
   subtextColour = [50];
   titleColour = [50];
   /**@readonly */
   static get plain() {
-    return construct({}, ToastStyle);
+    return construct({ outlineWidth: 3 }, ToastStyle);
   }
   /**@readonly */
   static get progress() {
@@ -54,7 +55,7 @@ class ToastStyle {
     return construct({ titleColour: [200, 100, 30] }, ToastStyle);
   }
   /**@readonly */
-  static get bogus() {
+  static get error() {
     return construct({ titleColour: [170, 40, 40] }, ToastStyle);
   }
 }
@@ -63,16 +64,16 @@ class ToastManager {
   /**@type {Toast[]} */
   active = [];
   tick() {
-    for(const toast of this.active) {
+    for (const toast of this.active) {
       if (toast.timeLeft > 1) toast.timeLeft--;
-    };
+    }
     this.active = this.active.filter((v) => v.timeLeft > 1);
   }
   draw() {
     let offy = 200;
-    for(const toast of this.active) {
+    for (const toast of this.active) {
       let width = Math.max(toast.titleWidth, toast.textWidth),
-        height = 20 + 30 * toast.textLines + 40 * toast.titleLines;
+        height = 20 + toast.textHeight + toast.titleHeight//30 * toast.textLines + 40 * toast.titleLines;
 
       let opacity = 255 - 4 * Math.max(0, 64 - toast.timeLeft);
       let offx =
@@ -82,13 +83,15 @@ class ToastManager {
       // console.log("width " + titlelen + " or " + textlen + ", chose " + width);
       // console.log("opacity " + opacity + ", off " + offx);
       push();
+      textFont(fonts.ocr);
       fill(...toast.style.backgroundColour, opacity);
       stroke(...toast.style.outlineColour, opacity);
       strokeWeight(10);
       rect(1920 - offx * (width / 2 + 30), offy + height / 2, width + 60, height + 60);
+      strokeWeight(toast.style.outlineWidth+2);
       stroke(...toast.style.titleColour, opacity);
       rect(1920 - offx * (width / 2 + 30), offy + height / 2, width + 40, height + 40);
-      strokeWeight(8);
+      strokeWeight(toast.style.outlineWidth);
       fill(...toast.style.outlineColour, opacity);
       textSize(40);
       textAlign(CENTER);
@@ -100,11 +103,11 @@ class ToastManager {
       text(
         toast.text,
         1920 - width / 2 - 10 - offx * (width / 2 + 30),
-        offy + 10 + 40 * toast.titleLines,
+        offy + 10 + toast.titleHeight,
       );
       pop();
       offy += (height + 60) * Math.max(offx, 0);
-    };
+    }
   }
   show(title, text, time, style) {
     this.active.push(new Toast(title, text, time, style));

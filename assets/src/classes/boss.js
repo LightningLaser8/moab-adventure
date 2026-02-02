@@ -28,6 +28,8 @@ class Boss extends ScalingEntity {
 
   bossmusic = null;
 
+  usesLargeLevel = false;
+
   init() {
     super.init();
     //Construct boss actions
@@ -200,8 +202,7 @@ class Boss extends ScalingEntity {
     this.model.tick();
     if(this.world.transitioning) return;
     if (this.aiActive) {
-      //Temporarily, set target to player. This should almost always be the case, until player minions exist.
-      this.target = game?.player;
+      this.target = this.world.nearestEnemyTo(this.x, this.y, this.team);
     }
     this.#action = this.tickSeq(this.seq(), this.#action);
     //check triggers

@@ -10,6 +10,22 @@
   <link href="./style.css" rel="stylesheet" type="text/css" />
   <!-- Import p5, but not sound -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+  <script>
+    //patchinator 9000
+    p5.prototype.textHeight = function (...args) {
+
+    const tL = this._renderer.textLeading();
+    const tS = this._renderer.textSize();
+
+    let lineNum = 0;
+    if (typeof args[0] !== undefined) {
+      lineNum = args[0].split(/\r?\n|\r|\n/g).length;
+    }
+    const textH = tL * (lineNum - 1) + tS;
+
+    return textH;
+  };
+  </script>
   <!-- <script src="https://unpkg.com/p5.js-svg@1.6.0"></script> -->
   <script src="https://unpkg.com/p5.fillgradient"></script>
 </head>
@@ -19,7 +35,7 @@
     //Disable p5's errors, they don't really help
     p5.disableFriendlyErrors = true;
     //Game info
-    const gameVersion = "0.0.124";
+    const gameVersion = "0.0.125";
     const isPreview = true;
     const CURRENT_SAVE_FORMAT_VERSION = 1;
     let versionReplacementText = "";

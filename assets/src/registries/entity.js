@@ -18,6 +18,7 @@ Registry.entities.add("support", {
   turnSpeed: 6,
   speed: 2,
   collides: false,
+  shieldDamageOverride: 0.0000001
 });
 //### BOXES ###
 Registry.entities.add("wooden-box", {
@@ -29,11 +30,6 @@ Registry.entities.add("wooden-box", {
     height: 50,
   },
   hitSize: 25,
-  x: 1920,
-  //Return a random height each time
-  get y() {
-    return random(0, 1080);
-  },
   reward: 2,
 
   destroyReward: 5,
@@ -67,11 +63,6 @@ Registry.entities.add("metal-box", {
       amount: 0.7, //70% resistance
     },
   ],
-  x: 1920,
-  //Return a random height each time
-  get y() {
-    return random(0, 1080);
-  },
   reward: 2,
 
   destroyReward: 10, //Worth more
@@ -337,7 +328,7 @@ Registry.entities.add("gigantic-box", {
   team: "enemy",
   health: 200,
   healthIncrease: 200,
-  trackingOffsetX: 200,
+  trackingOffsetX: 300,
   turnWhileMoving: true,
   turnSpeed: 10,
   hitSound: "wood-hit",
@@ -582,7 +573,7 @@ Registry.entities.add("mini-ace", {
       },
     },
   },
-  sequence: [
+  imposSequence: [
     "wait",
     "wait-short",
     "wait-short",

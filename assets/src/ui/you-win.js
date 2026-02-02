@@ -9,7 +9,7 @@ createUIComponent(
   180,
   "none",
   null,
-  "You Win!",
+  "*You Win!",
   false,
   100
 );

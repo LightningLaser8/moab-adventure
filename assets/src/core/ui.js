@@ -1,15 +1,27 @@
 class UserInterfaceController {
-  Mouse = class Mouse {
+  static Camera = class Camera {
+    x = 960;
+    y = 540;
+    rotation = 0;
+    zoom = 1;
+  };
+  static Mouse = class Mouse {
     /**@type {UserInterfaceController} */
     #ui;
     constructor(ui) {
       this.#ui = ui;
     }
     get x() {
-      return (this.#ui.mobile ? this.#ui.#currentmobilemouse?.x : mouseX) / contentScale;
+      return (
+        (this.#ui.mobile ? this.#ui.#currentmobilemouse?.x : mouseX) /
+        contentScale
+      );
     }
     get y() {
-      return (this.#ui.mobile ? this.#ui.#currentmobilemouse?.y : mouseY) / contentScale;
+      return (
+        (this.#ui.mobile ? this.#ui.#currentmobilemouse?.y : mouseY) /
+        contentScale
+      );
     }
     get down() {
       return this.#ui.mobile ? !!this.#ui.#currentmobilemouse : mouseIsPressed;
@@ -24,8 +36,9 @@ class UserInterfaceController {
   }
   #ms = "title";
   waitingForMouseUp = false;
-  timer = new Timer;
-  mouse = new this.Mouse(this);
+  timer = new Timer();
+  camera = new UserInterfaceController.Camera();
+  mouse = new UserInterfaceController.Mouse(this);
   get firing() {
     return this.mobile ? this.#mobileFire : this.mouse.down;
   }
@@ -1091,12 +1104,12 @@ function createGamePropertySelector(
     );
     //colour thing
     component.emphasisColour = selectionColour;
-    
+
     //Highlight if the game has this option
     Object.defineProperty(component, "emphasised", {
       get: () => game[property] === options[i],
     });
-    parts.push(component)
+    parts.push(component);
   }
   return parts;
 }
@@ -1219,7 +1232,7 @@ function createParticleEmitter(
 }
 
 function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 600) {
-  if(!game.flashing) return;
+  if (!game.flashing) return;
   ui.particles.push(
     //Obscure screen
     new ShapeParticle(

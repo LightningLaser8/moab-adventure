@@ -53,7 +53,39 @@ const game = {
 
   gl: false,
   flashing: true,
-  effects: 1
+  effects: 1,
+  mouse: {
+    get x() {
+      return ui.mouse.x / ui.camera.zoom + ui.camera.x;
+    },
+    get y() {
+      return ui.mouse.y / ui.camera.zoom + ui.camera.y;
+    },
+  },
+  target: {
+    get x() {
+      return (ui.target.x - 960) / ui.camera.zoom + ui.camera.x;
+    },
+    get y() {
+      return (ui.target.y - 540) / ui.camera.zoom + ui.camera.y;
+    },
+  },
+  levelBig: false,
+  increasedLevelSize: false,
+  get borderTop() {
+    return this.increasedLevelSize ? -540 : 0;
+  },
+  get borderBottom() {
+    return this.increasedLevelSize ? 1080 + 540 : 1080;
+  },
+  get borderLeft() {
+    return this.increasedLevelSize ? -960 : 0;
+  },
+  get borderRight() {
+    return this.increasedLevelSize ? 1920 + 960 : 1920;
+  },
+
+  deaths: 0
 };
 /** @type {World} */
 let world;
@@ -189,7 +221,9 @@ function draw() {
   try {
     clear();
     if (game.gl) translate(-width / 2, -height / 2);
+
     scale(contentScale);
+
     image(
       game.difficulty === "impossible" ? backgrounds.grad_impossible
       : game.mode === "boss-rush" ? backgrounds.grad_boss_rush
@@ -200,11 +234,20 @@ function draw() {
       1920,
       1080,
     );
+
     translate(0, 0, 2);
     if (world) {
       if (ui.menuState === "in-game") {
+        push();
+        translate(960, 540);
+
+        scale(ui.camera.zoom);
+        rotate(radians(ui.camera.rotation));
+        translate(-ui.camera.x, -ui.camera.y);
+
         background.draw();
         gameFrame();
+        pop();
       }
       uiFrame();
       if (!ui.waitingForMouseUp) fireIfPossible();
@@ -232,6 +275,17 @@ function uiFrame() {
   if (ui.waitingForMouseUp && !ui.mouse.down) ui.waitingForMouseUp = false;
   if (UIComponent.evaluateCondition("debug:true")) debugUI();
   else drawCursor(ui.target.x, ui.target.y);
+  camTick();
+}
+
+function camTick() {
+  if (game.levelBig) {
+    game.increasedLevelSize = true;
+    if (ui.camera.zoom > 0.5) ui.camera.zoom -= 0.01;
+  } else {
+    if (ui.camera.zoom < 1) ui.camera.zoom += 0.01;
+    else game.increasedLevelSize = false;
+  }
 }
 
 function drawCursor(x, y) {
@@ -308,16 +362,21 @@ function gameFrame() {
     passivePlayerTick();
     world.tickAll();
     tickBossEvent();
-    checkBoxCollisions();
+    if (game.player.dead) playerDies();
   }
   world.tickSound();
   translate(0, 0, 2);
   world.drawAll();
 }
-
+let hadBoss = false;
 function tickBossEvent() {
   UIComponent.setCondition("boss:" + (world.getFirstBoss() ? "yes" : "no")); // Update condition
   if (UIComponent.evaluateCondition("boss:no")) {
+    if(hadBoss) {
+      game.levelBig = false;
+      world.bossmusic = null;
+      if (world.reducedSpawns && game.mode !== "boss-rush") world.reducedSpawns = false;
+    }
     //If initial delay
     if (game.bossdelay > 0) game.bossdelay--;
     // If there's no boss active
@@ -330,9 +389,12 @@ function tickBossEvent() {
       world.reducedSpawns = true;
     } else {
       game.bosstimer -= game.player.speed * 0.0167;
-      if (world.reducedSpawns && game.mode !== "boss-rush") world.reducedSpawns = false;
     }
-  }
+    hadBoss = false;
+  } else {
+    game.levelBig = !!world.boss.usesLargeLevel;
+    hadBoss = true;
+  } 
 }
 
 function startGame() {
@@ -347,20 +409,20 @@ function startGame() {
 
 function validatePlayerPos() {
   //If the player is out of bounds, then remove //damage rapidly
-  if (game.player.x > 1920 - game.player.hitSize + game.player.speed * 2) {
-    game.player.x = 1920 - game.player.hitSize;
+  if (game.player.x > game.borderRight - game.player.hitSize + game.player.speed * 2) {
+    game.player.x = game.borderRight - game.player.hitSize;
     // game.player.damage("out-of-bounds", game.player.maxHealth * 0.0125);
   }
-  if (game.player.x < game.player.hitSize - game.player.speed * 4) {
-    game.player.x = game.player.hitSize;
+  if (game.player.x < game.borderLeft + game.player.hitSize - game.player.speed * 4) {
+    game.player.x = game.borderLeft + game.player.hitSize;
     // game.player.damage("out-of-bounds", game.player.maxHealth * 0.0125);
   }
-  if (game.player.y < game.player.hitSize - game.player.speed * 3) {
-    game.player.y = game.player.hitSize;
+  if (game.player.y < game.borderTop + game.player.hitSize - game.player.speed * 3) {
+    game.player.y = game.borderTop + game.player.hitSize;
     // game.player.damage("out-of-bounds", game.player.maxHealth * 0.0125);
   }
-  if (game.player.y > 1080 - game.player.hitSize + game.player.speed * 3) {
-    game.player.y = 1080 - game.player.hitSize;
+  if (game.player.y > game.borderBottom - game.player.hitSize + game.player.speed * 3) {
+    game.player.y = game.borderBottom - game.player.hitSize;
     // game.player.damage("out-of-bounds", game.player.maxHealth * 0.0125);
   }
 }
@@ -385,7 +447,6 @@ function drawUI() {
 }
 
 function tickUI() {
-  if (!game.paused) background.tick(game.player?.speed ?? 0);
   ui.tick();
   toasts.tick();
 }
@@ -442,6 +503,7 @@ function labeledCircle(x, y, radius, label, align = "top") {
   pop();
 }
 
+/** **DOES NOT WORK IN LARGE-LEVEL MODE!** */
 function debugUI() {
   push();
   textAlign(CENTER, CENTER);
@@ -518,13 +580,22 @@ function debugUI() {
 }
 
 function isOffscreen(entity) {
-  return entity.x < 0 || entity.x > 1920 || entity.y < 0 || entity.y > 1080;
+  return (
+    entity.x < game.borderLeft ||
+    entity.x > game.borderRight ||
+    entity.y < game.borderTop ||
+    entity.y > game.borderBottom
+  );
 }
 
 function distanceOffscreen(entity) {
   return new Vector(
-    entity.x < -entity.hitSize ? entity.x + entity.hitSize : entity.x + entity.hitSize - 1920,
-    entity.y < -entity.hitSize ? entity.y + entity.hitSize : entity.y + entity.hitSize - 1080,
+    entity.x < game.borderLeft - entity.hitSize ?
+      entity.x + entity.hitSize
+    : entity.x + entity.hitSize - game.borderRight,
+    entity.y < game.borderTop - entity.hitSize ?
+      entity.y + entity.hitSize
+    : entity.y + entity.hitSize - game.borderBottom,
   ).magnitude;
 }
 
@@ -595,7 +666,7 @@ function createPlayer() {
   //Change to an accessor property
   Object.defineProperty(player, "target", {
     get: () => {
-      return ui.target;
+      return game.target;
     }, //This way, I only have to set it once, and it's responsive.
   });
 
@@ -629,28 +700,7 @@ function fireIfPossible() {
   }
 }
 
-function checkBoxCollisions() {
-  for (let entity of world.entities) {
-    //If player is colliding with a living entity on a different team that is a box
-    if (
-      entity instanceof Box &&
-      !entity.dead &&
-      entity.team !== game.player.team &&
-      game.player.collidesWith(entity)
-    ) {
-      game.player.damage("collision", entity.health, entity);
-      //If the player didn't die i.e. resisted, shielded, had more HP, etc.
-      if (!game.player.dead) {
-        //Remove box
-        entity.dead = true;
-      }
-    }
-  }
-  if (game.player.dead) {
-    if (game.mode === "sandbox") game.player.dead = false;
-    else playerDies();
-  }
-}
+function checkBoxCollisions() {}
 
 function playerDies() {
   setTimeout(() => {
@@ -700,6 +750,10 @@ function reset() {
   game.bossdelay = game.bossinterval;
   game.maxDV = 0;
   game.totalBosses = 0;
+
+  game.increasedLevelSize = false;
+  game.levelBig = false;
+  game.deaths = 0;
 
   // for (let slot of game.player.weaponSlots) {
   //   slot.clear(); //Remove any weapons
@@ -825,7 +879,7 @@ function saveGame() {
     },
 
     won: game.won,
-    bossweapons: [...game.bossweapons]
+    bossweapons: [...game.bossweapons],
   };
   Serialiser.set("save." + game.saveslot, save);
   Serialiser.set("achievements", game.achievements);
