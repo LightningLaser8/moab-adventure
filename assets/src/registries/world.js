@@ -58,3 +58,20 @@ Registry.worlds.add("workshop", {
     },
   ],
 });
+Registry.worlds.add("p̴͕͕͛u̴̞͝ŗ̷̠̄g̷̨͌͝a̸͈̝̔̒ṯ̴̎o̸͎͝ṟ̸͚̍y̵̯̳̏͝", {
+  name: "ｐｕｒｇａｔｏｒｙ",
+  bgm: "air",
+  background: "background.p̴͕͕͛u̴̞͝ŗ̷̠̄g̷̨͌͝a̸͈̝̔̒ṯ̴̎o̸͎͝ṟ̸͚̍y̵̯̳̏͝",
+  spawning: [
+    {
+      entity: "w̷̦̄͆i̸̯̯͗̚r̸̞̕͜e̷̺͛ͅf̴̰̚͝ṙ̴͍͉̈́á̵̮m̵̨͊e̶̤͒",
+      interval: 360,
+      isHighTier: false,
+    },
+  ],
+  bosses: ["ë̵͉̹́̍̕͝n̴̨͍̩̺̦̜̗͒̈́̇̀̍͊̆ť̸̡̟̣͙͔̣͙́̑̆̏͒̕i̶̯̥̙̮̐̊̀̀͘̕͜t̸͍̟̐̄͂͘͝y̴̼͉̰̮̽̿͛̆͗͠"],
+  endless: true,
+  ambientSound: "bong",
+  ambienceChance: 0.0005,
+  muffleSound: true
+});
