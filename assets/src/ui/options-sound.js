@@ -164,4 +164,6 @@ function recenterBars() {
 
   oVolBar._current = ui.piecewiseVolume.other;
   SoundCTX.piecewiseVolume.other.gain.setValueAtTime(ui.piecewiseVolume.other / 100, 0);
+
+  esl._current = game.effects;
 }

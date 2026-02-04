@@ -69,7 +69,7 @@ game.keybinds.shortcut.advanced(
 );
 game.keybinds.shortcut.advanced(
   "upgrade-blimp-primary",
-  "N",
+  "M",
   { alt: true },
   {
     press: () => {
@@ -93,7 +93,7 @@ game.keybinds.shortcut.advanced(
 );
 game.keybinds.shortcut.advanced(
   "upgrade-blimp-secondary",
-  "M",
+  "N",
   { alt: true },
   {
     press: () => {

@@ -1,4 +1,5 @@
 class World {
+  forceTickParticles = [];
   particles = [];
   bgparticles = [];
   /** @type {Entity[]} */
@@ -7,6 +8,8 @@ class World {
   bullets = [];
   spawning = [];
   background = "background.sea";
+  backgroundUp = null;
+  backgroundDown = null;
   name = "World";
 
   reducedSpawns = false;
@@ -25,6 +28,8 @@ class World {
     return this.#currentBossIndex;
   }
 
+  noticks = 0;
+
   //Sounds!
   bgm = null; //Background Music
   bossmusic = null; // override for boss music
@@ -37,6 +42,8 @@ class World {
     this.bgm = bgm;
   }
   init() {
+    this.backgroundUp ??= this.background;
+    this.backgroundDown ??= this.background;
     //Copy bosses array
     this.#bossList = this.bosses.slice(0);
     //Throw if no bosses, to prevent a different error
@@ -73,9 +80,22 @@ class World {
     }
   }
   tickAll() {
-    this.#actualTick();
-    this.#removeDead();
-    this.tickSpawns(game.player.speed);
+    for (let particle of this.forceTickParticles) {
+      particle.step(1);
+    }
+    if (this.noticks > 0) this.noticks--;
+    else {
+      background.tick(game.player?.speed ?? 0);
+      this.#actualTick();
+      this.#removeDead();
+      this.tickSpawns(game.player?.speed ?? 0);
+    }
+    let len = this.forceTickParticles.length;
+    for (let p = 0; p < len; p++) {
+      if (this.forceTickParticles[p]?.remove) {
+        this.forceTickParticles.splice(p, 1);
+      }
+    }
   }
   #actualTick() {
     //Tick *everything*
@@ -120,7 +140,7 @@ class World {
               instance.waveColour, //    /
               bullet.status,
               bullet.statusDuration,
-              instance.bossDamageMultiplier ?? 1
+              instance.bossDamageMultiplier ?? 1,
             );
           if (instance.blinds) {
             blindingFlash(
@@ -128,7 +148,7 @@ class World {
               bullet.y,
               instance.blindOpacity,
               instance.blindDuration,
-              instance.glareSize
+              instance.glareSize,
             );
           }
         }
@@ -155,6 +175,61 @@ class World {
     for (let e = 0; e < len; e++) {
       let entity = this.entities[e];
       if (entity?.dead) {
+        if (entity === game.player && game.mode === "sandbox") {
+          entity.dead = false;
+          game.deaths++;
+          toasts.show(
+            `Death #${game.deaths}`,
+            `Source: ${entity.lastHurtSource?.name ?? "None"}`,
+            240,
+            ToastStyle.error,
+          );
+          this.noticks = 120;
+          this.forceTickParticles.push(
+            new ShapeParticle(
+              entity.x,
+              entity.y,
+              0,
+              60,
+              0,
+              0,
+              "circle",
+              [255, 0, 0],
+              [255, 0, 0, 0],
+              0,
+              1000,
+              0,
+              1000,
+              0,
+              false,
+              false,
+            ),
+          );
+          if (entity.lastHurtSource) {
+            let d = dist(entity.x, entity.y, entity.lastHurtSource.x, entity.lastHurtSource.y);
+            this.forceTickParticles.push(
+              new ShapeParticle(
+                entity.lastHurtSource.x,
+                entity.lastHurtSource.y,
+                0,
+                60,
+                0,
+                0,
+                "circle",
+                [255, 0, 0],
+                [255, 0, 0, 0],
+                0,
+                d*2,
+                0,
+                d*2,
+                0,
+                false,
+                false,
+              ),
+            );
+          }
+          continue;
+        }
         if (!entity.left) {
           if (entity.lastHurtSource) entity.lastHurtSource.dv += entity.dv;
           entity.onDeath(entity.lastHurtSource);
@@ -182,12 +257,15 @@ class World {
     for (let bullet of this.bullets) {
       bullet.draw();
     }
+    for (let particle of this.forceTickParticles) {
+      particle.draw();
+    }
     for (let particle of this.particles) {
       if (!(particle instanceof AfterImageParticle)) particle.draw();
     }
   }
   tickSpawns(dt) {
-    if(this.transitioning) return;
+    if (this.transitioning) return;
     for (let spawnGroup of this.spawning) {
       if (
         (spawnGroup.imposMode === "when-on" && game.difficulty !== "impossible") ||
@@ -197,11 +275,27 @@ class World {
       if (spawnGroup.$currentCooldown <= 0) {
         let ent = construct(spawnGroup.entity, Entity);
         ent.addToWorld(this);
+        ent.x = game.borderRight;
+        ent.y = rnd(game.borderTop, game.borderBottom);
         spawnGroup.$currentCooldown = spawnGroup.interval;
       } else {
         if (!this.reducedSpawns) spawnGroup.$currentCooldown -= dt;
       }
     }
+  }
+  nearestEnemyTo(x, y, team = "") {
+    let dist = Infinity;
+    let sel = null;
+    for (let e of this.entities) {
+      if (!team || e.team !== team) {
+        let d = Math.sqrt((e.x - x) ** 2 + (e.y - y) ** 2) - e.hitSize;
+        if (d < dist) {
+          sel = e;
+          dist = d;
+        }
+      }
+    }
+    return sel;
   }
   addSpawn(
     spawn = {
@@ -209,7 +303,7 @@ class World {
       interval: 60,
       isHighTier: false,
       imposMode: "ignore", // "when-on", "when-off" or "ignore"
-    }
+    },
   ) {
     //Handle bad properties like `null`
     spawn.entity ??= Box.default;
@@ -260,7 +354,7 @@ class World {
     this.#bossList = bosses;
   }
   nextBoss() {
-    if(this.transitioning) return;
+    if (this.transitioning) return;
     this.spawnBoss(Registry.entities.get(this.#bossList[this.#currentBossIndex]));
     this.#currentBossIndex++;
     if (this.#currentBossIndex >= this.#bossList.length) this.#currentBossIndex = 0;

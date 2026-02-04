@@ -53,7 +53,7 @@ class Weapon {
   init() {
     let np = [];
     for (let p of this.parts) {
-      if(p.recoilAnimations && p.type === "part") p.type = "weapon-part"
+      if ((p.recoilAnimations || p.passiveAnimations) && p.type === "part") p.type = "weapon-part";
       np.push(construct(p, Part));
     }
     this.parts = np;
@@ -68,10 +68,10 @@ class Weapon {
     if (this.slot.entity) {
       this.x = this.slot.entity.x + this.slot.posX;
       this.y = this.slot.entity.y + this.slot.posY;
-      if (this.rotate) {
+      if (this.rotate && this.slot.entity.target) {
         this.rotation = new Vector(this.slot.entity.target.x, this.slot.entity.target.y).subXY(
           this.x,
-          this.y
+          this.y,
         ).angle;
         //If there is a rotation confinement
         if (this.maxRotation >= 0) {
@@ -135,7 +135,7 @@ class Weapon {
         this.shoot?.pattern?.spacing ?? 0,
         this.slot.entity.world,
         this.slot.entity,
-        this
+        this,
       );
       this.parts.forEach((x) => x.fire && x.fire()); //Tick all parts
     }
@@ -152,7 +152,7 @@ function patternedBulletExpulsion(
   spacing = 0,
   world,
   entity,
-  source
+  source,
 ) {
   //Derives most of its code from `Weapon.fire()`
   //universal mode: a c t i v a t e

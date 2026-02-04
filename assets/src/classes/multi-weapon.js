@@ -38,49 +38,68 @@ class PartialWeapon extends Weapon {
   index = 0;
   total = 1;
   isAuto = false; //Will this weapon fire automatically every tick?
+  minFocusTime = 0;
+  retargetOnlyOnFire = false;
   range = Infinity;
+  #targeting = null;
+  #focusFor = 0;
   getDVScale() {
     return this.parent.slot.entity.dv * this.dvRatio;
   }
-  tick() {
+  findTarget() {
     let target = this.parent.slot.entity.target;
-    if (this.isAuto) {
-      let minDist = Infinity;
-      for (let entity of this.parent.slot.entity.world.entities) { //big accessor chain
-        let chkdist = dist(this.x, this.y, entity.x, entity.y); // Calculate distance to potential target
-        if (
-          !entity.dead && //If not dead
-          chkdist < minDist && //If closer
-          chkdist < this.range && //If in range
-          entity.team !== this.parent.slot.entity.team //Don't target the same team
-        ) {
-          //Target the entity
-          minDist = chkdist;
-          target = entity;
-        }
+    let minDist = Infinity;
+
+    for (let entity of this.parent.slot.entity.world.entities) {
+      //big accessor chain
+      let chkdist = dist(this.x, this.y, entity.x, entity.y); // Calculate distance to potential target
+      if (
+        !entity.dead && //If not dead
+        chkdist < minDist && //If closer
+        chkdist < this.range && //If in range
+        entity.team !== this.parent.slot.entity.team //Don't target the same team
+      ) {
+        //Target the entity
+        minDist = chkdist;
+        target = entity;
       }
-      if(minDist < Infinity){
-        this.fire()
+    }
+    if (minDist != Infinity) {
+      this.#targeting = target;
+    }
+  }
+  tick() {
+    if (this.isAuto) {
+      if (
+        this.#targeting &&
+        (this.#targeting.dead ||
+          dist(this.x, this.y, this.#targeting.x, this.#targeting.y) > this.range)
+      )
+        this.#targeting = null;
+
+      if (this.#focusFor === 0) {
+        if (!this.retargetOnlyOnFire || this._cooldown === 0) {
+          this.findTarget();
+          this.#focusFor = this.minFocusTime;
+        }
+      } else {
+        this.#focusFor--;
       }
     }
     if (this.parent.slot.entity) {
       this.x =
         this.parent.slot.entity.x +
         this.parent.slot.posX +
-        this.offset *
-          Math.cos(frameCount / 60 + ((Math.PI * 2) / this.total) * this.index);
+        this.offset * Math.cos(frameCount / 60 + ((Math.PI * 2) / this.total) * this.index);
       this.y =
         this.parent.slot.entity.y +
         this.parent.slot.posY +
-        this.offset *
-          Math.sin(frameCount / 60 + ((Math.PI * 2) / this.total) * this.index);
-      this.rotation = degrees(
-        p5.Vector.sub(
-          createVector(target.x, target.y), //Mouse pos 'B'
-          createVector(this.x, this.y) //Weapon pos 'A'
-        ).heading() //'A->B' = 'B' - 'A'
-      );
+        this.offset * Math.sin(frameCount / 60 + ((Math.PI * 2) / this.total) * this.index);
+      if (this.#targeting)
+        this.rotation = new Vector(this.#targeting.x - this.x, this.#targeting.y - this.y).angle;
     }
+    if (this.isAuto && this.#targeting) this.fire();
+
     this.decelerate();
     if (this._cooldown > 0) {
       this._cooldown--;
@@ -107,9 +126,9 @@ class PartialWeapon extends Weapon {
         this.shoot.pattern.spacing,
         this.parent.slot.entity.world,
         this.parent.slot.entity,
-        this
+        this,
       );
-      this.parts.forEach((x) => x.fire()); //Tick all parts
+      this.parts.forEach((x) => x instanceof WeaponPart && x.fire()); //Tick all parts
     }
   }
 }
