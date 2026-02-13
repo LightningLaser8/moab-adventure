@@ -36,6 +36,7 @@ class Box extends ScalingEntity {
         //If this is colliding with a living entity on a different team
         if (
           !entity.dead &&
+          entity.collides &&
           entity.team !== this.team &&
           this.collidesWith(entity)
         ) {
