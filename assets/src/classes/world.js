@@ -1,6 +1,7 @@
 class World {
   forceTickParticles = [];
   particles = [];
+  bgparticles = [];
   /** @type {Entity[]} */
   entities = [];
   /** @type {Bullet[]} */
@@ -106,6 +107,9 @@ class World {
     for (let particle of this.particles) {
       particle.step(1);
     }
+    for (let particle of this.bgparticles) {
+      particle.step(1);
+    }
     for (let entity of this.entities) {
       entity.tick();
     }
@@ -153,6 +157,12 @@ class World {
         SoundCTX.play(bullet.despawnSound);
         //Delete the bullet
         this.bullets.splice(b, 1);
+      }
+    }
+    len = this.bgparticles.length;
+    for (let p = 0; p < len; p++) {
+      if (this.bgparticles[p]?.remove) {
+        this.bgparticles.splice(p, 1);
       }
     }
     len = this.particles.length;
@@ -235,6 +245,9 @@ class World {
     //No search algorithms => faster
   }
   drawAll() {
+    for (let particle of this.bgparticles) {
+      particle.draw();
+    }
     for (let particle of this.particles) {
       if (particle instanceof AfterImageParticle) particle.draw();
     }

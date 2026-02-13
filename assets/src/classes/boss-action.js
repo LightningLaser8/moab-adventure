@@ -1,12 +1,14 @@
 class BossAction {
   duration = 1;
   animation = "";
+  sound = "";
   #timer = 0;
   get complete() {
     return this.#timer > this.duration;
   }
   animate(entity) {
     if (this.animation) entity.getModel().fire(this.animation);
+    if(this.sound) SoundCTX.play(this.sound);
   }
   /**
    * @param {Entity} entity
@@ -29,8 +31,12 @@ class MovementAction extends BossAction {
   x = 0;
   y = 0;
   rot = 0;
+  slide = 0;
   tick(entity) {
     super.tick(entity);
+    entity.x += this.slide * Math.cos(entity.directionRad);
+    entity.y += this.slide * Math.sin(entity.directionRad);
+
     entity.x += this.x / (this.duration + 1);
     entity.y += this.y / (this.duration + 1);
     entity.direction += this.rot / (this.duration + 1);
@@ -103,8 +109,7 @@ class SelfDestructAction extends BossAction {
     );
     if (this.givesRewards) {
       //Give destroy rewards if there's a difference, regular rewards if not
-      game.shards += (entity.destroyReward ?? entity.reward)?.shards ?? 0;
-      game.bloonstones += (entity.destroyReward ?? entity.reward)?.bloonstones ?? 0;
+      game.bloonstones += entity.destroyReward ?? entity.reward ?? 0;
     }
   }
 }
@@ -368,7 +373,7 @@ class ChangeVisualAction extends BossAction {
   /**@param {Boss} entity  */
   execute(entity) {
     if (this.changesBack) this.#oldmodel = entity.overrideModel;
-    entity.overrideModel = this.drawer;
+    entity.overrideModel = this.model;
   }
   /**@param {Boss} entity  */
   end(entity) {

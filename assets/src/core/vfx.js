@@ -5,6 +5,7 @@ const uiEffectTimer = new Timer();
 class VisualEffect {
   parentise = false;
   isUI = false;
+  isBG = false;
   create(world, x = 0, y = 0, direction = 0, scale = 1) {}
   execute(
     world,
@@ -18,6 +19,9 @@ class VisualEffect {
       let p = pos();
       this.create(world, p.x, p.y, p.direction, scale);
     } else this.create(world, x, y, direction, scale);
+  }
+  getArray(world){
+    return (this.isUI ? ui.particles : this.isBG ? world.bgparticles : world.particles)
   }
 }
 /**Extended class for repeated creation of a visual effect */
@@ -126,7 +130,7 @@ class ParticleEmissionEffect extends EmissionEffect {
     if(!game.effects) return;
     let reduced = game.effects < 1
     repeat(this.amount, () =>
-      (!reduced || tru(game.effects)) && (this.isUI ? ui.particles : world.particles).unshift(
+      (!reduced || tru(game.effects)) && this.getArray(world).unshift(
         new ShapeParticle(
           x + this.x,
           y + this.y,
@@ -156,7 +160,7 @@ class ParticleEmissionEffect extends EmissionEffect {
 class TextParticleEmissionEffect extends ParticleEmissionEffect {
   create(world, x = 0, y = 0, direction = 0, scale = 1) {
     repeat(this.amount, () =>
-      (this.isUI ? ui.particles : world.particles).push(
+      this.getArray(world).push(
         new TextParticle(
           x + this.x,
           y + this.y,
@@ -187,7 +191,7 @@ class WaveEmissionEffect extends ParticleEmissionEffect {
     if(!game.effects) return;
     let reduced = game.effects < 1
     repeat(this.amount, () =>
-      (!reduced || tru(game.effects)) && (this.isUI ? ui.particles : world.particles).push(
+      (!reduced || tru(game.effects)) && this.getArray(world).push(
         new WaveParticle(
           x + this.x,
           y + this.y,
