@@ -66,7 +66,8 @@ Object.defineProperty(
       (versionReplacementText.length > 0
         ? versionReplacementText
         : (isPreview ? "Preview Version " : "v") +
-          gameVersion +
+          gameVersion + 
+          (branchName ? ` (${branchName} Edition)` : "") +
           (window.location.origin !== "https://lightninglaser8.github.io"
             ? " - In Development"
             : "")
