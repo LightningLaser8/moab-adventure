@@ -14038,6 +14038,8 @@ Registry.weapons.add("subzero", {
       offset: 90,
       reload: 110,
       isAuto: true,
+      minFocusTime: 60,
+      retargetOnlyOnFire: true,
       range: 1200,
       fireSound: "laser",
       shoot: {
@@ -14414,6 +14416,8 @@ Registry.weapons.add("subzero", {
       offset: 90,
       reload: 110,
       isAuto: true,
+      minFocusTime: 60,
+      retargetOnlyOnFire: true,
       range: 1200,
       fireSound: "laser",
       shoot: {
@@ -14790,6 +14794,8 @@ Registry.weapons.add("subzero", {
       offset: 90,
       reload: 110,
       isAuto: true,
+      minFocusTime: 60,
+      retargetOnlyOnFire: true,
       range: 1200,
       fireSound: "laser",
       shoot: {
@@ -15166,6 +15172,8 @@ Registry.weapons.add("subzero", {
       offset: 90,
       reload: 110,
       isAuto: true,
+      minFocusTime: 60,
+      retargetOnlyOnFire: true,
       range: 1200,
       fireSound: "laser",
       shoot: {

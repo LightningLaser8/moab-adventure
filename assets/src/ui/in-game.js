@@ -1,24 +1,21 @@
 const background = {
-  bg1: new ImageUIComponent(960, 540, 1920, 1080, null, "background.sea", false),
-  bg2: new ImageUIComponent(960 * 3 - 4, 540, 1920, 1080, null, "background.sea", false),
+  x: 0,
   draw() {
-    this.bg1.draw();
-    this.bg2.draw();
+    if (game.increasedLevelSize)
+      for (let y = -540; y <= 1080 + 540; y += 1080)
+        for (let x = this.x - 1920; x < 1920 * 3; x += 1920)
+          ImageCTX.draw(this.image, x, y, 1920 + 16 / 3, 1080 + 9 / 3);
+    else
+      for (let x = this.x - 1920; x <= 1920 * 2; x += 1920)
+        ImageCTX.draw(this.image, x, 540, 1920 + 16 / 3, 1080 + 9 / 3);
   },
   tick(dt) {
-    this.bg1.x -= dt;
-    this.bg2.x -= dt;
-    if (this.bg2.x <= 956) {
-      this.bg1.x += 1920;
-      this.bg2.x += 1920;
+    this.x -= dt;
+    if (this.x <= -1920) {
+      this.x += 1920;
     }
   },
-  get image() {
-    return this.bg2.image;
-  },
-  set image(_) {
-    this.bg1.image = this.bg2.image = _;
-  },
+  image: "background.sea",
 };
 
 //###################################################################
@@ -37,7 +34,7 @@ createUIImageComponent(
   20,
   null,
   "ui.warn-tape",
-  false
+  false,
 );
 createUIImageComponent(
   ["in-game"],
@@ -48,7 +45,7 @@ createUIImageComponent(
   20,
   null,
   "ui.warn-tape",
-  false
+  false,
 );
 //#endregion
 //###################################################################
@@ -68,8 +65,8 @@ UIComponent.alignLeft(
     "text",
     {
       get: () => "" + game.shards,
-    }
-  )
+    },
+  ),
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -77,8 +74,8 @@ UIComponent.alignLeft(
     "text",
     {
       get: () => shortenedNumber(game.shards),
-    }
-  )
+    },
+  ),
 );
 //Bloonstones
 createUIImageComponent(["in-game"], [], 330, 60, 75, 75, null, "ui.bloonstone", false);
@@ -96,13 +93,13 @@ UIComponent.alignLeft(
       null,
       "bloonstones",
       true,
-      20
+      20,
     ),
     "text",
     {
       get: () => "" + game.bloonstones,
-    }
-  )
+    },
+  ),
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -110,8 +107,8 @@ UIComponent.alignLeft(
     "text",
     {
       get: () => shortenedNumber(game.bloonstones),
-    }
-  )
+    },
+  ),
 );
 
 //#endregion
@@ -124,14 +121,14 @@ UIComponent.alignLeft(
 
 UIComponent.invert(
   //Healthbar container
-  createUIComponent(["in-game"], [], 375, 995 + 25, 900, 175, "right")
+  createUIComponent(["in-game"], [], 375, 995 + 25, 900, 175, "right"),
 );
 UIComponent.setBackgroundOf(
   UIComponent.setOutlineColour(
     createUIShapeComponent(["in-game"], [], 35, 975, 40, 40, null, "circle", true),
-    [0, 255, 255]
+    [0, 255, 255],
   ),
-  [0, 255, 255, 100]
+  [0, 255, 255, 100],
 );
 
 createUIImageComponent(["in-game"], [], 70, 1035, 80, 80, null, "ui.moab", false);
@@ -151,8 +148,8 @@ UIComponent.invert(
     undefined,
     20,
     () => game.player,
-    [255, 0, 0]
-  )
+    [255, 0, 0],
+  ),
 );
 
 // UIComponent.removeOutline(
@@ -171,15 +168,15 @@ UIComponent.invert(
     undefined,
     20,
 
-    () => (game.support ? game.support?.weaponSlots[0]?.weapon : null) ?? {}
+    () => (game.support ? game.support?.weaponSlots[0]?.weapon : null) ?? {},
   )
     .setGetters("_cooldown", "reload")
     .setColours(
       () => (game.support.weaponSlots[0].tier > 1 ? [0, 0, 0] : [100, 0, 0]),
       [255, 178, 100],
-      [0, 0, 0, 0]
+      [0, 0, 0, 0],
     )
-    .reverseBarFraction()
+    .reverseBarFraction(),
 );
 
 //)
@@ -201,15 +198,15 @@ UIComponent.removeOutline(
       undefined,
       undefined,
       20,
-      () => game.player._shield ?? {}
+      () => game.player._shield ?? {},
     )
       .setGetters("strength", "maxStrength")
       .setColours(
         () => (game.support.weaponSlots[0].tier > 1 ? [0, 60, 60, 125] : [100, 0, 0]),
         () => game.player._shield?.trailColourTo ?? [0, 0, 0],
-        () => game.player._shield?.colourTo ?? [0, 0, 0]
-      )
-  )
+        () => game.player._shield?.colourTo ?? [0, 0, 0],
+      ),
+  ),
 );
 
 // ).getActivity = function () {
@@ -280,8 +277,8 @@ UIComponent.alignLeft(
     "text",
     {
       get: () => "LV " + game.level,
-    }
-  )
+    },
+  ),
 );
 UIComponent.setCondition("debug:false");
 UIComponent.alignLeft(
@@ -298,8 +295,8 @@ UIComponent.alignLeft(
         "/" +
         game.totalBosses +
         " bosses",
-    }
-  )
+    },
+  ),
 );
 //#endregion
 //###################################################################
@@ -320,7 +317,7 @@ createUIComponent(
   140,
   400,
   50,
-  "left"
+  "left",
 );
 //Name plate
 UIComponent.alignRight(
@@ -332,13 +329,13 @@ UIComponent.alignRight(
       140,
       0,
       0,
-      "left"
+      "left",
     ),
     "text",
     {
       get: () => world.boss?.name ?? "Boss", //Text is name
-    }
-  )
+    },
+  ),
 );
 let bhb = UIComponent.invert(
   createHealthbarComponent(
@@ -354,11 +351,11 @@ let bhb = UIComponent.invert(
     undefined,
     20,
     () => world.boss,
-    [255, 0, 0]
+    [255, 0, 0],
   )
     .reverseBarDirection()
     .setColours(null, () => world.boss?.healthColour ?? [255, 0, 0], null)
-    .setIsHigher(() => world.boss?.higher ?? false)
+    .setIsHigher(() => world.boss?.higher ?? false),
 );
 UIComponent.invert(
   createUIComponent(
@@ -368,8 +365,8 @@ UIComponent.invert(
     245,
     350,
     20,
-    "left"
-  )
+    "left",
+  ),
 );
 //HP thing
 UIComponent.alignRight(
@@ -384,7 +381,7 @@ UIComponent.alignRight(
       "none",
       null,
       "",
-      true
+      true,
     ),
     "text",
     {
@@ -400,8 +397,8 @@ UIComponent.alignRight(
           "%)"
         );
       }, //Text is hp / max hp
-    }
-  )
+    },
+  ),
 );
 //square thing with boss class
 Object.defineProperty(
@@ -416,12 +413,12 @@ Object.defineProperty(
     null,
     "o",
     false,
-    60
+    60,
   ),
   "text",
   {
     get: () => world.boss?.class ?? "o", //Show boss class if it exists, otherwise show "o"
-  }
+  },
 );
 
 //#endregion
@@ -441,8 +438,8 @@ UIComponent.invert(
     50,
     800,
     100,
-    "left"
-  )
+    "left",
+  ),
 );
 
 UIComponent.invert(
@@ -459,11 +456,11 @@ UIComponent.invert(
     undefined,
     20,
     () => game,
-    [255, 0, 0]
+    [255, 0, 0],
   )
     .setGetters("bosstimer", "bossinterval")
     .reverseBarDirection()
-    .setColours(null, null, [255, 0, 0])
+    .setColours(null, null, [255, 0, 0]),
 );
 
 createUIImageComponent(
@@ -475,7 +472,7 @@ createUIImageComponent(
   80,
   null,
   "ui.clock",
-  false
+  false,
 );
 
 //#endregion
@@ -487,7 +484,7 @@ createUIImageComponent(
 //#region br plate
 
 UIComponent.invert(
-  createUIComponent(["in-game"], ["boss:no", "mode:boss-rush"], 1670, 50, 500, 100, "left")
+  createUIComponent(["in-game"], ["boss:no", "mode:boss-rush"], 1670, 50, 500, 100, "left"),
 );
 Object.defineProperty(
   createUIComponent(
@@ -501,7 +498,7 @@ Object.defineProperty(
     null,
     "*Next:    ",
     true,
-    40
+    40,
   ),
   "text",
   {
@@ -510,7 +507,7 @@ Object.defineProperty(
       if (b) return "Next:\n" + Registry.entities.get(b).name;
       return "Transferring...";
     },
-  }
+  },
 );
 
 //#endregion
@@ -525,15 +522,15 @@ Object.defineProperty(
 UIComponent.removeOutline(
   UIComponent.setBackgroundOf(
     createUIComponent(["in-game"], ["upgrade-menu-open:true"], 900, 575, 800, 700),
-    [0, 255, 255, 100]
-  )
+    [0, 255, 255, 100],
+  ),
 );
 //Vertical line bit
 UIComponent.removeOutline(
   UIComponent.setBackgroundOf(
     createUIComponent(["in-game"], ["upgrade-menu-open:true"], 900, 110, 50, 125),
-    [0, 255, 255, 100]
-  )
+    [0, 255, 255, 100],
+  ),
 );
 //Open / Close Buttons
 UIComponent.setCondition("upgrade-menu-open:false");
@@ -552,7 +549,7 @@ createUIComponent(
     pause(); //Pause the game
     UIComponent.setCondition("upgrade-menu-open:true");
   },
-  "Upgrades"
+  "Upgrades",
 );
 //Header bar
 createUIComponent(
@@ -566,7 +563,7 @@ createUIComponent(
   null,
   "Upgrades",
   false,
-  60
+  60,
 );
 
 //Weapon Upgrades
@@ -582,7 +579,7 @@ createUIComponent(
   null,
   "Weapons",
   false,
-  40
+  40,
 );
 //Buttons
 //Space them 150px apart => 100px wide => 50px separation?
@@ -611,7 +608,7 @@ createUIComponent(
   },
   "AP1",
   true,
-  40
+  40,
 );
 //AP2
 createUIComponent(
@@ -627,7 +624,7 @@ createUIComponent(
   },
   "AP2",
   true,
-  40
+  40,
 );
 //AP3
 createUIComponent(
@@ -643,7 +640,7 @@ createUIComponent(
   },
   "AP3",
   true,
-  40
+  40,
 );
 //AP4
 createUIComponent(
@@ -659,7 +656,7 @@ createUIComponent(
   },
   "AP4",
   true,
-  40
+  40,
 );
 //AP5
 createUIComponent(
@@ -675,7 +672,7 @@ createUIComponent(
   },
   "AP5",
   true,
-  40
+  40,
 );
 
 //Booster
@@ -692,7 +689,7 @@ createUIComponent(
   },
   "Booster",
   true,
-  40
+  40,
 );
 //SP1
 createUIComponent(
@@ -708,7 +705,7 @@ createUIComponent(
   },
   "SP1",
   true,
-  40
+  40,
 );
 
 //    Sub-menus
@@ -738,7 +735,7 @@ createUIComponent(
   },
   "<",
   false,
-  60
+  60,
 ).isBackButton = true;
 
 //#endregion
@@ -762,13 +759,13 @@ Object.defineProperty(
     null,
     "ERROR",
     false,
-    40
+    40,
   ),
   "text",
   {
     get: () =>
       getSelectedSlotIndex() === 5 ? "Booster" : "Weapon: AP" + (getSelectedSlotIndex() + 1), //Dynamically change based on selected slot
-  }
+  },
 );
 //Current upgrade info
 Object.defineProperty(
@@ -784,7 +781,7 @@ Object.defineProperty(
     null,
     "Not unlocked yet",
     true,
-    30
+    30,
   ),
   "text",
   {
@@ -800,7 +797,7 @@ Object.defineProperty(
       }
       return weapon.name;
     },
-  }
+  },
 );
 Object.defineProperty(
   createUIComponent(
@@ -815,7 +812,7 @@ Object.defineProperty(
     null,
     "No weapon is present. Upgrade to add one.",
     true,
-    20
+    20,
   ),
   "text",
   {
@@ -832,7 +829,7 @@ Object.defineProperty(
       }
       return wrapWords(weapon.description, 60);
     },
-  }
+  },
 );
 //Next upgrade info
 createUIComponent(
@@ -846,7 +843,7 @@ createUIComponent(
   null,
   "Upgrade To:",
   false,
-  35
+  35,
 );
 Object.defineProperty(
   createUIComponent(
@@ -861,7 +858,7 @@ Object.defineProperty(
     null,
     "Max Upgrades",
     true,
-    30
+    30,
   ),
   "text",
   {
@@ -877,7 +874,7 @@ Object.defineProperty(
       }
       return weapon.name;
     },
-  }
+  },
 );
 Object.defineProperty(
   createUIComponent(
@@ -892,7 +889,7 @@ Object.defineProperty(
     null,
     "Maximum upgrade level for this blimp\nhas been reached.",
     true,
-    20
+    20,
   ),
   "text",
   {
@@ -911,7 +908,7 @@ Object.defineProperty(
       }
       return wrapWords(weapon.description, 50);
     },
-  }
+  },
 );
 createUIComponent(
   //Cost background
@@ -925,7 +922,7 @@ createUIComponent(
   null,
   "",
   true,
-  20
+  20,
 );
 createUIImageComponent(
   //Shard icon
@@ -937,7 +934,7 @@ createUIImageComponent(
   30,
   null,
   "ui.shard",
-  false
+  false,
 );
 createUIImageComponent(
   //Bloonstone icon
@@ -949,7 +946,7 @@ createUIImageComponent(
   30,
   null,
   "ui.bloonstone",
-  false
+  false,
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -965,7 +962,7 @@ UIComponent.alignLeft(
       null,
       "",
       true,
-      20
+      20,
     ),
     "text",
     {
@@ -981,8 +978,8 @@ UIComponent.alignLeft(
         }
         return shortenedNumber(weapon.cost?.shards ?? 0);
       },
-    }
-  )
+    },
+  ),
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -998,7 +995,7 @@ UIComponent.alignLeft(
       null,
       "",
       true,
-      20
+      20,
     ),
     "text",
     {
@@ -1014,8 +1011,8 @@ UIComponent.alignLeft(
         }
         return shortenedNumber(weapon.cost?.bloonstones ?? 0);
       },
-    }
-  )
+    },
+  ),
 );
 createUIComponent(
   ["in-game"],
@@ -1034,7 +1031,7 @@ createUIComponent(
   },
   "Upgrade!",
   false,
-  20
+  20,
 );
 
 //#endregion
@@ -1059,10 +1056,10 @@ createUIComponent(
   },
   "Blimp",
   true,
-  40
+  40,
 );
 //Title
-createUIComponent(
+(createUIComponent(
   ["in-game"],
   ["upgrade-menu-open:true", "submenu-selected:blimp"],
   900,
@@ -1073,7 +1070,7 @@ createUIComponent(
   null,
   "Primary: ",
   false,
-  40
+  40,
 ),
   //Path 1
   Object.defineProperty(
@@ -1089,7 +1086,7 @@ createUIComponent(
       null,
       "Not unlocked yet",
       true,
-      30
+      30,
     ),
     "text",
     {
@@ -1101,8 +1098,8 @@ createUIComponent(
         let blimp = Registry.blimps.get(upgrade);
         return blimp.name;
       },
-    }
-  );
+    },
+  ));
 Object.defineProperty(
   createUIComponent(
     //Description
@@ -1116,7 +1113,7 @@ Object.defineProperty(
     null,
     "No weapon is present. Upgrade to add one.",
     true,
-    20
+    20,
   ),
   "text",
   {
@@ -1128,7 +1125,7 @@ Object.defineProperty(
       let blimp = Registry.blimps.get(upgrade);
       return wrapWords(blimp.description, 50);
     },
-  }
+  },
 );
 //Next upgrade info
 createUIComponent(
@@ -1142,7 +1139,7 @@ createUIComponent(
   null,
   "Alternative: ",
   false,
-  35
+  35,
 );
 Object.defineProperty(
   createUIComponent(
@@ -1157,7 +1154,7 @@ Object.defineProperty(
     null,
     "Max Upgrades",
     true,
-    30
+    30,
   ),
   "text",
   {
@@ -1169,7 +1166,7 @@ Object.defineProperty(
       let blimp = Registry.blimps.get(upgrade);
       return blimp.name;
     },
-  }
+  },
 );
 Object.defineProperty(
   createUIComponent(
@@ -1184,7 +1181,7 @@ Object.defineProperty(
     null,
     "Maximum upgrade level for this blimp\nhas been reached.",
     true,
-    20
+    20,
   ),
   "text",
   {
@@ -1196,7 +1193,7 @@ Object.defineProperty(
       let blimp = Registry.blimps.get(upgrade);
       return wrapWords(blimp.description, 50);
     },
-  }
+  },
 );
 //Costs
 createUIComponent(
@@ -1211,7 +1208,7 @@ createUIComponent(
   null,
   "",
   true,
-  20
+  20,
 );
 createUIImageComponent(
   //Shard icon
@@ -1223,7 +1220,7 @@ createUIImageComponent(
   30,
   null,
   "ui.shard",
-  false
+  false,
 );
 createUIImageComponent(
   //Bloonstone icon
@@ -1235,7 +1232,7 @@ createUIImageComponent(
   30,
   null,
   "ui.bloonstone",
-  false
+  false,
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -1251,7 +1248,7 @@ UIComponent.alignLeft(
       null,
       "",
       true,
-      20
+      20,
     ),
     "text",
     {
@@ -1263,8 +1260,8 @@ UIComponent.alignLeft(
         let blimp = Registry.blimps.get(upgrade);
         return shortenedNumber(blimp?.cost?.shards ?? 0);
       },
-    }
-  )
+    },
+  ),
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -1280,7 +1277,7 @@ UIComponent.alignLeft(
       null,
       "",
       true,
-      20
+      20,
     ),
     "text",
     {
@@ -1292,8 +1289,8 @@ UIComponent.alignLeft(
         let blimp = Registry.blimps.get(upgrade);
         return shortenedNumber(blimp?.cost?.bloonstones ?? 0);
       },
-    }
-  )
+    },
+  ),
 );
 //cost 2
 //Costs
@@ -1309,7 +1306,7 @@ createUIComponent(
   null,
   "",
   true,
-  20
+  20,
 );
 createUIImageComponent(
   //Shard icon
@@ -1321,7 +1318,7 @@ createUIImageComponent(
   30,
   null,
   "ui.shard",
-  false
+  false,
 );
 createUIImageComponent(
   //Bloonstone icon
@@ -1333,7 +1330,7 @@ createUIImageComponent(
   30,
   null,
   "ui.bloonstone",
-  false
+  false,
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -1349,7 +1346,7 @@ UIComponent.alignLeft(
       null,
       "",
       true,
-      20
+      20,
     ),
     "text",
     {
@@ -1361,8 +1358,8 @@ UIComponent.alignLeft(
         let blimp = Registry.blimps.get(upgrade);
         return shortenedNumber(blimp?.cost?.shards ?? 0);
       },
-    }
-  )
+    },
+  ),
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -1378,7 +1375,7 @@ UIComponent.alignLeft(
       null,
       "",
       true,
-      20
+      20,
     ),
     "text",
     {
@@ -1390,8 +1387,8 @@ UIComponent.alignLeft(
         let blimp = Registry.blimps.get(upgrade);
         return shortenedNumber(blimp?.cost?.bloonstones ?? 0);
       },
-    }
-  )
+    },
+  ),
 );
 //buttons
 createUIComponent(
@@ -1419,7 +1416,7 @@ createUIComponent(
   },
   "Upgrade\nPrimary",
   false,
-  20
+  20,
 );
 createUIComponent(
   ["in-game"],
@@ -1446,7 +1443,7 @@ createUIComponent(
   },
   "Upgrade\nAlternative",
   false,
-  20
+  20,
 );
 
 //#endregion
@@ -1470,12 +1467,12 @@ Object.defineProperty(
     null,
     "ERROR",
     false,
-    40
+    40,
   ),
   "text",
   {
     get: () => "Weapon: SP" + (-1 - getSelectedSlotIndex()), //Dynamically change based on selected slot
-  }
+  },
 );
 //Current upgrade info
 Object.defineProperty(
@@ -1491,7 +1488,7 @@ Object.defineProperty(
     null,
     "Not unlocked yet",
     true,
-    30
+    30,
   ),
   "text",
   {
@@ -1507,7 +1504,7 @@ Object.defineProperty(
       }
       return weapon.name;
     },
-  }
+  },
 );
 Object.defineProperty(
   createUIComponent(
@@ -1522,7 +1519,7 @@ Object.defineProperty(
     null,
     "No weapon is present. Upgrade to add one.",
     true,
-    20
+    20,
   ),
   "text",
   {
@@ -1539,7 +1536,7 @@ Object.defineProperty(
       }
       return wrapWords(weapon.description, 60);
     },
-  }
+  },
 );
 //Next upgrade info
 createUIComponent(
@@ -1553,7 +1550,7 @@ createUIComponent(
   null,
   "Upgrade To:",
   false,
-  35
+  35,
 );
 Object.defineProperty(
   createUIComponent(
@@ -1568,7 +1565,7 @@ Object.defineProperty(
     null,
     "Max Upgrades",
     true,
-    30
+    30,
   ),
   "text",
   {
@@ -1584,7 +1581,7 @@ Object.defineProperty(
       }
       return weapon.name;
     },
-  }
+  },
 );
 Object.defineProperty(
   createUIComponent(
@@ -1599,7 +1596,7 @@ Object.defineProperty(
     null,
     "Maximum upgrade level for this blimp\nhas been reached.",
     true,
-    20
+    20,
   ),
   "text",
   {
@@ -1618,7 +1615,7 @@ Object.defineProperty(
       }
       return wrapWords(weapon.description, 50);
     },
-  }
+  },
 );
 createUIComponent(
   //Cost background
@@ -1632,7 +1629,7 @@ createUIComponent(
   null,
   "",
   true,
-  20
+  20,
 );
 createUIImageComponent(
   //Shard icon
@@ -1644,7 +1641,7 @@ createUIImageComponent(
   30,
   null,
   "ui.shard",
-  false
+  false,
 );
 createUIImageComponent(
   //Bloonstone icon
@@ -1656,7 +1653,7 @@ createUIImageComponent(
   30,
   null,
   "ui.bloonstone",
-  false
+  false,
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -1672,7 +1669,7 @@ UIComponent.alignLeft(
       null,
       "",
       true,
-      20
+      20,
     ),
     "text",
     {
@@ -1688,8 +1685,8 @@ UIComponent.alignLeft(
         }
         return shortenedNumber(weapon.cost?.shards ?? 0);
       },
-    }
-  )
+    },
+  ),
 );
 UIComponent.alignLeft(
   Object.defineProperty(
@@ -1705,7 +1702,7 @@ UIComponent.alignLeft(
       null,
       "",
       true,
-      20
+      20,
     ),
     "text",
     {
@@ -1721,8 +1718,8 @@ UIComponent.alignLeft(
         }
         return shortenedNumber(weapon.cost?.bloonstones ?? 0);
       },
-    }
-  )
+    },
+  ),
 );
 createUIComponent(
   ["in-game"],
@@ -1741,7 +1738,7 @@ createUIComponent(
   },
   "Upgrade!",
   false,
-  20
+  20,
 );
 
 //#endregion
@@ -1759,7 +1756,7 @@ createUIComponent(
   960,
   275,
   1920,
-  20
+  20,
 );
 createUIComponent(
   ["in-game"],
@@ -1767,7 +1764,7 @@ createUIComponent(
   960,
   275,
   1920,
-  20
+  20,
 ).bgimg = "ui.warn-tape";
 UIComponent.setBackgroundOf(
   createUIComponent(
@@ -1777,9 +1774,9 @@ UIComponent.setBackgroundOf(
     275,
     400,
     50,
-    "both"
+    "both",
   ),
-  [0, 200, 255]
+  [0, 200, 255],
 );
 UIComponent.setBackgroundOf(
   createUIComponent(
@@ -1789,9 +1786,9 @@ UIComponent.setBackgroundOf(
     275,
     400,
     50,
-    "both"
+    "both",
   ),
-  [255, 70, 0]
+  [255, 70, 0],
 );
 createUIComponent(
   ["in-game"],
@@ -1804,7 +1801,7 @@ createUIComponent(
   null,
   "Paused",
   true,
-  55
+  55,
 );
 //#endregion
 //###################################################################
@@ -1832,7 +1829,7 @@ createUIComponent(
   55,
   "none",
   () => UIComponent.setCondition("min:true"),
-  "-"
+  "-",
 );
 createUIComponent(
   ["in-game"],
@@ -1843,7 +1840,7 @@ createUIComponent(
   55,
   "none",
   () => UIComponent.setCondition("min:false"),
-  "+"
+  "+",
 );
 createUIComponent(
   ["in-game"],
@@ -1854,7 +1851,7 @@ createUIComponent(
   55,
   "none",
   () => UIComponent.setCondition("tool:none"),
-  "X"
+  "X",
 );
 
 createUIComponent(
@@ -1868,7 +1865,7 @@ createUIComponent(
   null,
   "Sandbox Tools",
   true,
-  30
+  30,
 );
 createUIComponent(
   ["in-game"],
@@ -1881,7 +1878,7 @@ createUIComponent(
   () => UIComponent.setCondition("tool:switcher"),
   "Mode\nSwitch",
   true,
-  20
+  20,
 );
 createUIComponent(
   ["in-game"],
@@ -1894,7 +1891,7 @@ createUIComponent(
   () => UIComponent.setCondition("tool:diff"),
   "Difficulty\nSwitch",
   true,
-  20
+  20,
 );
 createUIComponent(
   ["in-game"],
@@ -1907,7 +1904,7 @@ createUIComponent(
   () => UIComponent.setCondition("tool:currency"),
   "Currency\nSpawner",
   true,
-  20
+  20,
 );
 
 // mode switcher
@@ -1922,7 +1919,7 @@ createUIComponent(
   null,
   "Mode Switcher",
   true,
-  30
+  30,
 );
 createUIComponent(
   ["in-game"],
@@ -1935,7 +1932,7 @@ createUIComponent(
   null,
   "Not reversible!",
   true,
-  30
+  30,
 ).textColour = [255, 197, 0];
 createUIComponent(
   ["in-game"],
@@ -1950,7 +1947,7 @@ createUIComponent(
   },
   "Adventure",
   true,
-  30
+  30,
 );
 createUIComponent(
   ["in-game"],
@@ -1965,7 +1962,7 @@ createUIComponent(
   },
   "*Boss Rush",
   true,
-  30
+  30,
 );
 
 // diff switcher
@@ -1980,7 +1977,7 @@ createUIComponent(
   null,
   "Difficulty Switcher",
   true,
-  30
+  30,
 );
 Object.defineProperty(
   createUIComponent(
@@ -1996,10 +1993,10 @@ Object.defineProperty(
     },
     "Easy",
     true,
-    30
+    30,
   ),
   "emphasised",
-  { get: () => game.difficulty === "easy" }
+  { get: () => game.difficulty === "easy" },
 );
 Object.defineProperty(
   createUIComponent(
@@ -2015,10 +2012,10 @@ Object.defineProperty(
     },
     "Normal",
     true,
-    30
+    30,
   ),
   "emphasised",
-  { get: () => game.difficulty === "normal" }
+  { get: () => game.difficulty === "normal" },
 );
 Object.defineProperty(
   createUIComponent(
@@ -2034,10 +2031,10 @@ Object.defineProperty(
     },
     "Hard",
     true,
-    30
+    30,
   ),
   "emphasised",
-  { get: () => game.difficulty === "hard" }
+  { get: () => game.difficulty === "hard" },
 );
 Object.defineProperty(
   createUIComponent(
@@ -2053,10 +2050,10 @@ Object.defineProperty(
     },
     "Impos",
     true,
-    30
+    30,
   ),
   "emphasised",
-  { get: () => game.difficulty === "impossible" }
+  { get: () => game.difficulty === "impossible" },
 );
 
 // currency adder
@@ -2071,7 +2068,7 @@ createUIComponent(
   null,
   "Currency Spawner",
   true,
-  30
+  30,
 );
 Object.defineProperty(
   createUIComponent(
@@ -2089,10 +2086,10 @@ Object.defineProperty(
     },
     "",
     true,
-    30
+    30,
   ),
   "text",
-  { get: () => "" + tocreate }
+  { get: () => "" + tocreate },
 );
 createUIComponent(
   ["in-game"],
@@ -2105,7 +2102,7 @@ createUIComponent(
   () => {
     if (UIComponent.evaluateCondition("c:shards")) UIComponent.setCondition("c:bloonstones");
     else if (UIComponent.evaluateCondition("c:bloonstones")) UIComponent.setCondition("c:shards");
-  }
+  },
 );
 createUIComponent(
   ["in-game"],
@@ -2120,7 +2117,7 @@ createUIComponent(
   },
   "Reset",
   true,
-  20
+  20,
 );
 createUIComponent(
   ["in-game"],
@@ -2135,7 +2132,7 @@ createUIComponent(
   },
   "+",
   true,
-  40
+  40,
 );
 createUIComponent(
   ["in-game"],
@@ -2150,7 +2147,7 @@ createUIComponent(
   },
   "-",
   true,
-  40
+  40,
 );
 createUIComponent(
   ["in-game"],
@@ -2166,7 +2163,7 @@ createUIComponent(
   },
   "10k",
   true,
-  30
+  30,
 );
 createUIComponent(
   ["in-game"],
@@ -2182,7 +2179,7 @@ createUIComponent(
   },
   "1k",
   true,
-  30
+  30,
 );
 createUIComponent(
   ["in-game"],
@@ -2198,7 +2195,7 @@ createUIComponent(
   },
   "100",
   true,
-  30
+  30,
 );
 createUIImageComponent(
   ["in-game"],
@@ -2209,7 +2206,7 @@ createUIImageComponent(
   55,
   null,
   "ui.shard",
-  false
+  false,
 );
 createUIImageComponent(
   ["in-game"],
@@ -2220,7 +2217,7 @@ createUIImageComponent(
   55,
   null,
   "ui.bloonstone",
-  false
+  false,
 );
 
 //#endregion
@@ -2245,6 +2242,6 @@ createUIComponent(
     if (!UIComponent.evaluateCondition("was-game-paused:true")) unpause();
     UIComponent.setCondition("upgrade-menu-open:false");
   },
-  "Close"
+  "Close",
 ).isBackButton = true;
 //#endregion

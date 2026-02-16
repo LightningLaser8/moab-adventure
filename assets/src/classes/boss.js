@@ -6,11 +6,15 @@ class Boss extends ScalingEntity {
   triggers = []; // Stores triggers, which allow conditional execution of actions
   /** @type {string[]} */
   sequence = []; // Array of names of actions. These will be executed in order.
+  /** @type {string[]?} */
   imposSequence = null; //Array to be used in Impossible difficulty. Optional.
   #action = 0; //Current action being executed
 
+  /**@type {Model}*/
   model = null;
+  /**@type {Model?}*/
   imposModel = null;
+  /**@type {Model?}*/
   overrideModel = null;
 
   data = new Map();
@@ -27,6 +31,11 @@ class Boss extends ScalingEntity {
   higher = false;
 
   bossmusic = null;
+
+  get rnd() {
+    return rnd(0, 1);
+  }
+  usesLargeLevel = false;
 
   init() {
     super.init();
@@ -74,6 +83,15 @@ class Boss extends ScalingEntity {
         },
       };
     }
+    if (this.imposDrawer && !this.imposModel) {
+      this.imposModel = {
+        displayWidth: this.imposDrawer.width,
+        displayHeight: this.imposDrawer.height,
+        parts: {
+          main: this.imposDrawer,
+        },
+      };
+    }
 
     // new system
     if (this.overrideModel) this.overrideModel = construct(this.overrideModel, Model);
@@ -91,7 +109,30 @@ class Boss extends ScalingEntity {
     return game.difficulty === "impossible" ? (this.imposSequence ?? this.sequence) : this.sequence;
   }
   getAction() {
-    return this.actions[this.seq()[this.#action]];
+    let actName = this.seq()[this.#action];
+    if (!actName) return null;
+    //it's processing time
+    let qpos = actName.indexOf("?") + 1;
+    if (qpos) {
+      let condition = actName.substring(0, qpos - 1);
+      actName = actName.substring(qpos);
+      let epos = actName.indexOf(":") + 1;
+      if (epos) {
+        let ifAction = actName.substring(0, epos - 1);
+        let elseAction = actName.substring(epos);
+        // console.log(`if ${condition} then ${ifAction} else ${elseAction}`);
+        if (this.satisfies(condition)) actName = ifAction;
+        else actName = elseAction;
+        // console.log(`-> doing ${actName}`);
+        // console.log("-> ", this.actions[actName]);
+      } else {
+        // console.log(`if ${condition} then ${actName}`);
+        if (!this.satisfies(condition)) return null;
+        // console.log(`-> doing ${actName}`);
+      }
+    }
+    // console.log(`unconditional ${actName}`);
+    return this.actions[actName];
   }
   #eval(condition, seppos, evaluator) {
     let lvalue = this.#valueof(condition.substring(0, seppos - 1));
@@ -102,21 +143,25 @@ class Boss extends ScalingEntity {
     return !!res;
   }
   #valueof(valueString) {
-    // console.log(`value ${valueString}`);
-    if (valueString.startsWith("#")) {
-      valueString = valueString.substring(1);
-      let dg = this.data.get(valueString);
-      if (dg !== undefined) valueString = dg;
-    }
-    if (valueString.startsWith("@")) {
-      valueString = valueString.substring(1);
-      let v = this[valueString],
-        tv = typeof v;
-      if (valueString in this && tv !== "function" && tv !== "object") valueString = v;
+    if (typeof valueString !== "string") console.log("string bad, got " + typeof valueString);
+    else {
+      if (valueString.startsWith("#")) {
+        valueString = valueString.substring(1);
+        let dg = this.data.get(valueString);
+        // console.log("data value: " + dg);
+        if (dg !== undefined) valueString = dg;
+      }
+      if (typeof valueString === "string" && valueString.startsWith("@")) {
+        valueString = valueString.substring(1);
+        let v = this[valueString],
+          tv = typeof v;
+        // console.log("getter value: " + v);
+        if (valueString in this && tv !== "function" && tv !== "object") valueString = v;
+      }
     }
     return valueString;
   }
-  lobotomise(){
+  lobotomise() {
     this.data.clear();
     this.#action = 0;
     for (let name in this.actions) {
@@ -125,7 +170,7 @@ class Boss extends ScalingEntity {
     this.triggers.forEach((v, i, a) => (a[i] = construct(v, ActionTrigger)));
   }
   satisfies(condition) {
-    // console.log(`only if ${condition}`);
+    // // console.log(`only if ${condition}`);
     let ltpos = condition.indexOf("<") + 1;
     let rtpos = condition.indexOf(">") + 1;
     let eqpos = condition.indexOf("=") + 1;
@@ -153,7 +198,12 @@ class Boss extends ScalingEntity {
         if (this.satisfies(condition)) actName = ifAction;
         else actName = elseAction;
         // console.log(`-> doing ${actName}`);
-      } else if (!this.satisfies(condition)) return actIndex + 1;
+        // console.log("-> ", this.actions[actName]);
+      } else {
+        // console.log(`if ${condition} then ${actName}`);
+        if (!this.satisfies(condition)) return actIndex + 1;
+        // console.log(`-> doing ${actName}`);
+      }
     }
 
     /**@type {BossAction} */
@@ -172,11 +222,32 @@ class Boss extends ScalingEntity {
     if (actIndex >= seq.length) {
       actIndex = 0;
     }
-    let next = this.actions[seq[actIndex]];
+    let nname = seq[actIndex];
+    //it's processing time
+    let qpos2 = nname.indexOf("?") + 1;
+    if (qpos2) {
+      let condition = nname.substring(0, qpos - 1);
+      nname = nname.substring(qpos);
+      let epos = nname.indexOf(":") + 1;
+      if (epos) {
+        let ifAction = nname.substring(0, epos - 1);
+        let elseAction = nname.substring(epos);
+        // console.log(`pretest if ${condition} then ${ifAction} else ${elseAction}`);
+        if (this.satisfies(condition)) nname = ifAction;
+        else nname = elseAction;
+        // console.log(`-> doing ${nname}`);
+        // console.log("-> ",this.actions[nname]);
+      } else {
+        // console.log(`if ${condition} then ${actName}`);
+        if (!this.satisfies(condition)) return actIndex;
+        // console.log(`-> doing ${actName}`);
+      }
+    }
+    let next = this.actions[nname];
     if (!next) return actIndex; //Stop if the only action has been done
     next.animate(this);
     next.execute(this);
-    this.triggerStart(seq[actIndex]);
+    this.triggerStart(nname);
     next.tick(this); // correction for ticking actions
     if (next.duration === 1 && actIndex !== 0) {
       this.tickSeq(seq, actIndex); //skip through, unless all actions are 0 duration to avoid freezing
@@ -196,15 +267,14 @@ class Boss extends ScalingEntity {
   tick() {
     //Tick as normal
     super.tick();
-    this.model.tick();
+    this.getModel().tick();
   }
   ai(){
-    if(this.world.transitioning) return;
+    if (this.world.transitioning) return;
     if (!this.#action) this.#action = 0;
     
     if (this.aiActive) {
-      //Temporarily, set target to player. This should almost always be the case, until player minions exist.
-      this.target = game?.player;
+      this.target = this.world.nearestEnemyTo(this.x, this.y, this.team);
     }
     this.#action = this.tickSeq(this.seq(), this.#action);
     //check triggers

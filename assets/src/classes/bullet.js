@@ -392,7 +392,7 @@ class Bullet {
         bullet instanceof Deflection &&
         this.bounceable && // don't deflect deflections
         bullet.entity.team !== this.entity.team &&
-        this.collidesWith(bullet) //check collisions last for performance reasons
+        bullet.collidesWith(this) //check collisions last for performance reasons
       ) {
         bullet.bulbonk(this);
         if (!bullet.silent) {

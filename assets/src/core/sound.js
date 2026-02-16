@@ -56,7 +56,7 @@ class MASoundEngine {
     this.processed.connect(this.muffler);
     this.unprocessed.connect(this.context.destination);
 
-    this.processed.gain.setValueAtTime(0, this.context.currentTime)
+    this.processed.gain.setValueAtTime(0, 0)
 
     this.muffler.connect(this.context.destination);
     this.muffler.type = 'lowpass';
@@ -64,12 +64,12 @@ class MASoundEngine {
     this.muffler.Q.value = 1; // Sharpness of the filter (1 is standard)
   }
   muffle(){
-    this.unprocessed.gain.setValueAtTime(0, this.context.currentTime)
-    this.processed.gain.setValueAtTime(1, this.context.currentTime)
+    this.unprocessed.gain.setValueAtTime(0, 0)
+    this.processed.gain.setValueAtTime(1, 0)
   }
   unmuffle(){
-    this.unprocessed.gain.setValueAtTime(1, this.context.currentTime)
-    this.processed.gain.setValueAtTime(0, this.context.currentTime)
+    this.unprocessed.gain.setValueAtTime(1, 0)
+    this.processed.gain.setValueAtTime(0, 0)
   }
   async load(path) {
     try {

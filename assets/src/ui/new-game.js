@@ -449,10 +449,15 @@ createUIComponent(
 
 //quicksand
 UIComponent.setBackgroundOf(
-  createUIComponent(["new-game"], [], 1550, 740, 270, 60, "none", () => quickstart(1, "sandbox")),
+  createUIComponent(["new-game"], [], 1550, 740, 270, 60, "none", () => quickstart(2, "sandbox")),
   "ui.warn-tape-wide",
 );
-createUIComponent(["new-game"], [], 1550, 740, 245, 35, "none", null, "*Quicksand X.1", true, 30);
+UIComponent.setBackgroundOf(
+  createUIComponent(["new-game"], [], 1550, 650, 270, 60, "none", () => quickstart(1, "sandbox")),
+  "ui.warn-tape-wide",
+);
+createUIComponent(["new-game"], [], 1550, 740, 245, 35, "none", null, "*Quicksand X.2", true, 30);
+createUIComponent(["new-game"], [], 1550, 650, 245, 35, "none", null, "*Quicksand X.1", true, 30);
 
 function quickstart(subslot, mode = "adventure") {
   {
@@ -473,10 +478,7 @@ function quickstart(subslot, mode = "adventure") {
     startGame();
 
     if (game.saveslot === -1)
-      notifyEffect(
-        "All slots full, using temporary slot\nSaving will override previous temp. game",
-        360,
-      );
-    else notifyEffect("Playing on slot " + game.saveslot);
+      toasts.show("Quickstart", "All slots full, using temporary slot. Saving will override previous temporary game, and this game cannot be loaded.", 600, ToastStyle.error)
+    else toasts.show("Quickstart", "Playing on slot " + game.saveslot, 240, ToastStyle.plain)
   }
 }

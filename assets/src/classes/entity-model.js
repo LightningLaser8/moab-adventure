@@ -3,6 +3,8 @@ class Model {
   parts = {};
   /**@type {{[name: string]: ModelAnimation}} */
   animations = {};
+  /**@type {ModelMovement[]} */
+  constant = [];
   /**@type {Timer} */
   timer = new Timer();
   displayWidth = 0;
@@ -21,6 +23,7 @@ class Model {
       const element = this.animations[name];
       this.animations[name] = construct({ movements: element }, ModelAnimation);
     }
+    this.constant.forEach((v, i, a) => (a[i] = construct(v, ModelMovement)));
   }
   fire(name) {
     if (Object.hasOwn(this.animations, name)) this.animations[name].on(this);
@@ -64,6 +67,15 @@ class Model {
   }
   tick() {
     this.timer.tick();
+    this.constant.forEach((m) =>
+      this.move(
+        m.part,
+        m.dx / m.duration,
+        m.dy / m.duration,
+        m.drot / m.duration,
+        m.dslide / m.duration,
+      ),
+    );
   }
   draw(x, y, rotation) {
     for (const part in this.parts) {
@@ -103,6 +115,7 @@ class ModelPart {
   shape = "rect";
   colour = [100, 100, 100];
   rotate = true;
+  absRot = false;
   anchor = "";
   outl = false;
   hidden = false;
@@ -116,7 +129,6 @@ class ModelPart {
     let relpos = new Vector(this.x, this.y).add(Vector.fromAngle(this.direction).scale(this.slide));
     let rotpos = relpos.rotate(origin.rotation);
     let np = origin.addParts(rotpos.x, rotpos.y, this.direction);
-
     return np;
   }
 
@@ -126,7 +138,14 @@ class ModelPart {
     let p = this.pos(model).rotate(rotation).addParts(x, y);
     if (this.image instanceof ImageContainer || typeof this.image === "string") {
       //If it's an image, draw it
-      ImageCTX.draw(this.image, p.x, p.y, this.width, this.height, this.rotate ? radians(p.rotation) : 0);
+      ImageCTX.draw(
+        this.image,
+        p.x,
+        p.y,
+        this.width,
+        this.height,
+        this.rotate ? radians(p.rotation) : 0,
+      );
     } else {
       //If it isn't, draw a rectangle
       push();
@@ -135,7 +154,14 @@ class ModelPart {
         stroke(...this.colour);
         noFill();
       } else fill(...this.colour);
-      rotatedShape(this.shape, p.x, p.y, this.width, this.height, this.rotate ? radians(p.rotation) : 0);
+      rotatedShape(
+        this.shape,
+        p.x,
+        p.y,
+        this.width,
+        this.height,
+        this.rotate ? radians(p.rotation) : 0,
+      );
       pop();
     }
   }
@@ -145,18 +171,8 @@ class ModelPart {
   }
   /**@param {Model} model  */
   eject(model, ox, oy, od, bullet, spread, spacing, amount, world, entity) {
-      let p = this.pos(model).rotate(od).addParts(ox, oy);
-      patternedBulletExpulsion(
-        p.x,
-        p.y,
-        bullet,
-        amount,
-        p.rotation,
-        spread,
-        spacing,
-        world,
-        entity
-      );
+    let p = this.pos(model).rotate(od).addParts(ox, oy);
+    patternedBulletExpulsion(p.x, p.y, bullet, amount, p.rotation, spread, spacing, world, entity);
   }
 }
 
@@ -169,14 +185,7 @@ class ModelAnimation {
   }
   /**@param {Model} model */
   on(model) {
-    this.movements.forEach((m) => {
-      model.timer.repeat(
-        () => model.move(m.part, m.dx / m.duration, m.dy / m.duration, m.drot / m.duration, m.dslide / m.duration),
-        m.duration,
-        1,
-        m.delay
-      );
-    });
+    this.movements.forEach((m) => m.on(model));
   }
 }
 
@@ -188,4 +197,19 @@ class ModelMovement {
   dslide = 0;
   duration = 0;
   delay = 0;
+  on(model) {
+    model.timer.repeat(
+      () =>
+        model.move(
+          this.part,
+          this.dx / this.duration,
+          this.dy / this.duration,
+          this.drot / this.duration,
+          this.dslide / this.duration,
+        ),
+      this.duration,
+      1,
+      this.delay,
+    );
+  }
 }
