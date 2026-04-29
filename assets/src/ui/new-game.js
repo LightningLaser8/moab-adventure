@@ -27,7 +27,7 @@ createUIComponent(
   "Impossible",
   true,
   45,
-).outlineColour = [255, 255, 0];
+).outlineColour = col.red | col.green;
 UIComponent.setCondition("mode:none");
 //Game mode selector
 createGamePropertySelector(
@@ -216,8 +216,8 @@ createParticleEmitter(
       widthTo: 0,
       heightFrom: 120,
       heightTo: 200,
-      colourFrom: [255, 255, 50, 50],
-      colourTo: [255, 0, 0, 0],
+      colourFrom: col.from(255, 255, 50, 50),
+      colourTo: col.withA(col.red, 0),
     },
   },
 );
@@ -239,8 +239,8 @@ createParticleEmitter(["start-menu"], ["difficulty:impossible"], 960, 1000, 0, 1
     widthTo: 0,
     heightFrom: 120,
     heightTo: 200,
-    colourFrom: [255, 255, 50, 50],
-    colourTo: [255, 0, 0, 0],
+    colourFrom: col.from(255, 255, 50, 50),
+    colourTo: col.withA(col.red, 0),
   },
 });
 createParticleEmitter(["title"], ["difficulty:impossible"], 960, 800, 0, 1, {
@@ -261,8 +261,8 @@ createParticleEmitter(["title"], ["difficulty:impossible"], 960, 800, 0, 1, {
     widthTo: 0,
     heightFrom: 120,
     heightTo: 200,
-    colourFrom: [255, 150, 50, 50],
-    colourTo: [255, 0, 0, 0],
+    colourFrom: col.from(255, 150, 50, 50),
+    colourTo: col.withA(col.red, 0),
   },
 });
 createParticleEmitter(
@@ -289,8 +289,8 @@ createParticleEmitter(
       widthTo: 0,
       heightFrom: 120,
       heightTo: 200,
-      colourFrom: [255, 255, 50, 50],
-      colourTo: [255, 0, 0, 0],
+      colourFrom: col.from(255, 255, 50, 50),
+      colourTo: col.withA(col.red, 0),
     },
   },
   3,
@@ -320,8 +320,8 @@ createParticleEmitter(
       widthTo: 0,
       heightFrom: 120,
       heightTo: 200,
-      colourFrom: [255, 255, 50, 50],
-      colourTo: [255, 0, 0, 0],
+      colourFrom: col.from(255, 255, 50, 50),
+      colourTo: col.withA(col.red, 0),
     },
   },
 );
@@ -343,8 +343,8 @@ createParticleEmitter(["in-game"], ["difficulty:impossible"], 960, 1080, 0, 1, {
     widthTo: 0,
     heightFrom: 90,
     heightTo: 160,
-    colourFrom: [255, 255, 150, 50],
-    colourTo: [255, 0, 0, 0],
+    colourFrom: col.from(255, 255, 150, 50),
+    colourTo: col.withA(col.red, 0),
   },
 });
 createParticleEmitter(["in-game"], ["difficulty:impossible"], 960, 0, 0, 1, {
@@ -365,8 +365,8 @@ createParticleEmitter(["in-game"], ["difficulty:impossible"], 960, 0, 0, 1, {
     widthTo: 0,
     heightFrom: 90,
     heightTo: 160,
-    colourFrom: [255, 100, 50, 50],
-    colourTo: [255, 0, 0, 0],
+    colourFrom: col.from(255, 100, 50, 50),
+    colourTo: col.withA(col.red, 0),
   },
 });
 //mouse fire
@@ -396,20 +396,13 @@ Object.defineProperties(
         widthTo: 0,
         heightFrom: 60,
         heightTo: 100,
-        colourFrom: [255, 255, 50, 50],
-        colourTo: [255, 0, 0, 0],
+        colourFrom: col.from(255, 255, 50, 50),
+        colourTo: col.withA(col.red, 0),
       },
     },
     5,
   ),
-  {
-    x: {
-      get: () => ui.mouse.x,
-    },
-    y: {
-      get: () => ui.mouse.y,
-    },
-  },
+  { x: { get: () => ui.mouse.x }, y: { get: () => ui.mouse.y } },
 );
 
 //#region quickstart
@@ -478,7 +471,12 @@ function quickstart(subslot, mode = "adventure") {
     startGame();
 
     if (game.saveslot === -1)
-      toasts.show("Quickstart", "All slots full, using temporary slot. Saving will override previous temporary game, and this game cannot be loaded.", 600, ToastStyle.error)
-    else toasts.show("Quickstart", "Playing on slot " + game.saveslot, 240, ToastStyle.plain)
+      toasts.show(
+        "Quickstart",
+        "All slots full, using temporary slot. Saving will override previous temporary game, and this game cannot be loaded.",
+        600,
+        ToastStyle.error,
+      );
+    else toasts.show("Quickstart", "Playing on slot " + game.saveslot, 240, ToastStyle.plain);
   }
 }

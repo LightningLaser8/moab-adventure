@@ -10,13 +10,14 @@ class Entity {
   name = "Entity";
   /**@type {World} */
   world = null;
-  resistances = [];
+  /** @type {({[type:string]: number})} */
+  resistances = {};
   //How the entity will be drawn
   drawer = { shape: "circle", fill: "red", image: "error", width: 100, height: 100 };
   hitSize = 100;
   speed = 10;
   team = "enemy";
-  target = { x: 0, y: 0 };
+  target = Vector.ZERO;
 
   collides = true;
   bounceable = true;
@@ -35,7 +36,7 @@ class Entity {
   effectiveHealthMult = 1;
   effectiveResistanceMult = 1;
   effectiveSpeedMult = 1;
-  /** @type {Object<string, number>} */
+  /** @type {({[status:string]: number})} */
   statuses = {};
 
   //Sounds
@@ -52,7 +53,10 @@ class Entity {
   //Movement
   aiActive = true;
   turnSpeed = 5;
-  turnWhileMoving = false;
+  /** Can this entity rotate to face its target? */
+  faceTarget = false;
+  /** Does this entity face the actual target position, or just the target entity? */
+  forceFaceMovementDirection = false;
   trackTarget = false;
   trackingOffsetX = 400;
   trackingOffsetY = 0;
@@ -68,14 +72,7 @@ class Entity {
 
   constructor() {} //Because universal
   immuneTo(type) {
-    let calcAmount = 1;
-    for (let resistance of this.resistances) {
-      if (resistance.type === type) {
-        calcAmount -= resistance.amount; //Negative resistance would actually make it do more damage
-      }
-    }
-    // console.log(this.name, calcAmount === 0 ? "immune" : "not immune", "to", type)
-    return calcAmount === 0;
+    return this.resistances[type] >= 1;
   }
   burstShield(deflections = 1) {
     repeat(deflections, (i) => {
@@ -84,8 +81,8 @@ class Entity {
         type: "deflect",
         lifetime: Math.min(this._shield.maxLife * 1.5, 60),
         hitSize: this._shield.hitSize / 2,
-        colour: [0, 0, 0, 0],
-        colourTo: [0, 0, 0, 0],
+        colour: col.transparent,
+        colourTo: col.transparent,
         trailColour: this._shield.trailColourTo,
         trailColourTo: this._shield.trailColour,
         growth: 25 + 10 * i,
@@ -140,11 +137,7 @@ class Entity {
   damage(type = "normal", amount = 0, source = null) {
     if (source) this.lastHurtSource = source;
     let calcAmount = (amount / this.effectiveHealthMult) * (source?.effectiveDamageMult ?? 1); //Get damage multiplier of source, if there is one
-    for (let resistance of this.resistances) {
-      if (resistance.type === type) {
-        calcAmount -= amount * resistance.amount; //Negative resistance would actually make it do more damage
-      }
-    }
+    calcAmount -= amount * (+this.resistances[type] || 0);
     this.takeDamage(Math.max(calcAmount, 0), source); //Take the damage, but never take negative damage
   }
   heal(amount) {
@@ -245,7 +238,7 @@ class Entity {
     if (this.aiActive && this.trackTarget)
       if (this.target)
         this.trackPoint(this.target.x + this.trackingOffsetX, this.target.y + this.trackingOffsetY);
-    for (let slot of this.weaponSlots) {
+    for (const slot of this.weaponSlots) {
       slot.tick();
     }
     this.lastPos = new Vector(this.x, this.y);
@@ -319,21 +312,26 @@ class Entity {
     if (this._shield) this.burstShield();
   }
   onDespawn() {}
+  set pos(_) {
+    this.x = _.x;
+    this.y = _.y;
+  }
+  get pos() {
+    return new Vector(this.x, this.y);
+  }
 
   moveTowards(x, y, rotate = false) {
     if (!rotate) {
       let oldRot = this.direction;
       this.direction = this.previousRot;
       this.rotateTowards(x, y, this.turnSpeed);
-      this.x += this.speed * Math.cos(radians(this.direction)); //Move in x-direction
-      this.y += this.speed * Math.sin(radians(this.direction)); // Move in y-direction
+      this.pos = this.pos.add(Vector.fromAngle(this.direction).scale(this.speed));
       this.previousRot = this.direction;
       this.direction = oldRot;
       return true;
     } else {
       let done = this.rotateTowards(x, y, this.turnSpeed);
-      this.x += this.speed * Math.cos(radians(this.direction)); //Move in x-direction
-      this.y += this.speed * Math.sin(radians(this.direction)); // Move in y-direction
+      this.pos = this.pos.add(Vector.fromAngle(this.direction).scale(this.speed));
       return done;
     }
   }
@@ -344,13 +342,16 @@ class Entity {
         this.moveTowards(
           x,
           y,
-          this.turnWhileMoving && !(x === this.target.x || y === this.target.y),
+          this.faceTarget && !this.forceFaceMovementDirection, //!(x === this.target.x || y === this.target.y),
         )
       )
-        if (this.turnWhileMoving)
+        if (this.faceTarget) {
           /*If done moving*/
           // and target exists
-          this.rotateTowards(this.target.x, this.target.y, this.turnSpeed); //turn towards it.
+          if (this.forceFaceMovementDirection) this.rotateTowards(x, y, this.turnSpeed);
+          //turn towards it.
+          else this.rotateTowards(this.target.x, this.target.y, this.turnSpeed); //turn towards it.
+        }
   }
   rotateTowards(x, y, amount) {
     let done = false;

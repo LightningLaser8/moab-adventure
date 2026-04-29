@@ -3,19 +3,9 @@ class Weapon {
   minReload = 0;
   barrel = 0;
   parts = [];
-  shoot = {
-    bullet: null,
-    pattern: {
-      spread: 0,
-      amount: 1,
-      spacing: 0,
-    },
-  };
+  shoot = { bullet: null, pattern: { spread: 0, amount: 1, spacing: 0 } };
   //Upgrade info
-  cost = {
-    shards: 0,
-    bloonstones: 0,
-  };
+  cost = { shards: 0, bloonstones: 0 };
   /**@type {WeaponSlot} */
   slot = null;
   name = "Name goes here";
@@ -53,6 +43,7 @@ class Weapon {
       if ((p.recoilAnimations || p.passiveAnimations) && p.type === "part") p.type = "weapon-part";
       np.push(construct(p, Part));
     }
+    this.themeColour = col.convert(this.themeColour);
     this.parts = np;
   }
   draw() {
@@ -122,7 +113,7 @@ class Weapon {
 
       if (this.recoil) this.slot.entity.knock(this.recoil, this.rotation + 180);
 
-      let v = new Vector(this.x,this.y).add(new DirectionVector(this.rotation, this.shootX));
+      let v = new Vector(this.x, this.y).add(new DirectionVector(this.rotation, this.shootX));
       patternedBulletExpulsion(
         v.x,
         v.y,

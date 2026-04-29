@@ -176,6 +176,7 @@ class UIComponent {
   //Evaluates property:value on game ui: input "slot:1" => if "slot" is "1" (or equivalent, e.g. 1) return true, else false
   static evaluateCondition(condition) {
     const parts = condition.split(":"); //Separate property <- : -> value
+    if(parts.length === 1) return condition in ui.conditions;
     if (parts.length !== 2) {
       //If extra parameters, or not enough:
       return true; //Basically ignore
@@ -208,7 +209,7 @@ class UIComponent {
   inverted = false;
   outline = true;
   backgroundColour = null;
-  textColour = 0;
+  textColour = col.black;
   special = false;
   bgimg = null;
   updateActivity() {
@@ -250,9 +251,9 @@ class UIComponent {
     this.y = y;
     this.width = width;
     this.height = height;
-    this.outlineColour = [50, 50, 50];
+    this.outlineColour = col.mono(50);
     this.baseOutlineColour = this.outlineColour;
-    this.emphasisColour = [255, 255, 0];
+    this.emphasisColour = col.red | col.green;
     this.emphasised = false;
     this.ocr = useOCR;
     this.text = shownText;
@@ -290,7 +291,7 @@ class UIComponent {
     if (this.inverted) scale(1, -1);
     if (this.width > 0 && this.height > 0) {
       if (this.outline && this.outlineColour) {
-        fill(...this.outlineColour);
+        col.fill(this.outlineColour);
         if (this.emphasised) {
           if (this.special) {
             fillGradient("linear", {
@@ -298,7 +299,7 @@ class UIComponent {
               to: [this.x + this.width / 2, this.y + this.height / 2],
               steps: [color(0, 255, 255), color(0, 96, 164), color(0)],
             });
-          } else fill(...this.emphasisColour);
+          } else col.fill(this.emphasisColour);
         }
         push();
         if (this.bevel !== "none") {
@@ -375,7 +376,7 @@ class UIComponent {
       }
       //Draw BG
       if (this.backgroundColour) {
-        fill(...this.backgroundColour);
+        col.fill(this.backgroundColour);
         rect(this.x, this.y, this.width - 2, this.height - 2);
       } else {
         ImageCTX.draw(
@@ -397,7 +398,7 @@ class UIComponent {
     translate(0, 0, 2);
     noStroke();
     textFont(this.ocr ? fonts.ocr : fonts.darktech);
-    fill(this.textColour);
+    col.fill(this.textColour);
     textAlign(CENTER, CENTER);
     if (this.ocr) {
       stroke(0);
@@ -422,7 +423,7 @@ class UIComponent {
     if (this.touching(mouse)) {
       //And mouse is down
       if (mouse.down) {
-        this.outlineColour = [0, 255, 255];
+        this.outlineColour = col.green | col.blue;
         //And the UI isn't waiting
         if (!ui.waitingForMouseUp) {
           //Click
@@ -431,7 +432,7 @@ class UIComponent {
           ui.waitingForMouseUp = true;
         }
       } else {
-        this.outlineColour = [0, 128, 128];
+        this.outlineColour = col.from(0, 128, 128, );
       }
     } else {
       this.outlineColour = this.baseOutlineColour;
@@ -474,8 +475,8 @@ class ImageUIComponent extends UIComponent {
   }
   draw() {
     push();
-    fill(...this.outlineColour);
-    if (this.emphasised) fill(...this.emphasisColour);
+    col.fill(this.outlineColour);
+    if (this.emphasised) col.fill(this.emphasisColour);
     //Draw outline behind background
     if (this.outline) rect(this.x, this.y, this.width + 18, this.height + 18);
     if (this.opacity !== 1) tint(255, 255 * this.opacity);
@@ -487,7 +488,7 @@ class ImageUIComponent extends UIComponent {
 class ShapeUIComponent extends UIComponent {
   angle = 0;
   shape = "rect";
-  backgroundColour = [100, 100, 100];
+  backgroundColour = col.mono(100);
   outlineWidth = 10;
   constructor(
     x = 0,
@@ -506,11 +507,11 @@ class ShapeUIComponent extends UIComponent {
   draw() {
     push();
     if (this.outline) {
-      if (this.emphasised) stroke(...this.emphasisColour);
-      else stroke(...this.outlineColour);
+      if (this.emphasised) col.stroke(this.emphasisColour);
+      else col.stroke(this.outlineColour);
       strokeWeight(this.outlineWidth);
     } else noStroke();
-    fill(...this.backgroundColour);
+    col.fill(this.backgroundColour);
     //Draw image
     rotatedShape(this.shape, this.x, this.y, this.width - 2, this.height - 2, this.angle);
     pop();
@@ -520,9 +521,9 @@ class ShapeUIComponent extends UIComponent {
 class HealthbarComponent extends UIComponent {
   /**@type {Entity?} */
   source = null;
-  healthbarColour = [255, 255, 255];
+  healthbarColour = col.white;
   isHigher = () => false;
-  backgroundColour = [0, 0, 0];
+  backgroundColour = col.black;
   healthbarReversed = false;
   fracReversed = false;
   sourceIsFunction = false;
@@ -530,7 +531,7 @@ class HealthbarComponent extends UIComponent {
   #current = "health";
   #max = "maxHealth";
   #frac = 0;
-  #painColour = null;
+  #painColour = -1;
   setIsHigher(f = () => false) {
     this.isHigher = f;
     return this;
@@ -576,14 +577,14 @@ class HealthbarComponent extends UIComponent {
     useOCR = false,
     shownTextSize = 20,
     source = null,
-    healthcol = [255, 255, 0],
+    healthcol = col.red | col.green,
   ) {
     //Initialise component
     super(x, y, width, height, bevel, onpress, shownText, useOCR, shownTextSize);
     this.source = source;
     this.sourceIsFunction = typeof this.source === "function";
     this.healthbarColour = healthcol;
-    this.#painColour = healthcol.map((x) => Math.min(255, x + 220));
+    this.#painColour = col.lighten(healthcol, 220);
   }
   /**@returns {Entity?} */
   getSource() {
@@ -599,7 +600,7 @@ class HealthbarComponent extends UIComponent {
 
     let bgc = (typeof this.backgroundColour === "function" ?
       this.backgroundColour()
-    : this.backgroundColour) ?? [95, 100, 100, 160];
+    : this.backgroundColour) ?? col.from(95, 100, 100, 160);
     let pc = typeof this.#painColour === "function" ? this.#painColour() : this.#painColour;
     let hbc =
       typeof this.healthbarColour === "function" ? this.healthbarColour() : this.healthbarColour;
@@ -615,9 +616,9 @@ class HealthbarComponent extends UIComponent {
     if (this.width > 0 && this.height > 0) {
       //outline
       if (this.outline && this.outlineColour) {
-        stroke(...this.outlineColour);
+        col.stroke(this.outlineColour);
         strokeWeight(20);
-        if (this.emphasised) stroke(...this.emphasisColour);
+        if (this.emphasised) col.stroke(this.emphasisColour);
         noFill();
         this.#shape(
           this.x - (this.healthbarReversed ? -this.width / 2 : this.width / 2),
@@ -631,7 +632,7 @@ class HealthbarComponent extends UIComponent {
       }
       //bar
       noStroke();
-      fill(...bgc);
+      col.fill(bgc);
       this.#shape(
         this.x - (this.healthbarReversed ? -this.width / 2 : this.width / 2),
         this.y,
@@ -642,7 +643,7 @@ class HealthbarComponent extends UIComponent {
         this.healthbarReversed,
       );
       //indicator
-      fill(pc);
+      col.fill(pc);
       this.#shape(
         this.x - (this.healthbarReversed ? -this.width / 2 : this.width / 2),
         this.y,
@@ -661,7 +662,7 @@ class HealthbarComponent extends UIComponent {
           to: [this.x + this.width / 2, this.y + this.height / 2],
           steps: [[color(...hbc.map((x) => x + 200)), 0.3], color(...hbc), [color(0), 0.8]],
         });
-      } else fill(hbc);
+      } else col.fill(hbc);
       this.#shape(
         this.x - (this.healthbarReversed ? -this.width / 2 : this.width / 2),
         this.y,
@@ -679,10 +680,10 @@ class HealthbarComponent extends UIComponent {
       noStroke();
       textFont(this.ocr ? fonts.ocr : fonts.darktech);
       if (this.ocr) {
-        stroke(...this.textColour);
+        col.stroke(this.textColour);
         strokeWeight(this.textSize / 15);
       }
-      fill(...this.textColour);
+      col.fill(this.textColour);
       textAlign(LEFT, CENTER);
       textSize(this.textSize);
       text(
@@ -764,7 +765,7 @@ function createHealthbarComponent(
   useOCR = false,
   shownTextSize = 20,
   source = null,
-  healthcol = [255, 255, 0],
+  healthcol = col.red | col.green,
 ) {
   //Make component
   const component = new HealthbarComponent(
@@ -855,7 +856,7 @@ class SliderUIComponent extends UIComponent {
   draw() {
     push();
     //Outline
-    fill(this.outlineColour);
+    col.fill(this.outlineColour);
     rect(
       this.x + (this.width + this.length) / 2 - this.height / 2,
       this.y,
@@ -899,17 +900,17 @@ class SliderUIComponent extends UIComponent {
       if (mouse.down) {
         // - But don't wait, so smooth movement
 
-        this.outlineColour = [0, 255, 255];
+        this.outlineColour = col.green | col.blue;
         //Click and change values
         this._current = ((mouse.x - minX) / this.length) * this.max;
         this.change(this._current);
         //And make the UI wait
         ui.waitingForMouseUp = true;
       } else {
-        this.outlineColour = [0, 128, 128];
+        this.outlineColour = col.from(0, 128, 128, );
       }
     } else {
-      this.outlineColour = [50, 50, 50];
+      this.outlineColour = col.mono(50);
     }
   }
 }
@@ -1046,7 +1047,7 @@ function createGamePropertySelector(
   shownTexts = [""],
   shownTextSize = 50,
   onchange = (value) => {},
-  selectionColour = [255, 255, 0],
+  selectionColour = col.red | col.green,
   canPress = (property) => true,
   whenBad = (property) => {},
 ) {
@@ -1243,8 +1244,8 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       0,
       0,
       "ellipse",
-      [255, 255, 255, opacity],
-      [255, 255, 255, 0],
+      col.withA(col.white, opacity),
+      col.withA(col.white, 0),
       0,
       1920 * 3,
       0,
@@ -1259,8 +1260,8 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       0,
       0,
       "ellipse",
-      [255, 255, 255, opacity],
-      [255, 255, 255, 0],
+      col.withA(col.white, opacity),
+      col.withA(col.white, 0),
       0,
       1920 * 5,
       0,
@@ -1275,8 +1276,8 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       0,
       0,
       "ellipse",
-      [255, 255, 255, opacity],
-      [255, 255, 255, 0],
+      col.withA(col.white, opacity),
+      col.withA(col.white, 0),
       0,
       1920 * 8,
       0,
@@ -1291,8 +1292,8 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       0,
       0,
       "rect",
-      [255, 255, 255, opacity],
-      [255, 255, 255, 0],
+      col.withA(col.white, opacity),
+      col.withA(col.white, 0),
       1920,
       1920,
       1080,
@@ -1309,8 +1310,8 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       0,
       0,
       "rhombus",
-      [255, 255, 255, 150],
-      [255, 255, 255, 0],
+      col.withA(col.white, 150),
+      col.withA(col.white, 0),
       glareSize / 3,
       glareSize * 2,
       glareSize / 5,
@@ -1325,8 +1326,8 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       0,
       0,
       "rhombus",
-      [255, 255, 255, 200],
-      [255, 255, 255, 0],
+      col.withA(col.white, 200),
+      col.withA(col.white, 0),
       glareSize / 6,
       glareSize * 1.5,
       (glareSize / 5) * 0.6,
@@ -1341,8 +1342,8 @@ function uiBlindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize =
       0,
       0,
       "rhombus",
-      [255, 255, 255, 255],
-      [255, 255, 255, 0],
+      col.white,
+      col.withA(col.white, 0),
       glareSize / 9,
       glareSize,
       (glareSize / 5) * 0.3,

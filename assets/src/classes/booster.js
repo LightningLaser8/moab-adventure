@@ -7,7 +7,7 @@ class Booster extends Weapon {
   trailBullet = null;
 
   directions = 1;
-  themeColour = [255, 128, 0];
+  themeColour = col.from(255, 128, 0, );
   init() {
     super.init();
     delete this.shoot;

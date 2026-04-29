@@ -1,3 +1,8 @@
+/**@import {Model} from "./entity-model.js" */
+/**@import {ScalingEntity} from "./entity.js" */
+/**@import {BossAction} from "./boss-action.js" */
+/**@import {ActionTrigger} from "./action-trigger.js" */
+
 class Boss extends ScalingEntity {
   reward = 0;
   /** @type {Object<string, BossAction>} */
@@ -9,6 +14,10 @@ class Boss extends ScalingEntity {
   /** @type {string[]?} */
   imposSequence = null; //Array to be used in Impossible difficulty. Optional.
   #action = 0; //Current action being executed
+  /**@deprecated @type {typeof Entity.prototype.drawer} */
+  drawer;
+  /**@deprecated @type {typeof Entity.prototype.drawer} */
+  imposDrawer;
 
   /**@type {Model}*/
   model = null;

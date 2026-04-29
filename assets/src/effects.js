@@ -6,11 +6,11 @@ function splashDamageInstance(
   damageRadius = 0,
   sourceEntity = null,
   showExplosion = true,
-  sparkColour = [255, 245, 215, 255], //The colour the sparks start at
-  sparkColourTo = [255, 215, 0, 55], //The colour the sparks go to
-  smokeColour = [100, 100, 100, 200], //The colour the smoke starts at
-  smokeColourTo = [100, 100, 100, 0], //The colour the smoke goes to
-  waveColour = [255, 128, 0, 0], //The colour the wave ends at. It always starts white.
+  sparkColour = col.from(255, 245, 215, 255), //The colour the sparks start at
+  sparkColourTo = col.from(255, 215, 0, 55), //The colour the sparks go to
+  smokeColour = col.from(100, 100, 100, 200), //The colour the smoke starts at
+  smokeColourTo = col.from(100, 100, 100, 0), //The colour the smoke goes to
+  waveColour = col.from(255, 128, 0, 0), //The colour the wave ends at. It always starts white.
   status = "none",
   statusDuration = 0,
   bossDamageMultiplier = 1,
@@ -70,7 +70,7 @@ function splashDamageInstance(
         30,
         0,
         damageRadius,
-        [255, 255, 255, 255],
+        col.white,
         waveColour,
         radius ** 0.75,
         0,
@@ -90,7 +90,7 @@ function splashDamageInstance(
   }
 }
 function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 600) {
-  if(!game.flashing) return;
+  if (!game.flashing) return;
   world.particles.push(
     //Obscure screen
     new ShapeParticle(
@@ -101,8 +101,8 @@ function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 6
       0,
       0,
       "ellipse",
-      [255, 255, 255, opacity],
-      [255, 255, 255, 0],
+      col.withA(col.white, opacity),
+      col.withA(col.white, 0),
       0,
       1920 * 3,
       0,
@@ -118,8 +118,8 @@ function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 6
       0,
       0,
       "ellipse",
-      [255, 255, 255, opacity],
-      [255, 255, 255, 0],
+      col.withA(col.white, opacity),
+      col.withA(col.white, 0),
       0,
       1920 * 5,
       0,
@@ -135,8 +135,8 @@ function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 6
       0,
       0,
       "ellipse",
-      [255, 255, 255, opacity],
-      [255, 255, 255, 0],
+      col.withA(col.white, opacity),
+      col.withA(col.white, 0),
       0,
       1920 * 8,
       0,
@@ -152,8 +152,8 @@ function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 6
       0,
       0,
       "rect",
-      [255, 255, 255, opacity],
-      [255, 255, 255, 0],
+      col.withA(col.white, opacity),
+      col.withA(col.white, 0),
       1920,
       1920,
       1080,
@@ -170,8 +170,8 @@ function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 6
       0,
       0,
       "rhombus",
-      [255, 255, 255, 150],
-      [255, 255, 255, 0],
+      col.withA(col.white, 150),
+      col.withA(col.white, 0),
       glareSize / 3,
       glareSize * 2,
       glareSize / 5,
@@ -187,8 +187,8 @@ function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 6
       0,
       0,
       "rhombus",
-      [255, 255, 255, 200],
-      [255, 255, 255, 0],
+      col.withA(col.white, 200),
+      col.withA(col.white, 0),
       glareSize / 6,
       glareSize * 1.5,
       (glareSize / 5) * 0.6,
@@ -204,8 +204,8 @@ function blindingFlash(x = 0, y = 0, opacity = 255, duration = 60, glareSize = 6
       0,
       0,
       "rhombus",
-      [255, 255, 255, 255],
-      [255, 255, 255, 0],
+      col.white,
+      col.withA(col.white, 0),
       glareSize / 9,
       glareSize,
       (glareSize / 5) * 0.3,
@@ -226,8 +226,8 @@ function worldTransitionEffect(worldName, duration = 120) {
       0,
       0,
       "rect",
-      [255, 255, 255, 255],
-      [255, 255, 255, 0],
+      col.white,
+      col.white ^ 0xff,
       1080,
       1080,
       1920,
@@ -243,8 +243,8 @@ function worldTransitionEffect(worldName, duration = 120) {
       0,
       0,
       worldName,
-      [0, 0, 0, 255],
-      [0, 0, 0, 0],
+      col.black,
+      col.transparent,
       100,
       100,
       0,
@@ -253,19 +253,24 @@ function worldTransitionEffect(worldName, duration = 120) {
     ),
   );
   if (world.endless)
-    effectTimer.repeat(() =>world.particles.push(
-      new LightningParticle(
-        new Vector(200, 540).multiLerp(new Vector(1720, 540), 100),
-        10,
-        [[0, 0, 0]],
-        0,
-        10,
-        0,
-        40,
-        2,
-        2,
-      ),
-    ), duration/5, 5);
+    effectTimer.repeat(
+      () =>
+        world.particles.push(
+          new LightningParticle(
+            new Vector(200, 540).multiLerp(new Vector(1720, 540), 100),
+            10,
+            [col.black],
+            0,
+            10,
+            0,
+            40,
+            2,
+            2,
+          ),
+        ),
+      duration / 5,
+      5,
+    );
 }
 function notifyEffect(text, duration = 120) {
   push();
@@ -283,8 +288,8 @@ function notifyEffect(text, duration = 120) {
         0,
         0,
         "rect",
-        [100, 100, 100, 255],
-        [100, 100, 100, 0],
+        col.mono(100),
+        col.withA(col.mono(100), 0),
         40,
         40,
         textWidth(ln) + 60,
@@ -300,8 +305,8 @@ function notifyEffect(text, duration = 120) {
         0,
         0,
         ln,
-        [0, 0, 0, 255],
-        [0, 0, 0, 0],
+        col.black,
+        col.withA(col.black, 0),
         30,
         30,
         0,

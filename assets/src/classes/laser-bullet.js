@@ -77,7 +77,7 @@ class LaserBullet extends Bullet {
       );
     } else {
       //Get that laser-y look
-      stroke(this.drawer.fill);
+      col.stroke(this.drawer.fill);
       fill(255);
       strokeWeight(Math.max(2, drawnWidth / 3));
       rotatedShape(

@@ -13,7 +13,7 @@ class Bullet {
   lifetime = 60;
   hitSize = 5;
   trail = true;
-  trailColour = [255, 255, 255, 200];
+  trailColour = col.from(255, 255, 255, 200);
   trailColourTo = null;
   trailLifeFactor = 0.75;
   trailShape = "rhombus";
@@ -105,6 +105,9 @@ class Bullet {
     this.maxLife = this.lifetime;
     this.maxPierce = this.pierce;
     this.trailColourTo ??= this.trailColour;
+    this.trailColour = col.convert(this.trailColour);
+    this.trailColourTo = col.convert(this.trailColourTo);
+    col.autonorm(this.drawer);
     if (this.trailInterval === -1) this.trailInterval = this.hitSize * 4;
     if (this.trailWidth === -1) this.trailWidth = this.hitSize;
   }
@@ -290,7 +293,7 @@ class Bullet {
       );
     } else {
       //If no image, draw shape instead
-      fill(this.drawer.fill);
+      col.fill(this.drawer.fill);
       rotatedShape(
         this.drawer.shape,
         this.x,

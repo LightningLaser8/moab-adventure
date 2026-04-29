@@ -85,7 +85,7 @@ const game = {
     return this.increasedLevelSize ? 1920 + 960 : 1920;
   },
 
-  deaths: 0
+  deaths: 0,
 };
 /** @type {World} */
 let world;
@@ -140,66 +140,48 @@ async function setup() {
     backgrounds.grad_normal = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
       //For each vertical unit
-      let col = colinterp(
-        [
-          [0, 0, 0],
-          [0, 200, 255],
-        ],
-        y / 100,
-      ); //Get colour interpolation
+      let c = col.interp([col.black, col.from(0, 200, 255)], y / 100); //Get colour interpolation
       backgrounds.grad_normal.noStroke(); //Remove outline
-      backgrounds.grad_normal.fill(col); //Set fill colour to use
+      col.fillOn(backgrounds.grad_normal, c); //Set fill colour to use
       backgrounds.grad_normal.rect(0, y, 2, 1); //Draw the rectangle
     }
     backgrounds.grad_boss_rush = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
       //For each vertical unit
-      let col = colinterp(
-        [
-          [0, 0, 0],
-          [50, 0, 100],
-          [200, 0, 255],
-        ],
-        y / 100,
-      ); //you get it by now
+      let c = col.interp([col.black, col.from(50, 0, 100), col.from(200, 0, 255)], y / 100); //you get it by now
       backgrounds.grad_boss_rush.noStroke();
-      backgrounds.grad_boss_rush.fill(col);
+      col.fillOn(backgrounds.grad_boss_rush, c);
       backgrounds.grad_boss_rush.rect(0, y, 2, 1);
     }
     backgrounds.grad_sandbox = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
       //For each vertical unit
-      let col = colinterp(
-        [
-          [0, 0, 0],
-          [50, 35, 0],
-          [150, 100, 0],
-          [255, 200, 0],
-        ],
+      let c = col.interp(
+        [col.black, col.from(50, 35, 0), col.from(150, 100, 0), col.from(255, 200, 0)],
         y / 100,
       ); //you get it by now
       backgrounds.grad_sandbox.noStroke();
-      backgrounds.grad_sandbox.fill(col);
+      col.fillOn(backgrounds.grad_sandbox, c);
       backgrounds.grad_sandbox.rect(0, y, 2, 1);
     }
     backgrounds.grad_impossible = createGraphics(1, 100);
     for (let y = 0; y < 100; y++) {
       //For each vertical unit
-      let col = colinterp(
+      let c = col.interp(
         [
-          [0, 0, 0],
-          [0, 0, 0],
-          [64, 0, 0],
-          [128, 0, 0],
-          [255, 0, 0],
-          [255, 128, 0],
-          [255, 255, 0],
-          [255, 255, 255],
+          col.black,
+          col.black,
+          col.from(64, 0, 0),
+          col.from(128, 0, 0),
+          col.red,
+          col.from(255, 128, 0),
+          col.red | col.green,
+          col.white,
         ],
         y / 100,
       ); //you get it by now
       backgrounds.grad_impossible.noStroke();
-      backgrounds.grad_impossible.fill(col);
+      col.fillOn(backgrounds.grad_impossible, c);
       backgrounds.grad_impossible.rect(0, y, 2, 1);
     }
     //p5 options
@@ -266,6 +248,7 @@ function draw() {
 /** To be replaced with other code in devtools console :) */
 function customDrawCode() {}
 
+UIComponent.setCondition("debug:false")
 function uiFrame() {
   //Tick, then draw the UI
   tickUI();
@@ -316,12 +299,12 @@ function fakeCursor(x, y) {
     : game.reloadBarTheme === "mono" ? monoCols
     : game.reloadBarTheme === "thematic" ?
       [
-        [255, 0, 0],
-        [0, 255, 255],
-        [0, 255, 0],
-        [200, 0, 255],
-        [0, 0, 255],
-        [255, 128, 0],
+        col.red,
+        col.green | col.blue,
+        col.green,
+        col.from(200, 0, 255),
+        col.blue,
+        col.from(255, 128, 0),
       ]
     : null,
     [0, 1, 2, 3, 4].map((i) => 1 - ((frameCount + i * 10) % 60) / 60),
@@ -337,7 +320,7 @@ function drawReloadBars(x, y, cols = null, progresses = []) {
     if (prog) {
       if (game.reloadBarStyle === "radial") {
         noFill();
-        stroke(cols[index] ?? [0, 0, 0]);
+        stroke(cols[index] ?? col.black);
         strokeWeight(3);
         arc(x, y, size * 2, size * 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * prog);
         size += 4;
@@ -346,7 +329,7 @@ function drawReloadBars(x, y, cols = null, progresses = []) {
         noStroke();
         fill(64);
         rect(x + 30, y + size - 48, 60, 5);
-        fill(cols[index] ?? [255, 255, 255]);
+        col.fill(cols[index] ?? col.white);
         rect(x + 30, y + size - 48, 60 * prog, 5);
         size += 8;
       }
@@ -372,7 +355,7 @@ let hadBoss = false;
 function tickBossEvent() {
   UIComponent.setCondition("boss:" + (world.getFirstBoss() ? "yes" : "no")); // Update condition
   if (UIComponent.evaluateCondition("boss:no")) {
-    if(hadBoss) {
+    if (hadBoss) {
       game.levelBig = false;
       world.bossmusic = null;
       if (world.reducedSpawns && game.mode !== "boss-rush") world.reducedSpawns = false;
@@ -394,7 +377,7 @@ function tickBossEvent() {
   } else {
     game.levelBig = !!world.boss.usesLargeLevel;
     hadBoss = true;
-  } 
+  }
 }
 
 function startGame() {
@@ -781,8 +764,8 @@ function keyPressed(ev) {
 
   if (k === "f3") {
     //Toggle debug mode
-    if (UIComponent.evaluateCondition("debug:true")) UIComponent.setCondition("debug:false");
-    else UIComponent.setCondition("debug:true");
+    if (UIComponent.evaluateCondition("debug:false")) UIComponent.setCondition("debug:true");
+    else UIComponent.setCondition("debug:false");
   }
   if (k === "f12") {
     //devtools
@@ -871,14 +854,8 @@ function saveGame() {
     dv: game.player.dv,
     maxDV: game.maxDV,
 
-    destroyed: {
-      boxes: game.player.destroyed.boxes,
-      bosses: game.player.destroyed.bosses,
-    },
-    damage: {
-      dealt: game.player.damageDealt,
-      taken: game.player.damageTaken,
-    },
+    destroyed: { boxes: game.player.destroyed.boxes, bosses: game.player.destroyed.bosses },
+    damage: { dealt: game.player.damageDealt, taken: game.player.damageTaken },
 
     won: game.won,
     bossweapons: [...game.bossweapons],

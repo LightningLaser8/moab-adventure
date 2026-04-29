@@ -10,10 +10,10 @@ class Deflection extends Bullet {
   growth = 15; // hitsize increase per frame
   falloff = 0; // growth falloff amount per frame: 0.01 = multiplies by 0.99 every frame
 
-  colour = [50, 255, 255, 150];
-  colourTo = [50, 255, 255, 0];
-  trailColour = [0, 255, 255, 255];
-  trailColourTo = [0, 255, 255, 50];
+  colour = col.from(50, 255, 255, 150);
+  colourTo = col.from(50, 255, 255, 0);
+  trailColour = col.from(0, 255, 255, 255);
+  trailColourTo = col.from(0, 255, 255, 50);
   trail = false;
 
   trailWidth = 10;
@@ -21,6 +21,10 @@ class Deflection extends Bullet {
   bounceable = false;
   init() {
     super.init();
+    colour = col.convert(colour);
+    colourTo = col.convert(colourTo);
+    trailColour = col.convert(trailColour);
+    trailColourTo = col.convert(trailColourTo);
     this.maxLife = this.lifetime;
   }
   step(dt) {
@@ -78,9 +82,9 @@ class Deflection extends Bullet {
   }
   draw() {
     push();
-    let lf = this.lifetime / this.maxLife;
-    fill(...blendColours(this.colour, this.colourTo, lf));
-    stroke(...blendColours(this.trailColour, this.trailColourTo, lf));
+    const lf = this.lifetime / this.maxLife;
+    col.fill(col.in2rp(this.colour, this.colourTo, 1 - lf));
+    col.stroke(col.in2rp(this.trailColour, this.trailColourTo, 1 - lf));
     strokeWeight(this.trailWidth);
     circle(this.x, this.y, this.hitSize * 2);
     pop();
@@ -93,10 +97,10 @@ class Shield extends Deflection {
   maxStrength = 100;
 
   _pulse = 0;
-  colour = [50, 255, 255, 0];
-  colourTo = [50, 255, 255, 150];
-  trailColour = [0, 255, 255, 0];
-  trailColourTo = [0, 255, 255, 255];
+  colour = col.from(50, 255, 255, 0);
+  colourTo = col.from(50, 255, 255, 150);
+  trailColour = col.from(0, 255, 255, 50);
+  trailColourTo = col.from(0, 255, 255, 255);
   hitSize = 0;
   init() {
     super.init();
@@ -107,7 +111,7 @@ class Shield extends Deflection {
     //Not if dead
     if (!this.remove) {
       this.intervalTick();
-      if(this.entity?.dead) this.remove = true;
+      if (this.entity?.dead) this.remove = true;
       //Tick lifetime
       if (this.lifetime <= 0) {
         if (this.strength <= 0) {
@@ -129,10 +133,10 @@ class Shield extends Deflection {
   }
   draw() {
     push();
-    let lf = this.lifetime / this.maxLife;
-    if (this.lifetime <= 0) fill(...blendColours(this.colour, this.colourTo, lf));
+    const lf = this.lifetime / this.maxLife;
+    if (this.lifetime <= 0) col.fill(col.in2rp(this.colour, this.colourTo, 1 - lf));
     else noFill();
-    stroke(...blendColours(this.trailColour, this.trailColourTo, lf));
+    col.stroke(col.in2rp(this.trailColour, this.trailColourTo, lf));
     strokeWeight(this.trailWidth);
     circle(this.x, this.y, this.hitSize * 2);
     if (this._pulse > 0) {
@@ -192,8 +196,8 @@ class ShieldWall extends Shield {
   draw() {
     push();
     let lf = this.lifetime / this.maxLife;
-    fill(...blendColours(this.colour, this.colourTo, lf));
-    stroke(...blendColours(this.trailColour, this.trailColourTo, lf));
+    col.fill(col.in2rp(this.colour, this.colourTo, lf));
+    col.stroke(col.in2rp(this.trailColour, this.trailColourTo, lf));
     strokeWeight(this.trailWidth);
     rect(this.x, this.y, this.width, 1100);
     if (this._pulse > 0) {

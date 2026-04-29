@@ -56,8 +56,8 @@ createUIImageComponent(
     "circle",
     true
   );
-  c.outlineColour = [50, 255, 255, 255];
-  c.backgroundColour = [50, 255, 255, 150];
+  c.outlineColour = col.from(50, 255, 255, 255);
+  c.backgroundColour = col.from(50, 255, 255, 150);
 }
 
 createUIComponent(
@@ -90,7 +90,7 @@ createUIComponent(
   "How to Support",
   false,
   60
-).textColour = "#fff";
+).textColour = col.white;
 
 /////////////////////////////////////////////////////
 createUIImageComponent(["how-to-support"], [], 720, 600, 300, 300, null, "ui.dash", false);

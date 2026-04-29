@@ -33,11 +33,17 @@ class Toast {
 }
 
 class ToastStyle {
-  backgroundColour = [100];
-  outlineColour = [50];
+  backgroundColour = col.mono(100);
+  outlineColour = col.mono(50);
   outlineWidth = 8;
-  subtextColour = [50];
-  titleColour = [50];
+  subtextColour = col.mono(50);
+  titleColour = col.mono(50);
+  init() {
+    this.backgroundColour = col.convert(this.backgroundColour);
+    this.outlineColour = col.convert(this.outlineColour);
+    this.subtextColour = col.convert(this.subtextColour);
+    this.titleColour = col.convert(this.titleColour);
+  }
   /**@readonly */
   static get plain() {
     return this.#pl;
@@ -78,7 +84,7 @@ class ToastManager {
     let offy = 200;
     for (const toast of this.active) {
       let width = Math.max(toast.titleWidth, toast.textWidth),
-        height = 20 + toast.textHeight + toast.titleHeight//30 * toast.textLines + 40 * toast.titleLines;
+        height = 20 + toast.textHeight + toast.titleHeight; //30 * toast.textLines + 40 * toast.titleLines;
 
       let opacity = 255 - 4 * Math.max(0, 64 - toast.timeLeft);
       let offx =
@@ -89,19 +95,19 @@ class ToastManager {
       // console.log("opacity " + opacity + ", off " + offx);
       push();
       textFont(fonts.ocr);
-      fill(...toast.style.backgroundColour, opacity);
-      stroke(...toast.style.outlineColour, opacity);
+      col.fill(col.withA(toast.style.backgroundColour, opacity));
+      col.stroke(col.withA(toast.style.outlineColour, opacity));
       strokeWeight(10);
       rect(1920 - offx * (width / 2 + 30), offy + height / 2, width + 60, height + 60);
-      strokeWeight(toast.style.outlineWidth+2);
-      stroke(...toast.style.titleColour, opacity);
+      strokeWeight(toast.style.outlineWidth + 2);
+      col.stroke(col.withA(toast.style.titleColour, opacity));
       rect(1920 - offx * (width / 2 + 30), offy + height / 2, width + 40, height + 40);
       strokeWeight(toast.style.outlineWidth);
-      fill(...toast.style.outlineColour, opacity);
+      col.fill(col.withA(toast.style.outlineColour, opacity));
       textSize(40);
       textAlign(CENTER);
       text(toast.title, 1920 - offx * (width / 2 + 30), offy + 25);
-      fill(...toast.style.subtextColour, opacity);
+      col.fill(col.withA(toast.style.subtextColour, opacity));
       noStroke();
       textSize(30);
       textAlign(LEFT, TOP);
