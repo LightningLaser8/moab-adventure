@@ -320,7 +320,7 @@ function drawReloadBars(x, y, cols = null, progresses = []) {
     if (prog) {
       if (game.reloadBarStyle === "radial") {
         noFill();
-        stroke(cols[index] ?? col.black);
+        col.stroke(cols[index] ?? col.black);
         strokeWeight(3);
         arc(x, y, size * 2, size * 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * prog);
         size += 4;
