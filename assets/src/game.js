@@ -86,6 +86,8 @@ const game = {
   },
 
   deaths: 0,
+  /** Is the game blocked for resource loading? */
+  ___: true,
 };
 /** @type {World} */
 let world;
@@ -120,78 +122,88 @@ let backgrounds = {
   grad_endless: null,
 };
 
-async function preload() {
-  console.log("preloading game...");
+async function setup() {
+  try {
+    await masetup();
+  } catch (e) {
+    crash(e);
+  }
+}
+
+//Set up the canvas, using the previous function
+async function masetup() {
+  console.log("- Creating loading background...");
+  createCanvas(...getCanvasDimensions(baseWidth, baseHeight), game.gl ? WEBGL : undefined);
+  rectMode(CENTER);
+  imageMode(CENTER);
+  //Creates background stuff
+  backgrounds.grad_normal = createGraphics(1, 100);
+  for (let y = 0; y < 100; y++) {
+    //For each vertical unit
+    let c = col.interp([col.black, col.from(0, 200, 255)], y / 100); //Get colour interpolation
+    backgrounds.grad_normal.noStroke(); //Remove outline
+    col.fillOn(backgrounds.grad_normal, c); //Set fill colour to use
+    backgrounds.grad_normal.rect(0, y, 2, 1); //Draw the rectangle
+  }
+  backgrounds.grad_boss_rush = createGraphics(1, 100);
+  for (let y = 0; y < 100; y++) {
+    //For each vertical unit
+    let c = col.interp([col.black, col.from(50, 0, 100), col.from(200, 0, 255)], y / 100); //you get it by now
+    backgrounds.grad_boss_rush.noStroke();
+    col.fillOn(backgrounds.grad_boss_rush, c);
+    backgrounds.grad_boss_rush.rect(0, y, 2, 1);
+  }
+  backgrounds.grad_sandbox = createGraphics(1, 100);
+  for (let y = 0; y < 100; y++) {
+    //For each vertical unit
+    let c = col.interp(
+      [col.black, col.from(50, 35, 0), col.from(150, 100, 0), col.from(255, 200, 0)],
+      y / 100,
+    ); //you get it by now
+    backgrounds.grad_sandbox.noStroke();
+    col.fillOn(backgrounds.grad_sandbox, c);
+    backgrounds.grad_sandbox.rect(0, y, 2, 1);
+  }
+  backgrounds.grad_impossible = createGraphics(1, 100);
+  for (let y = 0; y < 100; y++) {
+    //For each vertical unit
+    let c = col.interp(
+      [
+        col.black,
+        col.black,
+        col.from(64, 0, 0),
+        col.from(128, 0, 0),
+        col.red,
+        col.from(255, 128, 0),
+        col.red | col.green,
+        col.white,
+      ],
+      y / 100,
+    ); //you get it by now
+    backgrounds.grad_impossible.noStroke();
+    col.fillOn(backgrounds.grad_impossible, c);
+    backgrounds.grad_impossible.rect(0, y, 2, 1);
+  }
+  console.log(" - Created difficulty backgrounds.");
+
+  console.log("Preloading resources...");
   ImageCTX.commit();
-  await ImageCTX.load();
   SoundCTX.commit();
-  await SoundCTX.loadAll();
+
   fonts.ocr = await loadFont(
     game.gl ? "assets/font/ocr_a_extended_bold.ttf" : "assets/font/ocr_a_extended.ttf",
   );
   fonts.darktech = await loadFont("assets/font/darktech_ldr.ttf");
-}
-//Set up the canvas, using the previous function
-async function setup() {
-  createCanvas(...getCanvasDimensions(baseWidth, baseHeight), game.gl ? WEBGL : undefined);
-  console.log("starting game...");
-  try {
-    //Creates background stuff
-    backgrounds.grad_normal = createGraphics(1, 100);
-    for (let y = 0; y < 100; y++) {
-      //For each vertical unit
-      let c = col.interp([col.black, col.from(0, 200, 255)], y / 100); //Get colour interpolation
-      backgrounds.grad_normal.noStroke(); //Remove outline
-      col.fillOn(backgrounds.grad_normal, c); //Set fill colour to use
-      backgrounds.grad_normal.rect(0, y, 2, 1); //Draw the rectangle
-    }
-    backgrounds.grad_boss_rush = createGraphics(1, 100);
-    for (let y = 0; y < 100; y++) {
-      //For each vertical unit
-      let c = col.interp([col.black, col.from(50, 0, 100), col.from(200, 0, 255)], y / 100); //you get it by now
-      backgrounds.grad_boss_rush.noStroke();
-      col.fillOn(backgrounds.grad_boss_rush, c);
-      backgrounds.grad_boss_rush.rect(0, y, 2, 1);
-    }
-    backgrounds.grad_sandbox = createGraphics(1, 100);
-    for (let y = 0; y < 100; y++) {
-      //For each vertical unit
-      let c = col.interp(
-        [col.black, col.from(50, 35, 0), col.from(150, 100, 0), col.from(255, 200, 0)],
-        y / 100,
-      ); //you get it by now
-      backgrounds.grad_sandbox.noStroke();
-      col.fillOn(backgrounds.grad_sandbox, c);
-      backgrounds.grad_sandbox.rect(0, y, 2, 1);
-    }
-    backgrounds.grad_impossible = createGraphics(1, 100);
-    for (let y = 0; y < 100; y++) {
-      //For each vertical unit
-      let c = col.interp(
-        [
-          col.black,
-          col.black,
-          col.from(64, 0, 0),
-          col.from(128, 0, 0),
-          col.red,
-          col.from(255, 128, 0),
-          col.red | col.green,
-          col.white,
-        ],
-        y / 100,
-      ); //you get it by now
-      backgrounds.grad_impossible.noStroke();
-      col.fillOn(backgrounds.grad_impossible, c);
-      backgrounds.grad_impossible.rect(0, y, 2, 1);
-    }
-    //p5 options
-    rectMode(CENTER);
-    imageMode(CENTER);
-    textFont(fonts.darktech);
-    textAlign(LEFT, BASELINE);
-  } catch (e) {
-    crash(e);
-  }
+
+  textFont(fonts.darktech);
+  textAlign(LEFT, BASELINE);
+  console.log(" - Loaded fonts.");
+
+  await ImageCTX.load();
+  await SoundCTX.loadAll();
+
+  console.log("Starting game...");
+  delete game.___;
 }
 //Change the size if the screen size changes
 function windowResized() {
@@ -216,6 +228,14 @@ function draw() {
       1920,
       1080,
     );
+    if (game.___) {
+      push();
+      textAlign(CENTER, CENTER);
+      textSize(60);
+      text("Loading, please wait...", 960, 540);
+      pop();
+      return;
+    }
 
     translate(0, 0, 2);
     if (world) {
@@ -248,7 +268,7 @@ function draw() {
 /** To be replaced with other code in devtools console :) */
 function customDrawCode() {}
 
-UIComponent.setCondition("debug:false")
+UIComponent.setCondition("debug:false");
 function uiFrame() {
   //Tick, then draw the UI
   tickUI();
@@ -661,7 +681,7 @@ function createPlayer() {
 function createSupport() {
   let suppor = construct(Registry.entities.get("support"));
   //Add all slots: not all of them will be accessible
-  suppor.addWeaponSlot(selector2.sp1());
+  suppor.addWeaponSlot(selector2.sp(1));
   suppor.addToWorld(world);
   game.support = suppor;
 
@@ -690,15 +710,15 @@ function playerDies() {
     SoundCTX.stop("*");
     SoundCTX.play("player-death");
   }, 0);
-  deathStats.shardCounter.text = "Shards: " + shortenedNumber(game.shards);
-  deathStats.bloonstoneCounter.text = "Bloonstones: " + shortenedNumber(game.bloonstones);
-  deathStats.progress.text = "Zone: " + world.name + " | Level " + game.level;
-  deathStats.damageDealt.text = "Damage Dealt: " + shortenedNumber(game.player.damageDealt);
-  deathStats.damageTaken.text = "Damage Taken: " + shortenedNumber(game.player.damageTaken);
+  deathStats.shardCounter.text = `Shards: ${shortenedNumber(game.shards)}`;
+  deathStats.bloonstoneCounter.text = `Bloonstones: ${shortenedNumber(game.bloonstones)}`;
+  deathStats.progress.text = `Zone: ${world.name} | Level ${game.level}`;
+  deathStats.damageDealt.text = `Damage Dealt: ${shortenedNumber(game.player.damageDealt)}`;
+  deathStats.damageTaken.text = `Damage Taken: ${shortenedNumber(game.player.damageTaken)}`;
   deathStats.destroyedBoxes.text =
-    "Boxes Destroyed: " + shortenedNumber(game.player.destroyed.boxes);
+    `Boxes Destroyed: ${shortenedNumber(game.player.destroyed.boxes)}`;
   deathStats.destroyedBosses.text =
-    "Bosses Destroyed: " + shortenedNumber(game.player.destroyed.bosses);
+    `Bosses Destroyed: ${shortenedNumber(game.player.destroyed.bosses)}`;
   ui.menuState = "you-died";
   //Reset world and game
   reset();
@@ -847,7 +867,9 @@ function saveGame() {
 
     levels: game.player.weaponSlots.map((x) => x.tier),
     support: game.support.weaponSlots.map((x) => x.tier),
-    choices: [1, 2, 3, 4, 5].map((s) => +UIComponent.getCondition("ap" + s + "-slot")),
+    choices: ["ap1", "ap2", "ap3", "ap4", "ap5", "sp1"].map(
+      (s) => +UIComponent.getCondition(s + "-slot"),
+    ),
     blimp: game.player.blimpName,
 
     health: game.player.health,
@@ -886,9 +908,14 @@ function loadGame(slot) {
   game.maxDV = save.maxDV ?? 0;
   game.player.dv = save.dv ?? 0;
   //Choices
-  [1, 2, 3, 4, 5].forEach((sl, i) => {
-    selector2.chooseAP(sl, (save.choices ?? [1, 1, 1, 1, 1])[i] ?? 1);
-  });
+  save.choices ??= [];
+  selector2.chooseAP(1, save.choices[0] ?? 1);
+  selector2.chooseAP(2, save.choices[1] ?? 1);
+  selector2.chooseAP(3, save.choices[2] ?? 1);
+  selector2.chooseAP(4, save.choices[3] ?? 1);
+  selector2.chooseAP(5, save.choices[4] ?? 1);
+  selector2.chooseSP(1, save.choices[5] ?? 1);
+
   game.player.weaponSlots = [];
   game.player.addWeaponSlot(selector2.ap(1));
   game.player.addWeaponSlot(selector2.ap(2));
@@ -896,9 +923,11 @@ function loadGame(slot) {
   game.player.addWeaponSlot(selector2.ap(4));
   game.player.addWeaponSlot(selector2.ap(5));
   game.player.addWeaponSlot(selector2.booster());
-  for (let sl = 0; sl < 6; sl++) game.player.weaponSlots[sl].setTier((save.levels ?? [])[sl] ?? 0);
+  save.levels ??= [];
+  for (let sl = 0; sl < 6; sl++) game.player.weaponSlots[sl].setTier(save.levels[sl] ?? 0);
 
-  game.support.addWeaponSlot(selector2.sp1());
+  game.support.weaponSlots = [];
+  game.support.addWeaponSlot(selector2.sp(1));
   for (let sl = 0; sl < 1; sl++)
     game.support.weaponSlots[sl].setTier((save.support ?? [])[sl] ?? 0);
   //blomp
@@ -908,5 +937,5 @@ function loadGame(slot) {
   game.player.destroyed = save.destroyed ?? { bosses: 0, boxes: 0 };
   game.player.damageDealt = save.damage?.dealt ?? 0;
   game.player.damageTaken = save.damage?.taken ?? 0;
-  game.bossweapons = new Set(save.bossweapons ?? []);
+  game.bossweapons = new Set(save.bossweapons);
 }

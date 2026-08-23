@@ -152,6 +152,7 @@ class Entity {
     kineticKnockback = false,
     resolution = 1,
     collided = [],
+    particles = true,
   ) {
     if (resolution < 0) resolution *= -1; //Fix possibility of infinite loop
     if (resolution == 0) resolution = 1;
@@ -202,7 +203,7 @@ class Entity {
       }
     }
     //visual effect because cool
-    if (game.effects === 1 || tru(game.effects))
+    if (particles && (game.effects === 1 || tru(game.effects)))
       this.world.particles.push(
         new AfterImageParticle(
           this.x,

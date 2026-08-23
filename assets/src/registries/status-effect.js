@@ -103,6 +103,16 @@ Registry.statuses.add(
 );
 
 Registry.statuses.add(
+  "gravity",
+  construct({
+    type: "status-effect",
+    speedMult: 0.05,
+    vfx: "gravity",
+    vfxChance: 0.1,
+  })
+);
+
+Registry.statuses.add(
   "red-polarity",
   construct({
     type: "status-effect",

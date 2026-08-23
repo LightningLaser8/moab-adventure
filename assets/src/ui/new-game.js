@@ -466,6 +466,8 @@ function quickstart(subslot, mode = "adventure") {
     UIComponent.setCondition("ap3-slot:" + subslot);
     UIComponent.setCondition("ap4-slot:" + subslot);
     UIComponent.setCondition("ap5-slot:" + subslot);
+    
+    UIComponent.setCondition("sp1-slot:" + subslot);
 
     ui.menuState = "in-game";
     startGame();

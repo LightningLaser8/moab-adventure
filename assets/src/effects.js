@@ -84,7 +84,11 @@ function splashDamageInstance(
       e.team !== sourceEntity.team &&
       ((centreX - e.x) ** 2 + (centreY - e.y) ** 2) ** 0.5 <= damageRadius + e.hitSize
     ) {
-      e.damage(damageType, amount * (e instanceof Boss ? bossDamageMultiplier : 1), sourceEntity);
+      e.damage(
+        damageType,
+        amount * (e instanceof Boss && !e.isMinion ? bossDamageMultiplier : 1),
+        sourceEntity,
+      );
       if (status !== "none") e.applyStatus(status, statusDuration);
     }
   }

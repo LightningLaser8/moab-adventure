@@ -82,6 +82,7 @@ class Bullet {
   sticky = false;
   extraStickTime = 240;
   persistAfterUnstick = true;
+  /** @type {Entity?} */
   _stuckTo = null;
   _stuckOffset = Vector.ZERO;
 
@@ -307,6 +308,9 @@ class Bullet {
   distanceTo(x, y) {
     return this.pos.distanceToXY(x, y);
   }
+  directionTo(x, y) {
+    return this.pos.directionTo(x, y);
+  }
   collidesWith(obj) {
     return this.distanceTo(obj.x, obj.y) <= this.hitSize + obj.hitSize;
   }
@@ -400,11 +404,11 @@ class Bullet {
             if (!instance.area)
               entity.damage(
                 instance.type,
-                (instance.amount +
+                ((instance.amount??0) +
                   (instance.dvRatio && this.entity ? instance.dvRatio * this.entity.dv : 0) +
                   (instance.levelScaling ?? 0) * game.level) *
                   //If boss, multiply damage by boss damage multiplier, if present, or else 1. If not boss, multiply by 1.
-                  (entity instanceof Boss ? (instance.bossDamageMultiplier ?? 1) : 1),
+                  ((entity instanceof Boss && !entity.isMinion) ? (instance.bossDamageMultiplier ?? 1) : 1),
                 this.entity,
               ); //Wait if kaboom
             entity.maxHealth -= instance.amount * this.maxHPReductionFactor;
@@ -457,6 +461,7 @@ class Bullet {
         this.collides &&
         !this.remove &&
         bullet instanceof Deflection &&
+        bullet.collides &&
         this.bounceable && // don't deflect deflections
         bullet.entity.team !== this.entity.team &&
         bullet.collidesWith(this) //check collisions last for performance reasons

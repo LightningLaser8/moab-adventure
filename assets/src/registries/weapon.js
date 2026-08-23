@@ -13,7 +13,7 @@ Registry.weapons.add("tiny-shooter", {
   cost: { shards: 50, bloonstones: 0 },
   shoot: {
     bullet: {
-      type: "Bullet",
+      type: "bullet",
       lifetime: 40,
       speed: 30,
       hitSize: 8,

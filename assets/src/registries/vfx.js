@@ -1,4 +1,4 @@
-Registry.vfx.add("fire", {
+ Registry.vfx.add("fire", {
   type: "vfx.particle",
   cone: 360,
   particle: {
@@ -385,5 +385,26 @@ Registry.vfx.add("laser-charge-mini", {
     colourFrom: [255, 100, 100, 100],
     colourTo: [255, 255, 255, 255],
     reverse: true,
+  },
+});
+
+Registry.vfx.add("gravity", {
+  type: "vfx.particle",
+  cone: 360,
+  particle: {
+    //All
+    lifetime: 60,
+    direction: 0,
+    speed: 1,
+    decel: 0.02,
+    rotateSpeed: 0,
+    moveWithBackground: false,
+    shape: "rhombus",
+    widthFrom: 15,
+    widthTo: 20,
+    heightFrom: 15,
+    heightTo: 20,
+    colourFrom: [255, 0, 255, 100],
+    colourTo: [0, 255, 255, 0],
   },
 });

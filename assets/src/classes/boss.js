@@ -87,18 +87,14 @@ class Boss extends ScalingEntity {
       this.model = {
         displayWidth: this.drawer.width,
         displayHeight: this.drawer.height,
-        parts: {
-          main: this.drawer,
-        },
+        parts: { main: this.drawer },
       };
     }
     if (this.imposDrawer && !this.imposModel) {
       this.imposModel = {
         displayWidth: this.imposDrawer.width,
         displayHeight: this.imposDrawer.height,
-        parts: {
-          main: this.imposDrawer,
-        },
+        parts: { main: this.imposDrawer },
       };
     }
 
@@ -113,6 +109,8 @@ class Boss extends ScalingEntity {
     let currentAction = this.getAction();
     if (currentAction) currentAction.execute(this);
     this.previousRot = this.direction;
+
+    if (this.healthColour !== null) this.healthColour = col.convert(this.healthColour);
   }
   seq() {
     return game.difficulty === "impossible" ? (this.imposSequence ?? this.sequence) : this.sequence;

@@ -70,13 +70,8 @@ class World {
       SoundCTX.play(this.ambientSound);
     }
     if (game.music) {
-      if (this.bossmusic) {
-        if (!this.boss) {
-          SoundCTX.swap(this.bossmusic, this.bgm, true);
-        } else {
-          SoundCTX.swap(this.bgm, this.bossmusic, true);
-        }
-      } else SoundCTX.play(this.bgm, true);
+      if (this.bossmusic && this.boss) SoundCTX.setMusic(this.bossmusic);
+      else SoundCTX.setMusic(this.bgm);
     }
   }
   tickAll() {
@@ -126,7 +121,7 @@ class World {
             splashDamageInstance(
               bullet.x,
               bullet.y,
-              instance.amount +
+              (instance.amount??0) +
                 (instance.dvRatio && bullet.entity ? instance.dvRatio * bullet.entity.dv : 0) +
                 (instance.levelScaling ?? 0) * game.level,
               instance.type,

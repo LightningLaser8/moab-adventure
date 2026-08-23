@@ -88,7 +88,7 @@ Registry.slots.add("ap4", {
         "flamethrower",
         "dragons-breath",
         "chemists-wrath",
-        "sublimation"
+        "sublimation",
       ],
     },
     2: {
@@ -137,5 +137,8 @@ Registry.slots.add("booster", {
 });
 
 Registry.slots.add("sp1", {
-  upgrades: ["deflector", "shield-projector", "protector", "super-shield"]//, "spike-shield"],
+  variations: {
+    1: { upgrades: ["deflector", "shield-projector", "protector", "super-shield", "spike-shield"] },
+    2: { upgrades: ["deflector", "concentrated-force-pulse", "directed-defender", "aftershock", "singularity"] },
+  },
 });
